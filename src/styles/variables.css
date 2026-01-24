@@ -1,0 +1,25 @@
+:root {
+  /* Colors */
+  --color-primary: #0f0;
+  --color-background: #000;
+  --color-text: #fff;
+  --color-prompt: #0af;
+  --color-error: #f00;
+
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 2rem;
+
+  /* Typography */
+  --font-mono: 'Fira Code', 'Courier New', monospace;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.25rem;
+
+  /* Effects */
+  --glow: 0 0 10px var(--color-primary);
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.3s ease;
+}
