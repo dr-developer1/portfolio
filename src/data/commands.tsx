@@ -285,7 +285,7 @@ const projectsCommand: Command = {
         {content.projects.map((project, index) => (
           <div key={index}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
-              <span style={{ color: 'var(--color-accent-blue)', fontWeight: 'bold' }}>
+              <span style={{ color: 'var(--color-accent-cyan)', fontWeight: 'bold' }}>
                 {project.name}
               </span>
               {project.url && (
