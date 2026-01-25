@@ -86,6 +86,29 @@ export function useTerminal(): UseTerminalReturn {
         return;
       }
 
+      // Handle history command internally to access state
+      if (parsed.name === 'history') {
+        const historyOutput = state.commandHistory.map((cmd, index) => (
+          <div key={index} style={{ color: 'var(--color-text-secondary)' }}>
+            <span
+              style={{
+                color: 'var(--color-text-muted)',
+                marginRight: '1rem',
+                display: 'inline-block',
+                width: '2rem',
+                textAlign: 'right',
+              }}
+            >
+              {index + 1}
+            </span>
+            {cmd}
+          </div>
+        ));
+
+        addOutput(<div>{historyOutput}</div>);
+        return;
+      }
+
       // Look up the command
       const command = getCommand(parsed.name);
 
@@ -119,7 +142,7 @@ export function useTerminal(): UseTerminalReturn {
         setState((prev) => ({ ...prev, isLoading: false }));
       }
     },
-    [addOutput, state.currentDirectory]
+    [addOutput, state.currentDirectory, state.commandHistory]
   );
 
   /**

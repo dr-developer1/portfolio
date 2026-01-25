@@ -166,14 +166,9 @@ const historyCommand: Command = {
   name: 'history',
   description: 'Show command history',
   usage: 'history',
-  execute: (_args: string[], addOutput: OutputFunction) => {
-    // This is a special command that needs access to terminal state
-    // We'll handle it specially in the useTerminal hook
-    addOutput(
-      <span style={{ color: 'var(--color-text-muted)' }}>
-        Use ↑/↓ arrow keys to navigate command history
-      </span>
-    );
+  execute: () => {
+    // This command is intercepted by useTerminal hook to access sensitive state
+    // This execute function is a fallback/placeholder
   },
 };
 
