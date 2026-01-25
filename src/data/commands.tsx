@@ -278,7 +278,7 @@ const projectsCommand: Command = {
   name: 'projects',
   description: 'Display featured projects',
   usage: 'projects',
-  aliases: ['work', 'portfolio'],
+  aliases: ['proj', 'portfolio'],
   execute: (_args: string[], addOutput: OutputFunction) => {
     addOutput(
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
