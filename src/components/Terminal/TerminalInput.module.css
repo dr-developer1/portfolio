@@ -1,0 +1,133 @@
+/* ========================================
+   Input Container
+   ======================================== */
+.inputContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  width: 100%;
+  padding-top: var(--spacing-sm);
+  position: relative;
+  z-index: var(--z-base);
+}
+
+/* ========================================
+   Prompt Styling
+   ======================================== */
+.prompt {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  font-size: var(--font-size-base);
+  font-weight: 500;
+}
+
+.promptUser {
+  color: var(--color-prompt-user);
+}
+
+.promptAt {
+  color: var(--color-text-muted);
+}
+
+.promptHost {
+  color: var(--color-prompt-host);
+}
+
+.promptSeparator {
+  color: var(--color-text-muted);
+  margin: 0 2px;
+}
+
+.promptPath {
+  color: var(--color-prompt-path);
+}
+
+.promptSymbol {
+  color: var(--color-accent-green);
+  margin-left: var(--spacing-xs);
+  font-weight: 600;
+}
+
+/* ========================================
+   Input Field
+   ======================================== */
+.inputWrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--color-command);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  letter-spacing: var(--letter-spacing);
+  caret-color: transparent;
+  padding: 0;
+}
+
+.input::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.5;
+}
+
+/* ========================================
+   Custom Cursor
+   ======================================== */
+.cursor {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0.55em;
+  height: 1.25em;
+  background-color: var(--color-accent-green);
+  animation: cursor-blink 1s infinite step-end;
+  pointer-events: none;
+  border-radius: 1px;
+  box-shadow: 0 0 4px var(--color-accent-green);
+}
+
+@keyframes cursor-blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ========================================
+   Responsive Adjustments
+   ======================================== */
+@media (max-width: 768px) {
+  .inputContainer {
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+  }
+  
+  .prompt {
+    font-size: var(--font-size-sm);
+  }
+  
+  .input {
+    font-size: var(--font-size-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .prompt {
+    width: 100%;
+  }
+  
+  .inputWrapper {
+    width: 100%;
+  }
+}

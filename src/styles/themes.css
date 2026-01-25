@@ -1,12 +1,145 @@
-/* Dark theme */
-[data-theme='dark'] {
-  --color-primary: #0f0;
-  --color-background: #0a0a0a;
+/* ========================================
+   Dark Theme (Default)
+   ======================================== */
+[data-theme='dark'],
+:root {
+  --color-bg-primary: #0d1117;
+  --color-bg-secondary: #161b22;
+  --color-bg-tertiary: #21262d;
+  --color-bg-canvas: #010409;
+  --color-border-default: #30363d;
+  --color-text-primary: #e6edf3;
+  --color-text-secondary: #8b949e;
+  --color-titlebar-bg: linear-gradient(180deg, #2d333b 0%, #22272e 100%);
 }
 
-/* Light theme */
+/* ========================================
+   Light Theme
+   ======================================== */
 [data-theme='light'] {
-  --color-primary: #070;
-  --color-background: #f5f5f5;
-  --color-text: #000;
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f6f8fa;
+  --color-bg-tertiary: #eaeef2;
+  --color-bg-canvas: #f0f3f6;
+  --color-border-default: #d0d7de;
+  --color-border-muted: #d8dee4;
+  --color-text-primary: #1f2328;
+  --color-text-secondary: #656d76;
+  --color-text-muted: #8c959f;
+  --color-titlebar-bg: linear-gradient(180deg, #f6f8fa 0%, #eaeef2 100%);
+  --color-titlebar-border: #d0d7de;
+  --color-accent-green: #1a7f37;
+  --color-accent-cyan: #0969da;
+  --color-accent-purple: #8250df;
+  --color-prompt-user: #1a7f37;
+  --color-prompt-host: #0969da;
+  --color-prompt-path: #8250df;
+  --color-output: #1f2328;
+  --color-command: #1f2328;
+  --shadow-lg: 0 8px 24px rgba(140, 149, 159, 0.2);
+  --shadow-glow: 0 0 20px rgba(9, 105, 218, 0.1);
+}
+
+/* ========================================
+   Dracula Theme
+   ======================================== */
+[data-theme='dracula'] {
+  --color-bg-primary: #282a36;
+  --color-bg-secondary: #21222c;
+  --color-bg-tertiary: #343746;
+  --color-bg-canvas: #1e1f29;
+  --color-border-default: #44475a;
+  --color-text-primary: #f8f8f2;
+  --color-text-secondary: #6272a4;
+  --color-titlebar-bg: linear-gradient(180deg, #343746 0%, #282a36 100%);
+  --color-accent-green: #50fa7b;
+  --color-accent-cyan: #8be9fd;
+  --color-accent-purple: #bd93f9;
+  --color-accent-pink: #ff79c6;
+  --color-accent-orange: #ffb86c;
+  --color-accent-red: #ff5555;
+  --color-accent-yellow: #f1fa8c;
+  --color-prompt-user: #50fa7b;
+  --color-prompt-host: #8be9fd;
+  --color-prompt-path: #bd93f9;
+  --color-output: #f8f8f2;
+  --text-glow-green: 0 0 10px rgba(80, 250, 123, 0.4);
+  --text-glow-cyan: 0 0 10px rgba(139, 233, 253, 0.4);
+}
+
+/* ========================================
+   Nord Theme
+   ======================================== */
+[data-theme='nord'] {
+  --color-bg-primary: #2e3440;
+  --color-bg-secondary: #3b4252;
+  --color-bg-tertiary: #434c5e;
+  --color-bg-canvas: #242933;
+  --color-border-default: #4c566a;
+  --color-text-primary: #eceff4;
+  --color-text-secondary: #d8dee9;
+  --color-text-muted: #a5b1c2;
+  --color-titlebar-bg: linear-gradient(180deg, #3b4252 0%, #2e3440 100%);
+  --color-accent-green: #a3be8c;
+  --color-accent-cyan: #88c0d0;
+  --color-accent-purple: #b48ead;
+  --color-accent-orange: #d08770;
+  --color-accent-red: #bf616a;
+  --color-accent-yellow: #ebcb8b;
+  --color-prompt-user: #a3be8c;
+  --color-prompt-host: #88c0d0;
+  --color-prompt-path: #b48ead;
+  --color-output: #eceff4;
+}
+
+/* ========================================
+   Monokai Theme
+   ======================================== */
+[data-theme='monokai'] {
+  --color-bg-primary: #272822;
+  --color-bg-secondary: #1e1f1c;
+  --color-bg-tertiary: #3e3d32;
+  --color-bg-canvas: #1a1b18;
+  --color-border-default: #49483e;
+  --color-text-primary: #f8f8f2;
+  --color-text-secondary: #a59f85;
+  --color-titlebar-bg: linear-gradient(180deg, #3e3d32 0%, #272822 100%);
+  --color-accent-green: #a6e22e;
+  --color-accent-cyan: #66d9ef;
+  --color-accent-purple: #ae81ff;
+  --color-accent-pink: #f92672;
+  --color-accent-orange: #fd971f;
+  --color-accent-red: #f92672;
+  --color-accent-yellow: #e6db74;
+  --color-prompt-user: #a6e22e;
+  --color-prompt-host: #66d9ef;
+  --color-prompt-path: #ae81ff;
+  --color-output: #f8f8f2;
+}
+
+/* ========================================
+   Cyberpunk/Matrix Theme
+   ======================================== */
+[data-theme='matrix'] {
+  --color-bg-primary: #0a0a0a;
+  --color-bg-secondary: #0f0f0f;
+  --color-bg-tertiary: #1a1a1a;
+  --color-bg-canvas: #000000;
+  --color-border-default: #1a3a1a;
+  --color-text-primary: #00ff00;
+  --color-text-secondary: #00cc00;
+  --color-text-muted: #008800;
+  --color-titlebar-bg: linear-gradient(180deg, #0f1f0f 0%, #0a0a0a 100%);
+  --color-titlebar-border: #1a3a1a;
+  --color-accent-green: #00ff00;
+  --color-accent-cyan: #00ffcc;
+  --color-accent-purple: #cc00ff;
+  --color-prompt-user: #00ff00;
+  --color-prompt-host: #00ff00;
+  --color-prompt-path: #00cc00;
+  --color-output: #00ff00;
+  --color-command: #00ff00;
+  --text-glow-green: 0 0 15px rgba(0, 255, 0, 0.7);
+  --text-glow-cyan: 0 0 15px rgba(0, 255, 0, 0.7);
+  --shadow-glow: 0 0 30px rgba(0, 255, 0, 0.2);
 }

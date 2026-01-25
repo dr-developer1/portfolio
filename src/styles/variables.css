@@ -1,25 +1,96 @@
 :root {
-  /* Colors */
-  --color-primary: #0f0;
-  --color-background: #000;
-  --color-text: #fff;
-  --color-prompt: #0af;
-  --color-error: #f00;
-
+  /* Modern color palette - GitHub inspired dark theme */
+  --color-bg-primary: #0d1117;
+  --color-bg-secondary: #161b22;
+  --color-bg-tertiary: #21262d;
+  --color-bg-canvas: #010409;
+  
+  /* Border colors */
+  --color-border-default: #30363d;
+  --color-border-muted: #21262d;
+  --color-border-subtle: rgba(240, 246, 252, 0.1);
+  
+  /* Text colors */
+  --color-text-primary: #e6edf3;
+  --color-text-secondary: #8b949e;
+  --color-text-muted: #6e7681;
+  --color-text-link: #58a6ff;
+  
+  /* Accent colors */
+  --color-accent-green: #3fb950;
+  --color-accent-cyan: #58a6ff;
+  --color-accent-purple: #a371f7;
+  --color-accent-pink: #f778ba;
+  --color-accent-orange: #f0883e;
+  --color-accent-red: #f85149;
+  --color-accent-yellow: #d29922;
+  
+  /* Terminal specific */
+  --color-prompt-user: #3fb950;
+  --color-prompt-host: #58a6ff;
+  --color-prompt-path: #a371f7;
+  --color-prompt-symbol: #8b949e;
+  --color-command: #e6edf3;
+  --color-output: #c9d1d9;
+  --color-error: #f85149;
+  --color-success: #3fb950;
+  --color-warning: #d29922;
+  
+  /* Window chrome */
+  --color-titlebar-bg: linear-gradient(180deg, #2d333b 0%, #22272e 100%);
+  --color-titlebar-border: #444c56;
+  --color-btn-close: #ff5f57;
+  --color-btn-minimize: #febc2e;
+  --color-btn-maximize: #28c840;
+  
   /* Spacing */
   --spacing-xs: 0.25rem;
   --spacing-sm: 0.5rem;
   --spacing-md: 1rem;
-  --spacing-lg: 2rem;
-
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  
   /* Typography */
-  --font-mono: 'Fira Code', 'Courier New', monospace;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
-  --font-size-base: 1rem;
-  --font-size-lg: 1.25rem;
-
-  /* Effects */
-  --glow: 0 0 10px var(--color-primary);
-  --transition-fast: 0.15s ease;
-  --transition-base: 0.3s ease;
+  --font-size-base: 0.9375rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --line-height-tight: 1.4;
+  --line-height-normal: 1.6;
+  --line-height-relaxed: 1.8;
+  --letter-spacing: 0.015em;
+  
+  /* Border radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 20px rgba(88, 166, 255, 0.15);
+  --shadow-inset: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+  
+  /* Text effects */
+  --text-glow-green: 0 0 10px rgba(63, 185, 80, 0.5);
+  --text-glow-cyan: 0 0 10px rgba(88, 166, 255, 0.5);
+  --text-glow-subtle: 0 0 8px rgba(230, 237, 243, 0.1);
+  
+  /* Transitions */
+  --transition-fast: 0.1s ease;
+  --transition-base: 0.2s ease;
+  --transition-slow: 0.3s ease;
+  --transition-spring: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  
+  /* Z-index layers */
+  --z-base: 1;
+  --z-overlay: 10;
+  --z-modal: 100;
+  --z-tooltip: 1000;
 }

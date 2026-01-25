@@ -1,0 +1,157 @@
+/* ========================================
+   Output Container
+   ======================================== */
+.output {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin-bottom: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  position: relative;
+  z-index: var(--z-base);
+  padding-right: var(--spacing-sm);
+}
+
+/* ========================================
+   Output Lines
+   ======================================== */
+.line {
+  line-height: var(--line-height-relaxed);
+  font-size: var(--font-size-base);
+  color: var(--color-output);
+  word-break: break-word;
+  animation: fade-in-up 0.2s ease-out;
+}
+
+.line:first-child {
+  animation-delay: 0s;
+}
+
+/* ========================================
+   Command Lines
+   ======================================== */
+.command {
+  display: flex;
+  gap: var(--spacing-sm);
+  color: var(--color-command);
+}
+
+.commandPrompt {
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.commandText {
+  color: var(--color-command);
+  font-weight: 500;
+}
+
+/* ========================================
+   Welcome Banner
+   ======================================== */
+.welcomeBanner {
+  color: var(--color-accent-cyan);
+  margin-bottom: var(--spacing-md);
+  white-space: pre;
+  font-size: var(--font-size-sm);
+  line-height: 1.2;
+  text-shadow: var(--text-glow-cyan);
+}
+
+.welcomeText {
+  color: var(--color-text-secondary);
+  margin-top: var(--spacing-sm);
+}
+
+.highlight {
+  color: var(--color-accent-green);
+  font-weight: 500;
+}
+
+/* ========================================
+   Status Messages
+   ======================================== */
+.success {
+  color: var(--color-success);
+}
+
+.error {
+  color: var(--color-error);
+}
+
+.warning {
+  color: var(--color-warning);
+}
+
+.info {
+  color: var(--color-accent-cyan);
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+/* ========================================
+   Links
+   ======================================== */
+.link {
+  color: var(--color-text-link);
+  text-decoration: none;
+  border-bottom: 1px dotted var(--color-text-link);
+  transition: all var(--transition-fast);
+}
+
+.link:hover {
+  color: var(--color-accent-cyan);
+  border-bottom-color: var(--color-accent-cyan);
+  text-shadow: var(--text-glow-cyan);
+}
+
+/* ========================================
+   Section Formatting
+   ======================================== */
+.section {
+  margin: var(--spacing-sm) 0;
+  padding-left: var(--spacing-md);
+  border-left: 2px solid var(--color-border-default);
+}
+
+.sectionTitle {
+  color: var(--color-accent-purple);
+  font-weight: 600;
+  margin-bottom: var(--spacing-xs);
+}
+
+/* ========================================
+   Animation for new lines
+   ======================================== */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========================================
+   Responsive Adjustments
+   ======================================== */
+@media (max-width: 768px) {
+  .output {
+    padding-right: 0;
+  }
+  
+  .line {
+    font-size: var(--font-size-sm);
+  }
+  
+  .welcomeBanner {
+    font-size: var(--font-size-xs);
+    overflow-x: auto;
+  }
+}
