@@ -92,4 +92,3 @@ export function isValidCommandName(name: string): boolean {
   // Command names should be alphanumeric with optional hyphens/underscores
   return /^[a-z][a-z0-9_-]*$/i.test(name);
 }
-

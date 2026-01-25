@@ -3,6 +3,7 @@
    ======================================== */
 .output {
   /* flex: 1; -- Removed to allow natural height */
+
   /* overflow: hidden auto; -- Removed to use window scroll */
   margin-bottom: var(--spacing-md);
   display: flex;

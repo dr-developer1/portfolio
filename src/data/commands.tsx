@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Command, OutputFunction } from '../types';
 import { getAllCommands, registerCommands } from '../utils/commandRegistry';
+import { content } from './content';
 
 /**
  * Help command - displays all available commands
@@ -107,7 +108,6 @@ const clearCommand: Command = {
   aliases: ['cls', 'reset'],
   execute: () => {
     // The actual clearing is handled by the terminal component
-    // This is a special case handled in TerminalInput
   },
 };
 
@@ -121,6 +121,233 @@ const echoCommand: Command = {
   execute: (args: string[], addOutput: OutputFunction) => {
     const message = args.join(' ');
     addOutput(<span>{message || ''}</span>);
+  },
+};
+
+/**
+ * About command - displays profile info
+ */
+const aboutCommand: Command = {
+  name: 'about',
+  description: 'Display user information',
+  usage: 'about',
+  aliases: ['bio'],
+  execute: (_args: string[], addOutput: OutputFunction) => {
+    addOutput(
+      <div>
+        <div style={{ color: 'var(--color-accent-cyan)', fontWeight: 'bold', fontSize: '1.1em' }}>
+          {content.bio.name}
+        </div>
+        <div style={{ color: 'var(--color-accent-purple)', marginBottom: '0.5rem' }}>
+          {content.bio.tagline}
+        </div>
+        <div style={{ color: 'var(--color-text-primary)', lineHeight: '1.5' }}>
+          {content.bio.description.map((line, i) => (
+            <div key={i}>{line}</div>
+          ))}
+        </div>
+      </div>
+    );
+  },
+};
+
+/**
+ * Skills command - displays technical skills
+ */
+const skillsCommand: Command = {
+  name: 'skills',
+  description: 'Display technical skills',
+  usage: 'skills',
+  aliases: ['stack', 'tech'],
+  execute: (_args: string[], addOutput: OutputFunction) => {
+    const renderSection = (title: string, items: string[], color: string) => (
+      <div style={{ marginBottom: '0.5rem' }}>
+        <span style={{ color: 'var(--color-text-muted)', display: 'inline-block', width: '120px' }}>
+          {title}:
+        </span>
+        <span style={{ color }}>{items.join(', ')}</span>
+      </div>
+    );
+
+    addOutput(
+      <div>
+        {renderSection('Languages', content.skills.languages, 'var(--color-accent-orange)')}
+        {renderSection('Frameworks', content.skills.frameworks, 'var(--color-accent-green)')}
+        {renderSection('Infra & Tools', content.skills.tools, 'var(--color-accent-blue)')}
+        {renderSection('Soft Skills', content.skills.softSkills, 'var(--color-accent-purple)')}
+      </div>
+    );
+  },
+};
+
+/**
+ * Experience command - displays job history
+ */
+const experienceCommand: Command = {
+  name: 'experience',
+  description: 'Display professional experience',
+  usage: 'experience',
+  aliases: ['exp', 'work', 'jobs'],
+  execute: (_args: string[], addOutput: OutputFunction) => {
+    addOutput(
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        {content.experience.map((job, index) => (
+          <div key={index}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+              <span
+                style={{
+                  color: 'var(--color-accent-yellow)',
+                  fontWeight: 'bold',
+                  fontSize: '1.05em',
+                }}
+              >
+                {job.role}
+              </span>
+              <span style={{ color: 'var(--color-text-muted)', fontSize: '0.9em' }}>
+                {job.date}
+              </span>
+            </div>
+            <div style={{ marginBottom: '0.5rem' }}>
+              <span style={{ color: 'var(--color-accent-cyan)' }}>@ {job.company}</span>
+              <span style={{ color: 'var(--color-text-muted)', fontSize: '0.9em' }}>
+                {' '}
+                | {job.location}
+              </span>
+            </div>
+            <ul style={{ listStyleType: 'disc', paddingLeft: '20px', margin: 0 }}>
+              {job.description.map((desc, i) => (
+                <li
+                  key={i}
+                  style={{ color: 'var(--color-text-secondary)', marginBottom: '0.25rem' }}
+                >
+                  {desc}
+                </li>
+              ))}
+            </ul>
+            {job.technologies && (
+              <div style={{ marginTop: '0.5rem', fontSize: '0.9em' }}>
+                <span style={{ color: 'var(--color-text-muted)' }}>Tech: </span>
+                <span style={{ color: 'var(--color-accent-purple)' }}>
+                  {job.technologies.join(', ')}
+                </span>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  },
+};
+
+/**
+ * Education command - displays education history
+ */
+const educationCommand: Command = {
+  name: 'education',
+  description: 'Display educational background',
+  usage: 'education',
+  aliases: ['edu'],
+  execute: (_args: string[], addOutput: OutputFunction) => {
+    addOutput(
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        {content.education.map((edu, index) => (
+          <div key={index}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+              <span style={{ color: 'var(--color-accent-green)', fontWeight: 'bold' }}>
+                {edu.school}
+              </span>
+              <span style={{ color: 'var(--color-text-muted)', fontSize: '0.9em' }}>
+                {edu.date}
+              </span>
+            </div>
+            <div style={{ color: 'var(--color-text-primary)' }}>{edu.degree}</div>
+            <div style={{ color: 'var(--color-text-muted)', fontSize: '0.9em' }}>
+              {edu.location}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  },
+};
+
+/**
+ * Projects command - displays projects
+ */
+const projectsCommand: Command = {
+  name: 'projects',
+  description: 'Display featured projects',
+  usage: 'projects',
+  aliases: ['work', 'portfolio'],
+  execute: (_args: string[], addOutput: OutputFunction) => {
+    addOutput(
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        {content.projects.map((project, index) => (
+          <div key={index}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
+              <span style={{ color: 'var(--color-accent-blue)', fontWeight: 'bold' }}>
+                {project.name}
+              </span>
+              {project.url && (
+                <a
+                  href={project.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: 'var(--color-text-link)', textDecoration: 'underline' }}
+                >
+                  Live Demo
+                </a>
+              )}
+              {project.repo && (
+                <a
+                  href={project.repo}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: 'var(--color-text-link)', textDecoration: 'underline' }}
+                >
+                  Source Code
+                </a>
+              )}
+            </div>
+            <div style={{ color: 'var(--color-text-secondary)', margin: '0.25rem 0' }}>
+              {project.description}
+            </div>
+            <div style={{ color: 'var(--color-text-muted)', fontSize: '0.9em' }}>
+              [{project.technologies.join(', ')}]
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  },
+};
+
+/**
+ * Contact command - displays social links
+ */
+const contactCommand: Command = {
+  name: 'contact',
+  description: 'Display contact information',
+  usage: 'contact',
+  aliases: ['socials', 'email'],
+  execute: (_args: string[], addOutput: OutputFunction) => {
+    addOutput(
+      <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: '0.5rem' }}>
+        {content.socials.map((link) => (
+          <React.Fragment key={link.platform}>
+            <span style={{ color: 'var(--color-accent-purple)' }}>{link.platform}:</span>
+            <a
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: 'var(--color-text-link)' }}
+            >
+              {link.username}
+            </a>
+          </React.Fragment>
+        ))}
+      </div>
+    );
   },
 };
 
@@ -180,7 +407,6 @@ const pwdCommand: Command = {
   description: 'Print working directory',
   usage: 'pwd',
   execute: (_args: string[], addOutput: OutputFunction) => {
-    // This needs to be updated to use actual current directory
     addOutput(<span>/home/visitor</span>);
   },
 };
@@ -196,6 +422,12 @@ export const basicCommands: Command[] = [
   dateCommand,
   historyCommand,
   pwdCommand,
+  aboutCommand,
+  skillsCommand,
+  experienceCommand,
+  educationCommand,
+  projectsCommand,
+  contactCommand,
 ];
 
 /**
@@ -206,4 +438,16 @@ export function initializeCommands(): void {
 }
 
 // Export individual commands for testing
-export { helpCommand, clearCommand, echoCommand, whoamiCommand, dateCommand };
+export {
+  helpCommand,
+  clearCommand,
+  echoCommand,
+  whoamiCommand,
+  dateCommand,
+  aboutCommand,
+  skillsCommand,
+  experienceCommand,
+  educationCommand,
+  projectsCommand,
+  contactCommand,
+};
