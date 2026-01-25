@@ -173,7 +173,7 @@ const skillsCommand: Command = {
       <div>
         {renderSection('Languages', content.skills.languages, 'var(--color-accent-orange)')}
         {renderSection('Frameworks', content.skills.frameworks, 'var(--color-accent-green)')}
-        {renderSection('Infra & Tools', content.skills.tools, 'var(--color-accent-blue)')}
+        {renderSection('Infra & Tools', content.skills.tools, 'var(--color-accent-cyan)')}
         {renderSection('Soft Skills', content.skills.softSkills, 'var(--color-accent-purple)')}
       </div>
     );
