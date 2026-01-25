@@ -96,9 +96,11 @@
 }
 
 @keyframes cursor-blink {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0;
   }
@@ -107,26 +109,26 @@
 /* ========================================
    Responsive Adjustments
    ======================================== */
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .inputContainer {
     flex-wrap: wrap;
     gap: var(--spacing-xs);
   }
-  
+
   .prompt {
     font-size: var(--font-size-sm);
   }
-  
+
   .input {
     font-size: var(--font-size-sm);
   }
 }
 
-@media (max-width: 480px) {
+@media (width <= 480px) {
   .prompt {
     width: 100%;
   }
-  
+
   .inputWrapper {
     width: 100%;
   }

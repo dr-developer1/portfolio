@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useTerminalContext } from '../../hooks/TerminalContext';
 import styles from './TerminalInput.module.css';
 
 export const TerminalInput: React.FC = () => {
@@ -6,17 +7,110 @@ export const TerminalInput: React.FC = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [cursorPos, setCursorPos] = useState(0);
 
+  const {
+    executeCommand,
+    clearTerminal,
+    navigateHistory,
+    resetHistoryIndex,
+    currentDirectory,
+    isLoading,
+  } = useTerminalContext();
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInput(e.target.value);
     setCursorPos(e.target.selectionStart || 0);
+    resetHistoryIndex();
   };
 
+  const handleSubmit = useCallback(() => {
+    const trimmedInput = input.trim();
+
+    // Handle clear command specially (needs to clear output)
+    if (
+      trimmedInput.toLowerCase() === 'clear' ||
+      trimmedInput.toLowerCase() === 'cls' ||
+      trimmedInput.toLowerCase() === 'reset'
+    ) {
+      clearTerminal();
+      setInput('');
+      setCursorPos(0);
+      return;
+    }
+
+    if (trimmedInput) {
+      executeCommand(trimmedInput);
+    }
+
+    setInput('');
+    setCursorPos(0);
+  }, [input, executeCommand, clearTerminal]);
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    // Update cursor position on navigation keys
-    if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
-      requestAnimationFrame(() => {
-        setCursorPos(inputRef.current?.selectionStart || 0);
-      });
+    switch (e.key) {
+      case 'Enter':
+        e.preventDefault();
+        handleSubmit();
+        break;
+
+      case 'ArrowUp': {
+        e.preventDefault();
+        const olderCommand = navigateHistory(1);
+        if (olderCommand !== null) {
+          setInput(olderCommand);
+          // Set cursor to end after state update
+          requestAnimationFrame(() => {
+            if (inputRef.current) {
+              const len = olderCommand.length;
+              inputRef.current.setSelectionRange(len, len);
+              setCursorPos(len);
+            }
+          });
+        }
+        break;
+      }
+
+      case 'ArrowDown': {
+        e.preventDefault();
+        const newerCommand = navigateHistory(-1);
+        if (newerCommand !== null) {
+          setInput(newerCommand);
+          requestAnimationFrame(() => {
+            if (inputRef.current) {
+              const len = newerCommand.length;
+              inputRef.current.setSelectionRange(len, len);
+              setCursorPos(len);
+            }
+          });
+        }
+        break;
+      }
+
+      case 'ArrowLeft':
+      case 'ArrowRight':
+      case 'Home':
+      case 'End':
+        requestAnimationFrame(() => {
+          setCursorPos(inputRef.current?.selectionStart || 0);
+        });
+        break;
+
+      case 'c':
+        // Ctrl+C to cancel/clear input
+        if (e.ctrlKey) {
+          e.preventDefault();
+          setInput('');
+          setCursorPos(0);
+          resetHistoryIndex();
+        }
+        break;
+
+      case 'l':
+        // Ctrl+L to clear screen
+        if (e.ctrlKey) {
+          e.preventDefault();
+          clearTerminal();
+        }
+        break;
     }
   };
 
@@ -35,7 +129,7 @@ export const TerminalInput: React.FC = () => {
         <span className={styles.promptAt}>@</span>
         <span className={styles.promptHost}>portfolio</span>
         <span className={styles.promptSeparator}>:</span>
-        <span className={styles.promptPath}>~</span>
+        <span className={styles.promptPath}>{currentDirectory}</span>
         <span className={styles.promptSymbol}>$</span>
       </span>
       <div className={styles.inputWrapper}>
@@ -49,13 +143,11 @@ export const TerminalInput: React.FC = () => {
           autoFocus
           spellCheck={false}
           autoComplete="off"
-          placeholder="Type 'help' for available commands..."
+          disabled={isLoading}
+          placeholder={isLoading ? 'Processing...' : "Type 'help' for available commands..."}
         />
         {/* Custom cursor implementation */}
-        <span 
-          className={styles.cursor} 
-          style={{ left: `${cursorPos}ch` }}
-        />
+        <span className={styles.cursor} style={{ left: `${cursorPos}ch` }} />
       </div>
     </div>
   );

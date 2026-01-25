@@ -125,23 +125,17 @@
   padding: var(--spacing-lg);
   background: var(--color-bg-primary);
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
   min-height: 0;
+  scroll-behavior: smooth;
 }
 
 /* Optional subtle gradient overlay */
 .container::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(
-    ellipse at top,
-    rgba(88, 166, 255, 0.03) 0%,
-    transparent 50%
-  );
+  inset: 0;
+  background: radial-gradient(ellipse at top, rgb(88 166 255 / 3%) 0%, transparent 50%);
   pointer-events: none;
   z-index: 0;
 }
@@ -157,10 +151,10 @@
   height: 100%;
   background: repeating-linear-gradient(
     0deg,
-    rgba(0, 0, 0, 0) 0px,
-    rgba(0, 0, 0, 0) 1px,
-    rgba(0, 0, 0, 0.03) 1px,
-    rgba(0, 0, 0, 0.03) 2px
+    rgb(0 0 0 / 0%) 0,
+    rgb(0 0 0 / 0%) 1px,
+    rgb(0 0 0 / 3%) 1px,
+    rgb(0 0 0 / 3%) 2px
   );
   pointer-events: none;
   z-index: var(--z-overlay);
@@ -173,11 +167,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(
-    ellipse at center,
-    transparent 0%,
-    rgba(0, 0, 0, 0.2) 100%
-  );
+  background: radial-gradient(ellipse at center, transparent 0%, rgb(0 0 0 / 20%) 100%);
   pointer-events: none;
   z-index: var(--z-overlay);
 }
@@ -185,34 +175,34 @@
 /* ========================================
    Responsive Adjustments
    ======================================== */
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .window {
     border-radius: var(--radius-md);
   }
-  
+
   .container {
     padding: var(--spacing-md);
   }
-  
+
   .titleBar {
     padding: var(--spacing-xs) var(--spacing-sm);
   }
-  
+
   .windowTitle {
     font-size: var(--font-size-xs);
   }
-  
+
   .windowButton {
     width: 10px;
     height: 10px;
   }
 }
 
-@media (max-width: 480px) {
+@media (width <= 480px) {
   .windowTitle {
     display: none;
   }
-  
+
   .windowActions {
     display: none;
   }

@@ -17,7 +17,7 @@
    Light Theme
    ======================================== */
 [data-theme='light'] {
-  --color-bg-primary: #ffffff;
+  --color-bg-primary: #fff;
   --color-bg-secondary: #f6f8fa;
   --color-bg-tertiary: #eaeef2;
   --color-bg-canvas: #f0f3f6;
@@ -36,8 +36,8 @@
   --color-prompt-path: #8250df;
   --color-output: #1f2328;
   --color-command: #1f2328;
-  --shadow-lg: 0 8px 24px rgba(140, 149, 159, 0.2);
-  --shadow-glow: 0 0 20px rgba(9, 105, 218, 0.1);
+  --shadow-lg: 0 8px 24px rgb(140 149 159 / 20%);
+  --shadow-glow: 0 0 20px rgb(9 105 218 / 10%);
 }
 
 /* ========================================
@@ -57,14 +57,14 @@
   --color-accent-purple: #bd93f9;
   --color-accent-pink: #ff79c6;
   --color-accent-orange: #ffb86c;
-  --color-accent-red: #ff5555;
+  --color-accent-red: #f55;
   --color-accent-yellow: #f1fa8c;
   --color-prompt-user: #50fa7b;
   --color-prompt-host: #8be9fd;
   --color-prompt-path: #bd93f9;
   --color-output: #f8f8f2;
-  --text-glow-green: 0 0 10px rgba(80, 250, 123, 0.4);
-  --text-glow-cyan: 0 0 10px rgba(139, 233, 253, 0.4);
+  --text-glow-green: 0 0 10px rgb(80 250 123 / 40%);
+  --text-glow-cyan: 0 0 10px rgb(139 233 253 / 40%);
 }
 
 /* ========================================
@@ -124,22 +124,22 @@
   --color-bg-primary: #0a0a0a;
   --color-bg-secondary: #0f0f0f;
   --color-bg-tertiary: #1a1a1a;
-  --color-bg-canvas: #000000;
+  --color-bg-canvas: #000;
   --color-border-default: #1a3a1a;
-  --color-text-primary: #00ff00;
-  --color-text-secondary: #00cc00;
-  --color-text-muted: #008800;
+  --color-text-primary: #0f0;
+  --color-text-secondary: #0c0;
+  --color-text-muted: #080;
   --color-titlebar-bg: linear-gradient(180deg, #0f1f0f 0%, #0a0a0a 100%);
   --color-titlebar-border: #1a3a1a;
-  --color-accent-green: #00ff00;
-  --color-accent-cyan: #00ffcc;
-  --color-accent-purple: #cc00ff;
-  --color-prompt-user: #00ff00;
-  --color-prompt-host: #00ff00;
-  --color-prompt-path: #00cc00;
-  --color-output: #00ff00;
-  --color-command: #00ff00;
-  --text-glow-green: 0 0 15px rgba(0, 255, 0, 0.7);
-  --text-glow-cyan: 0 0 15px rgba(0, 255, 0, 0.7);
-  --shadow-glow: 0 0 30px rgba(0, 255, 0, 0.2);
+  --color-accent-green: #0f0;
+  --color-accent-cyan: #0fc;
+  --color-accent-purple: #c0f;
+  --color-prompt-user: #0f0;
+  --color-prompt-host: #0f0;
+  --color-prompt-path: #0c0;
+  --color-output: #0f0;
+  --color-command: #0f0;
+  --text-glow-green: 0 0 15px rgb(0 255 0 / 70%);
+  --text-glow-cyan: 0 0 15px rgb(0 255 0 / 70%);
+  --shadow-glow: 0 0 30px rgb(0 255 0 / 20%);
 }
