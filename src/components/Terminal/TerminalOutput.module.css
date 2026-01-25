@@ -2,9 +2,8 @@
    Output Container
    ======================================== */
 .output {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
+  /* flex: 1; -- Removed to allow natural height */
+  /* overflow: hidden auto; -- Removed to use window scroll */
   margin-bottom: var(--spacing-md);
   display: flex;
   flex-direction: column;
@@ -21,7 +20,7 @@
   line-height: var(--line-height-relaxed);
   font-size: var(--font-size-base);
   color: var(--color-output);
-  word-break: break-word;
+  overflow-wrap: break-word;
   animation: fade-in-up 0.2s ease-out;
 }
 
@@ -132,6 +131,7 @@
     opacity: 0;
     transform: translateY(4px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -141,15 +141,15 @@
 /* ========================================
    Responsive Adjustments
    ======================================== */
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .output {
     padding-right: 0;
   }
-  
+
   .line {
     font-size: var(--font-size-sm);
   }
-  
+
   .welcomeBanner {
     font-size: var(--font-size-xs);
     overflow-x: auto;
