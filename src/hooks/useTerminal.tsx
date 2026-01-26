@@ -289,9 +289,7 @@ export function useTerminal(): UseTerminalReturn {
 
       // Handle TREE command
       if (parsed.name === 'tree') {
-        const rootPath = parsed.args[0]
-          ? resolvePath(state.currentDirectory, parsed.args[0])
-          : state.currentDirectory;
+        const rootPath = resolvePath(state.currentDirectory, parsed.args[0] || '.');
 
         const rootNode = getNode(rootPath);
         if (!rootNode || rootNode.type !== 'directory') {
