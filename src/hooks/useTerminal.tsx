@@ -172,9 +172,10 @@ export function useTerminal(): UseTerminalReturn {
 
       // Handle LS command
       if (parsed.name === 'ls') {
-        const targetPath = parsed.args[0]
-          ? resolvePath(state.currentDirectory, parsed.args[0])
-          : state.currentDirectory;
+        const targetPath = resolvePath(
+          state.currentDirectory,
+          parsed.args[0] ?? '.'
+        );
 
         const node = getNode(targetPath);
         
