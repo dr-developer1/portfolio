@@ -23,6 +23,15 @@ function sanitizeFilename(name: string): string {
 }
 
 /**
+ * Create unique filenames by tracking counts and appending numbers for duplicates
+ */
+function createUniqueFilename(baseName: string, counts: Map<string, number>): string {
+  const currentCount = (counts.get(baseName) ?? 0) + 1;
+  counts.set(baseName, currentCount);
+  return `${baseName}-${currentCount}.txt`;
+}
+
+/**
  * Initialize the file system from the content data
  */
 function createFileSystem(): FileSystemNode {
@@ -37,22 +46,28 @@ function createFileSystem(): FileSystemNode {
 
   // Experience directory
   const expDir = createDirectory('experience', user);
+  const expCounts = new Map<string, number>();
   content.experience.forEach((job) => {
-    const filename = `${sanitizeFilename(job.company)}.txt`;
+    const baseName = sanitizeFilename(job.company);
+    const filename = createUniqueFilename(baseName, expCounts);
     createFile(filename, expDir, formatExperience(job));
   });
 
   // Projects directory
   const projDir = createDirectory('projects', user);
+  const projCounts = new Map<string, number>();
   content.projects.forEach((proj) => {
-    const filename = `${sanitizeFilename(proj.name)}.txt`;
+    const baseName = sanitizeFilename(proj.name);
+    const filename = createUniqueFilename(baseName, projCounts);
     createFile(filename, projDir, formatProject(proj));
   });
 
   // Education directory
   const eduDir = createDirectory('education', user);
+  const eduCounts = new Map<string, number>();
   content.education.forEach((edu) => {
-    const filename = `${sanitizeFilename(edu.school)}.txt`;
+    const baseName = sanitizeFilename(edu.school);
+    const filename = createUniqueFilename(baseName, eduCounts);
     createFile(filename, eduDir, formatEducation(edu));
   });
 
@@ -141,7 +156,10 @@ function normalizePath(path: string): string {
  * Resolve a path string to an absolute path
  */
 export function resolvePath(currentPath: string, targetPath: string): string {
-  if (!targetPath) return normalizePath(currentPath);
+  // Normalize currentPath to handle ~ 
+  const normalizedCurrent = currentPath === '~' ? '/home/visitor' : currentPath;
+  
+  if (!targetPath) return normalizePath(normalizedCurrent);
 
   if (targetPath === '~') return '/home/visitor';
   if (targetPath.startsWith('~/')) return normalizePath(`/home/visitor/${targetPath.slice(2)}`);
@@ -150,7 +168,7 @@ export function resolvePath(currentPath: string, targetPath: string): string {
   if (targetPath.startsWith('/')) {
     parts = targetPath.split('/').filter(Boolean);
   } else {
-    const currentParts = currentPath.split('/').filter(Boolean);
+    const currentParts = normalizedCurrent.split('/').filter(Boolean);
     const targetParts = targetPath.split('/').filter(Boolean);
     parts = [...currentParts, ...targetParts];
   }

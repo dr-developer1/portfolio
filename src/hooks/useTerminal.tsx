@@ -30,7 +30,8 @@ const INITIAL_STATE: TerminalState = {
 function renderDirectoryTree(
   node: FileSystemNode,
   prefix: string = '',
-  depth: number = 0
+  depth: number = 0,
+  currentPath: string = ''
 ): [ReactNode[], boolean] {
   if (!node.children || depth >= MAX_TREE_DEPTH) {
     return [[], depth >= MAX_TREE_DEPTH];
@@ -44,9 +45,10 @@ function renderDirectoryTree(
     const isLast = index === entries.length - 1;
     const connector = isLast ? '└── ' : '├── ';
     const childPrefix = prefix + (isLast ? '    ' : '│   ');
+    const childPath = `${currentPath}/${name}`;
 
     lines.push(
-      <div key={`${depth}-${index}-${name}`}>
+      <div key={childPath}>
         <span style={{ color: 'var(--color-text-muted)' }}>
           {prefix}
           {connector}
@@ -64,7 +66,7 @@ function renderDirectoryTree(
     );
 
     if (child.type === 'directory') {
-      const [childLines, childLimited] = renderDirectoryTree(child, childPrefix, depth + 1);
+      const [childLines, childLimited] = renderDirectoryTree(child, childPrefix, depth + 1, childPath);
       lines.push(...childLines);
       if (childLimited) wasLimited = true;
     }
@@ -179,7 +181,7 @@ export function useTerminal(): UseTerminalReturn {
         if (!node) {
           addOutput(
             <span style={{ color: 'var(--color-error)' }}>
-              ls: cannot access '{parsed.args[0]}': No such file or directory
+              ls: cannot access '{parsed.args[0] ?? '.'}': No such file or directory
             </span>,
             'error'
           );

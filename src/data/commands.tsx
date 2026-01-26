@@ -453,7 +453,7 @@ const catCommand: Command = {
 const treeCommand: Command = {
   name: 'tree',
   description: 'List contents of directories in a tree-like format',
-  usage: 'tree',
+  usage: 'tree [directory]',
   execute: () => {
     // Intercepted by useTerminal
   },
