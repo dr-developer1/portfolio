@@ -1,0 +1,204 @@
+import { content, type ExperienceItem, type ProjectItem, type EducationItem } from '../data/content';
+
+export type NodeType = 'file' | 'directory';
+
+export interface FileSystemNode {
+  name: string;
+  type: NodeType;
+  content?: string;
+  children?: Map<string, FileSystemNode>;
+  parent?: FileSystemNode;
+}
+
+/**
+ * Sanitize a string to be used as a filename
+ */
+function sanitizeFilename(name: string): string {
+  const sanitized = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+  return sanitized || 'untitled';
+}
+
+/**
+ * Initialize the file system from the content data
+ */
+function createFileSystem(): FileSystemNode {
+  const root = createDirectory('/', null);
+  const home = createDirectory('home', root);
+  const user = createDirectory('visitor', home);
+
+  // ~ (Home) content
+  createFile('bio.txt', user, formatBio());
+  createFile('skills.txt', user, formatSkills());
+  createFile('contact.md', user, formatContact());
+
+  // Experience directory
+  const expDir = createDirectory('experience', user);
+  content.experience.forEach((job) => {
+    const filename = `${sanitizeFilename(job.company)}.txt`;
+    createFile(filename, expDir, formatExperience(job));
+  });
+
+  // Projects directory
+  const projDir = createDirectory('projects', user);
+  content.projects.forEach((proj) => {
+    const filename = `${sanitizeFilename(proj.name)}.txt`;
+    createFile(filename, projDir, formatProject(proj));
+  });
+
+  // Education directory
+  const eduDir = createDirectory('education', user);
+  content.education.forEach((edu) => {
+    const filename = `${sanitizeFilename(edu.school)}.txt`;
+    createFile(filename, eduDir, formatEducation(edu));
+  });
+
+  return root;
+}
+
+// Helper to create directory
+function createDirectory(name: string, parent: FileSystemNode | null): FileSystemNode {
+  const node: FileSystemNode = {
+    name,
+    type: 'directory',
+    children: new Map(),
+    parent: parent || undefined,
+  };
+  if (parent && parent.children) {
+    parent.children.set(name, node);
+  }
+  return node;
+}
+
+// Helper to create file
+function createFile(name: string, parent: FileSystemNode, content: string): FileSystemNode {
+  const node: FileSystemNode = {
+    name,
+    type: 'file',
+    content,
+    parent,
+  };
+  if (parent.children) {
+    parent.children.set(name, node);
+  }
+  return node;
+}
+
+// Formatters for content
+function formatBio(): string {
+  return `${content.bio.name}\n${content.bio.tagline}\n\n${content.bio.description.join('\n')}`;
+}
+
+function formatSkills(): string {
+  const skills = content.skills;
+  return `LANGUAGES:\n${skills.languages.join(', ')}\n\nFRAMEWORKS:\n${skills.frameworks.join(', ')}\n\nTOOLS:\n${skills.tools.join(', ')}\n\nSOFT SKILLS:\n${skills.softSkills.join(', ')}`;
+}
+
+function formatContact(): string {
+  return content.socials.map(s => `${s.platform}: ${s.username} (${s.url})`).join('\n');
+}
+
+function formatExperience(job: ExperienceItem): string {
+  return (
+    `ROLE: ${job.role}\n` +
+    `COMPANY: ${job.company}\n` +
+    `DATE: ${job.date}\n` +
+    `LOCATION: ${job.location}\n\n` +
+    `DETAILS:\n${job.description.map((detail: string) => `- ${detail}`).join('\n')}\n\n` +
+    `TECH: ${job.technologies?.join(', ') || 'N/A'}`
+  );
+}
+
+function formatProject(proj: ProjectItem): string {
+  return `NAME: ${proj.name}\n\nDESCRIPTION:\n${proj.description}\n\nTECH: ${proj.technologies.join(', ')}\n\nURL: ${proj.url || 'N/A'}\nREPO: ${proj.repo || 'N/A'}`;
+}
+
+function formatEducation(edu: EducationItem): string {
+  return `DEGREE: ${edu.degree}\nSCHOOL: ${edu.school}\nDATE: ${edu.date}\nLOCATION: ${edu.location}`;
+}
+
+// Initialize Singleton FS
+export const fileSystem = createFileSystem();
+
+/**
+ * Normalize a path by removing multiple slashes and trailing slashes
+ */
+function normalizePath(path: string): string {
+  if (!path) return '/';
+  // Replace multiple slashes with single slash
+  let normalized = path.replace(/\/+/g, '/');
+  // Remove trailing slash unless it's root
+  if (normalized.length > 1 && normalized.endsWith('/')) {
+    normalized = normalized.slice(0, -1);
+  }
+  return normalized || '/';
+}
+
+/**
+ * Resolve a path string to an absolute path
+ */
+export function resolvePath(currentPath: string, targetPath: string): string {
+  if (!targetPath) return normalizePath(currentPath);
+
+  if (targetPath === '~') return '/home/visitor';
+  if (targetPath.startsWith('~/')) return normalizePath(`/home/visitor/${targetPath.slice(2)}`);
+
+  let parts: string[];
+  if (targetPath.startsWith('/')) {
+    parts = targetPath.split('/').filter(Boolean);
+  } else {
+    const currentParts = currentPath.split('/').filter(Boolean);
+    const targetParts = targetPath.split('/').filter(Boolean);
+    parts = [...currentParts, ...targetParts];
+  }
+
+  const resolvedStack: string[] = [];
+  for (const part of parts) {
+    if (part === '.') continue;
+    if (part === '..') {
+      resolvedStack.pop();
+    } else {
+      resolvedStack.push(part);
+    }
+  }
+
+  return normalizePath('/' + resolvedStack.join('/'));
+}
+
+/**
+ * Get a node at a resolved absolute path
+ */
+export function getNode(absolutePath: string): FileSystemNode | null {
+  if (absolutePath === '/') return fileSystem;
+
+  const parts = absolutePath.split('/').filter(Boolean);
+  let current = fileSystem;
+
+  for (const part of parts) {
+    const children = current.children;
+    if (!children) {
+      return null;
+    }
+    const next = children.get(part);
+    if (!next) {
+      return null;
+    }
+    current = next;
+  }
+
+  return current;
+}
+
+/**
+ * Get contents of a directory (names only)
+ */
+export function getDirectoryContents(absolutePath: string): string[] {
+  const node = getNode(absolutePath);
+  if (!node || node.type !== 'directory' || !node.children) {
+    return [];
+  }
+  return Array.from(node.children.keys()).sort();
+}

@@ -10,6 +10,9 @@ import type {
 import { parseCommand } from '../utils/commandParser';
 import { generateLineId } from '../utils/helpers';
 import { getCommand } from '../utils/commandRegistry';
+import { resolvePath, getNode, type FileSystemNode } from '../utils/fileSystem';
+
+const MAX_TREE_DEPTH = 10;
 
 const INITIAL_STATE: TerminalState = {
   history: [],
@@ -19,6 +22,56 @@ const INITIAL_STATE: TerminalState = {
   theme: 'dark',
   isLoading: false,
 };
+
+/**
+ * Render a directory tree recursively
+ * Returns [lines, wasLimited] where wasLimited indicates if depth limit was reached
+ */
+function renderDirectoryTree(
+  node: FileSystemNode,
+  prefix: string = '',
+  depth: number = 0
+): [ReactNode[], boolean] {
+  if (!node.children || depth >= MAX_TREE_DEPTH) {
+    return [[], depth >= MAX_TREE_DEPTH];
+  }
+
+  const entries = Array.from(node.children.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+  const lines: ReactNode[] = [];
+  let wasLimited = false;
+
+  entries.forEach(([name, child], index) => {
+    const isLast = index === entries.length - 1;
+    const connector = isLast ? '└── ' : '├── ';
+    const childPrefix = prefix + (isLast ? '    ' : '│   ');
+
+    lines.push(
+      <div key={`${depth}-${index}-${name}`}>
+        <span style={{ color: 'var(--color-text-muted)' }}>
+          {prefix}
+          {connector}
+        </span>
+        <span
+          style={{
+            color: child.type === 'directory' ? 'var(--color-accent-blue)' : 'var(--color-text-primary)',
+            fontWeight: child.type === 'directory' ? 'bold' : 'normal',
+          }}
+        >
+          {name}
+          {child.type === 'directory' ? '/' : ''}
+        </span>
+      </div>
+    );
+
+    if (child.type === 'directory') {
+      const [childLines, childLimited] = renderDirectoryTree(child, childPrefix, depth + 1);
+      lines.push(...childLines);
+      if (childLimited) wasLimited = true;
+    }
+  });
+
+  return [lines, wasLimited];
+}
 
 /**
  * Custom hook for managing terminal state and actions
@@ -106,6 +159,166 @@ export function useTerminal(): UseTerminalReturn {
         ));
 
         addOutput(<div>{historyOutput}</div>);
+        return;
+      }
+
+      // Handle PWD command
+      if (parsed.name === 'pwd') {
+        addOutput(<span>{state.currentDirectory}</span>);
+        return;
+      }
+
+      // Handle LS command
+      if (parsed.name === 'ls') {
+        const targetPath = parsed.args[0]
+          ? resolvePath(state.currentDirectory, parsed.args[0])
+          : state.currentDirectory;
+
+        const node = getNode(targetPath);
+        
+        if (!node) {
+          addOutput(
+            <span style={{ color: 'var(--color-error)' }}>
+              ls: cannot access '{parsed.args[0]}': No such file or directory
+            </span>,
+            'error'
+          );
+          return;
+        }
+
+        if (node.type === 'file') {
+          addOutput(<span>{node.name}</span>);
+          return;
+        }
+
+        // Directory - get children
+        if (!node.children || node.children.size === 0) {
+          // Empty directory
+          return;
+        }
+
+        const entries = Array.from(node.children.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+
+        addOutput(
+          <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+            {entries.map(([name, child]) => {
+              const isDir = child.type === 'directory';
+              return (
+                <span
+                  key={name}
+                  style={{
+                    color: isDir ? 'var(--color-accent-blue)' : 'var(--color-text-primary)',
+                    fontWeight: isDir ? 'bold' : 'normal',
+                  }}
+                >
+                  {name}{isDir ? '/' : ''}
+                </span>
+              );
+            })}
+          </div>
+        );
+        return;
+      }
+
+      // Handle CD command
+      if (parsed.name === 'cd') {
+        const targetArg = parsed.args[0] || '~';
+        const targetPath = resolvePath(state.currentDirectory, targetArg);
+        const node = getNode(targetPath);
+
+        if (!node) {
+          addOutput(
+            <span style={{ color: 'var(--color-error)' }}>
+              cd: {targetArg}: No such file or directory
+            </span>,
+            'error'
+          );
+          return;
+        }
+
+        if (node.type !== 'directory') {
+          addOutput(
+            <span style={{ color: 'var(--color-error)' }}>
+              cd: {targetArg}: Not a directory
+            </span>,
+            'error'
+          );
+          return;
+        }
+
+        setState((prev) => ({ ...prev, currentDirectory: targetPath }));
+        return;
+      }
+
+      // Handle CAT command
+      if (parsed.name === 'cat') {
+        if (!parsed.args[0]) {
+          addOutput(<span style={{ color: 'var(--color-error)' }}>Usage: cat [file]</span>, 'error');
+          return;
+        }
+
+        const targetPath = resolvePath(state.currentDirectory, parsed.args[0]);
+        const node = getNode(targetPath);
+
+        if (!node) {
+          addOutput(
+            <span style={{ color: 'var(--color-error)' }}>
+              cat: {parsed.args[0]}: No such file or directory
+            </span>,
+            'error'
+          );
+          return;
+        }
+
+        if (node.type === 'directory') {
+          addOutput(
+            <span style={{ color: 'var(--color-error)' }}>
+              cat: {parsed.args[0]}: Is a directory
+            </span>,
+            'error'
+          );
+          return;
+        }
+
+        addOutput(<div style={{ whiteSpace: 'pre-wrap' }}>{node.content}</div>);
+        return;
+      }
+
+      // Handle TREE command
+      if (parsed.name === 'tree') {
+        const rootPath = parsed.args[0]
+          ? resolvePath(state.currentDirectory, parsed.args[0])
+          : state.currentDirectory;
+
+        const rootNode = getNode(rootPath);
+        if (!rootNode || rootNode.type !== 'directory') {
+          addOutput(
+            <span style={{ color: 'var(--color-error)' }}>
+              tree: {parsed.args[0] || '.'}: Not a directory
+            </span>,
+            'error'
+          );
+          return;
+        }
+
+        const rootLabel =
+          rootPath === '/'
+            ? '/'
+            : rootPath.split('/').filter(Boolean).pop() || '/';
+
+        const [treeLines, wasLimited] = renderDirectoryTree(rootNode);
+
+        addOutput(
+          <div>
+            <div style={{ color: 'var(--color-accent-blue)', fontWeight: 'bold' }}>{rootLabel}</div>
+            {treeLines}
+            {wasLimited && (
+              <div style={{ color: 'var(--color-text-muted)', fontSize: '0.9em', marginTop: '0.5rem' }}>
+                Maximum depth reached ({MAX_TREE_DEPTH} levels) - some directories not shown
+              </div>
+            )}
+          </div>
+        );
         return;
       }
 

@@ -400,14 +400,62 @@ const historyCommand: Command = {
 };
 
 /**
- * PWD command - shows current directory
+ * LS command - list directory contents
+ */
+const lsCommand: Command = {
+  name: 'ls',
+  description: 'List directory contents',
+  usage: 'ls [directory]',
+  execute: () => {
+    // Intercepted by useTerminal
+  },
+};
+
+/**
+ * CD command - change directory
+ */
+const cdCommand: Command = {
+  name: 'cd',
+  description: 'Change the shell working directory',
+  usage: 'cd [directory]',
+  execute: () => {
+    // Intercepted by useTerminal
+  },
+};
+
+/**
+ * PWD command - print working directory
  */
 const pwdCommand: Command = {
   name: 'pwd',
-  description: 'Print working directory',
+  description: 'Print name of current/working directory',
   usage: 'pwd',
-  execute: (_args: string[], addOutput: OutputFunction) => {
-    addOutput(<span>/home/visitor</span>);
+  execute: () => {
+    // Intercepted by useTerminal
+  },
+};
+
+/**
+ * Cat command - concatenate and display files
+ */
+const catCommand: Command = {
+  name: 'cat',
+  description: 'Concatenate files and print on the standard output',
+  usage: 'cat [file]',
+  execute: () => {
+    // Intercepted by useTerminal
+  },
+};
+
+/**
+ * Tree command - list contents of directories in a tree-like format
+ */
+const treeCommand: Command = {
+  name: 'tree',
+  description: 'List contents of directories in a tree-like format',
+  usage: 'tree',
+  execute: () => {
+    // Intercepted by useTerminal
   },
 };
 
@@ -422,6 +470,10 @@ export const basicCommands: Command[] = [
   dateCommand,
   historyCommand,
   pwdCommand,
+  lsCommand,
+  cdCommand,
+  catCommand,
+  treeCommand,
   aboutCommand,
   skillsCommand,
   experienceCommand,
