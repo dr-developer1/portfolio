@@ -1,4 +1,9 @@
-import { content, type ExperienceItem, type ProjectItem, type EducationItem } from '../data/content';
+import {
+  content,
+  type ExperienceItem,
+  type ProjectItem,
+  type EducationItem,
+} from '../data/content';
 
 export type NodeType = 'file' | 'directory';
 
@@ -113,7 +118,7 @@ function formatSkills(): string {
 }
 
 function formatContact(): string {
-  return content.socials.map(s => `${s.platform}: ${s.username} (${s.url})`).join('\n');
+  return content.socials.map((s) => `${s.platform}: ${s.username} (${s.url})`).join('\n');
 }
 
 function formatExperience(job: ExperienceItem): string {
@@ -156,9 +161,9 @@ function normalizePath(path: string): string {
  * Resolve a path string to an absolute path
  */
 export function resolvePath(currentPath: string, targetPath: string): string {
-  // Normalize currentPath to handle ~ 
+  // Normalize currentPath to handle ~
   const normalizedCurrent = currentPath === '~' ? '/home/visitor' : currentPath;
-  
+
   if (!targetPath) return normalizePath(normalizedCurrent);
 
   if (targetPath === '~') return '/home/visitor';

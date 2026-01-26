@@ -55,7 +55,8 @@ function renderDirectoryTree(
         </span>
         <span
           style={{
-            color: child.type === 'directory' ? 'var(--color-accent-blue)' : 'var(--color-text-primary)',
+            color:
+              child.type === 'directory' ? 'var(--color-accent-blue)' : 'var(--color-text-primary)',
             fontWeight: child.type === 'directory' ? 'bold' : 'normal',
           }}
         >
@@ -66,7 +67,12 @@ function renderDirectoryTree(
     );
 
     if (child.type === 'directory') {
-      const [childLines, childLimited] = renderDirectoryTree(child, childPrefix, depth + 1, childPath);
+      const [childLines, childLimited] = renderDirectoryTree(
+        child,
+        childPrefix,
+        depth + 1,
+        childPath
+      );
       lines.push(...childLines);
       if (childLimited) wasLimited = true;
     }
@@ -173,13 +179,10 @@ export function useTerminal(): UseTerminalReturn {
 
       // Handle LS command
       if (parsed.name === 'ls') {
-        const targetPath = resolvePath(
-          state.currentDirectory,
-          parsed.args[0] ?? '.'
-        );
+        const targetPath = resolvePath(state.currentDirectory, parsed.args[0] ?? '.');
 
         const node = getNode(targetPath);
-        
+
         if (!node) {
           addOutput(
             <span style={{ color: 'var(--color-error)' }}>
@@ -201,7 +204,9 @@ export function useTerminal(): UseTerminalReturn {
           return;
         }
 
-        const entries = Array.from(node.children.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+        const entries = Array.from(node.children.entries()).sort((a, b) =>
+          a[0].localeCompare(b[0])
+        );
 
         addOutput(
           <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
@@ -215,7 +220,8 @@ export function useTerminal(): UseTerminalReturn {
                     fontWeight: isDir ? 'bold' : 'normal',
                   }}
                 >
-                  {name}{isDir ? '/' : ''}
+                  {name}
+                  {isDir ? '/' : ''}
                 </span>
               );
             })}
@@ -242,9 +248,7 @@ export function useTerminal(): UseTerminalReturn {
 
         if (node.type !== 'directory') {
           addOutput(
-            <span style={{ color: 'var(--color-error)' }}>
-              cd: {targetArg}: Not a directory
-            </span>,
+            <span style={{ color: 'var(--color-error)' }}>cd: {targetArg}: Not a directory</span>,
             'error'
           );
           return;
@@ -257,7 +261,10 @@ export function useTerminal(): UseTerminalReturn {
       // Handle CAT command
       if (parsed.name === 'cat') {
         if (!parsed.args[0]) {
-          addOutput(<span style={{ color: 'var(--color-error)' }}>Usage: cat [file]</span>, 'error');
+          addOutput(
+            <span style={{ color: 'var(--color-error)' }}>Usage: cat [file]</span>,
+            'error'
+          );
           return;
         }
 
@@ -303,10 +310,7 @@ export function useTerminal(): UseTerminalReturn {
           return;
         }
 
-        const rootLabel =
-          rootPath === '/'
-            ? '/'
-            : rootPath.split('/').filter(Boolean).pop() || '/';
+        const rootLabel = rootPath === '/' ? '/' : rootPath.split('/').filter(Boolean).pop() || '/';
 
         const [treeLines, wasLimited] = renderDirectoryTree(rootNode);
 
@@ -315,7 +319,9 @@ export function useTerminal(): UseTerminalReturn {
             <div style={{ color: 'var(--color-accent-blue)', fontWeight: 'bold' }}>{rootLabel}</div>
             {treeLines}
             {wasLimited && (
-              <div style={{ color: 'var(--color-text-muted)', fontSize: '0.9em', marginTop: '0.5rem' }}>
+              <div
+                style={{ color: 'var(--color-text-muted)', fontSize: '0.9em', marginTop: '0.5rem' }}
+              >
                 Maximum depth reached ({MAX_TREE_DEPTH} levels) - some directories not shown
               </div>
             )}
