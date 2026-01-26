@@ -166,7 +166,8 @@ export function useTerminal(): UseTerminalReturn {
 
       // Handle PWD command
       if (parsed.name === 'pwd') {
-        addOutput(<span>{state.currentDirectory}</span>);
+        const absolutePath = resolvePath(state.currentDirectory, '.');
+        addOutput(<span>{absolutePath}</span>);
         return;
       }
 
