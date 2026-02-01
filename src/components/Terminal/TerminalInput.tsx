@@ -1,11 +1,20 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useTerminalContext } from '../../hooks/TerminalContext';
+import { getCompletions } from '../../utils/completionService';
 import styles from './TerminalInput.module.css';
 
 export const TerminalInput: React.FC = () => {
   const [input, setInput] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const [cursorPos, setCursorPos] = useState(0);
+
+  // State for tab completion cycling
+  const [completionState, setCompletionState] = useState<{
+    originalInput: string;
+    completionPrefix: string; // The partial text being completed (e.g. "te" in "ls te")
+    matches: string[];
+    index: number;
+  } | null>(null);
 
   const {
     executeCommand,
@@ -20,6 +29,8 @@ export const TerminalInput: React.FC = () => {
     setInput(e.target.value);
     setCursorPos(e.target.selectionStart || 0);
     resetHistoryIndex();
+    // Reset completion state on any input change that isn't from tab
+    setCompletionState(null);
   };
 
   const handleSubmit = useCallback(() => {
@@ -34,6 +45,7 @@ export const TerminalInput: React.FC = () => {
       clearTerminal();
       setInput('');
       setCursorPos(0);
+      setCompletionState(null);
       return;
     }
 
@@ -43,9 +55,93 @@ export const TerminalInput: React.FC = () => {
 
     setInput('');
     setCursorPos(0);
+    setCompletionState(null);
   }, [input, executeCommand, clearTerminal]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // If pressing Tab
+    if (e.key === 'Tab') {
+      e.preventDefault();
+
+      if (isLoading) return;
+
+      // If already cycling through completions
+      if (completionState && completionState.matches.length > 0) {
+        const nextIndex = (completionState.index + 1) % completionState.matches.length;
+        const nextMatch = completionState.matches[nextIndex];
+
+        // Replace the completion part in the original input
+        // This is a bit tricky: we need to replace the *last* occurrence or the specific part
+        // Simplification: We assume we are appending/replacing the end
+
+        // Actually, better approach:
+        // We know the "originalInput" when we started tabbing.
+        // We know the "matchToComplete" (the partial string).
+        // We can reconstruct the input.
+
+        // Find where the partial string was in the original input
+        // Note: This logic assumes we are completing at the end of the string
+        // For a more robust solution we'd need cursor position from start
+
+        const prefix =
+          completionState.completionPrefix.length > 0
+            ? completionState.originalInput.slice(0, -completionState.completionPrefix.length)
+            : completionState.originalInput;
+        const newInput = prefix + nextMatch;
+
+        setInput(newInput);
+        setCompletionState({
+          ...completionState,
+          index: nextIndex,
+        });
+
+        // Move cursor to end
+        requestAnimationFrame(() => {
+          if (inputRef.current) {
+            inputRef.current.setSelectionRange(newInput.length, newInput.length);
+            setCursorPos(newInput.length);
+          }
+        });
+        return;
+      }
+
+      // Start new completion
+      const result = getCompletions(input, currentDirectory);
+
+      if (result && result.matches.length > 0) {
+        // Use the first match
+        const firstMatch = result.matches[0];
+
+        // Calculate the prefix (input without the partial part)
+        const prefix = result.original.length > 0 ? input.slice(0, -result.original.length) : input;
+        const newInput = prefix + firstMatch;
+
+        setInput(newInput);
+
+        // Initialize completion state
+        setCompletionState({
+          originalInput: input,
+          completionPrefix: result.original,
+          matches: result.matches,
+          index: 0,
+        });
+
+        requestAnimationFrame(() => {
+          if (inputRef.current) {
+            inputRef.current.setSelectionRange(newInput.length, newInput.length);
+            setCursorPos(newInput.length);
+          }
+        });
+      }
+      return;
+    }
+
+    // Reset completion on navigation keys if desired, or let it stick?
+    // Usually moving cursor breaks completion cycle
+    if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
+      setCompletionState(null);
+    }
+
     switch (e.key) {
       case 'Enter':
         e.preventDefault();
