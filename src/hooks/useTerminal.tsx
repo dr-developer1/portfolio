@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type {
   TerminalState,
@@ -11,6 +11,7 @@ import { parseCommand } from '../utils/commandParser';
 import { generateLineId } from '../utils/helpers';
 import { getCommand } from '../utils/commandRegistry';
 import { resolvePath, getNode, type FileSystemNode } from '../utils/fileSystem';
+import { getStoredTheme, setStoredTheme, applyTheme, isValidTheme } from '../utils/themeService';
 
 const MAX_TREE_DEPTH = 10;
 
@@ -19,7 +20,7 @@ const INITIAL_STATE: TerminalState = {
   commandHistory: [],
   historyIndex: -1,
   currentDirectory: '~',
-  theme: 'dark',
+  theme: getStoredTheme(),
   isLoading: false,
 };
 
@@ -86,6 +87,27 @@ function renderDirectoryTree(
  */
 export function useTerminal(): UseTerminalReturn {
   const [state, setState] = useState<TerminalState>(INITIAL_STATE);
+
+  // Apply theme on mount and when changed
+  useEffect(() => {
+    if (isValidTheme(state.theme)) {
+      applyTheme(state.theme);
+    }
+  }, [state.theme]);
+
+  // Listen for theme change events from commands
+  useEffect(() => {
+    const handleThemeChange = (e: Event) => {
+      const customEvent = e as CustomEvent<{ theme: string }>;
+      const newTheme = customEvent.detail.theme;
+      if (isValidTheme(newTheme)) {
+        setState((prev) => ({ ...prev, theme: newTheme }));
+      }
+    };
+
+    window.addEventListener('theme-change', handleThemeChange);
+    return () => window.removeEventListener('theme-change', handleThemeChange);
+  }, []);
 
   /**
    * Add a line to the terminal output
@@ -432,11 +454,16 @@ export function useTerminal(): UseTerminalReturn {
   );
 
   /**
-   * Set theme
+   * Set the current theme
    */
   const setTheme: TerminalActions['setTheme'] = useCallback((theme: string) => {
-    setState((prev) => ({ ...prev, theme }));
-    document.documentElement.setAttribute('data-theme', theme);
+    if (isValidTheme(theme)) {
+      setStoredTheme(theme);
+      setState((prev) => ({
+        ...prev,
+        theme,
+      }));
+    }
   }, []);
 
   return {

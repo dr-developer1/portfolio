@@ -2,6 +2,7 @@ import React from 'react';
 import type { Command, OutputFunction } from '../types';
 import { getAllCommands, registerCommands } from '../utils/commandRegistry';
 import { content } from './content';
+import { AVAILABLE_THEMES, isValidTheme, resetTheme } from '../utils/themeService';
 
 /**
  * Help command - displays all available commands
@@ -460,6 +461,129 @@ const treeCommand: Command = {
 };
 
 /**
+ * Theme command - manage terminal themes
+ */
+const themeCommand: Command = {
+  name: 'theme',
+  description: 'Manage terminal themes (list, set, reset)',
+  usage: 'theme [list | reset | <name>]',
+  execute: (args: string[], addOutput: OutputFunction) => {
+    // If no args, show current usage
+    if (args.length === 0) {
+      addOutput(
+        <div>
+          <div>Usage: theme [list | reset | &lt;name&gt;]</div>
+          <br />
+          <div>Available themes:</div>
+          <div style={{ paddingLeft: '1rem' }}>
+            {AVAILABLE_THEMES.map((t) => (
+              <span key={t} style={{ marginRight: '1rem', color: 'var(--color-text-secondary)' }}>
+                {t}
+              </span>
+            ))}
+          </div>
+        </div>
+      );
+      return;
+    }
+
+    const subCommand = args[0].toLowerCase();
+
+    // List themes
+    if (subCommand === 'list') {
+      addOutput(
+        <div>
+          <div>Available themes:</div>
+          <ul style={{ listStyle: 'none', paddingLeft: '1rem', marginTop: '0.5rem' }}>
+            {AVAILABLE_THEMES.map((t) => (
+              <li key={t} style={{ marginBottom: '0.25rem' }}>
+                <span style={{ color: 'var(--color-accent-green)' }}>•</span> {t}
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
+      return;
+    }
+
+    // Reset theme
+    if (subCommand === 'reset') {
+      const defaultTheme = resetTheme();
+      // We also need to dispatch a custom event or rely on useTerminal to update React state
+      // Since commands run outside React context, we need a way to signal the change
+      // A simple window event works well here for loose coupling
+      window.dispatchEvent(new CustomEvent('theme-change', { detail: { theme: defaultTheme } }));
+      addOutput(
+        <span style={{ color: 'var(--color-success)' }}>
+          Theme reset to default ({defaultTheme})
+        </span>,
+        'success'
+      );
+      return;
+    }
+
+    // Set theme
+    if (isValidTheme(subCommand)) {
+      window.dispatchEvent(new CustomEvent('theme-change', { detail: { theme: subCommand } }));
+      addOutput(
+        <span style={{ color: 'var(--color-success)' }}>Theme switched to: {subCommand}</span>,
+        'success'
+      );
+    } else {
+      addOutput(
+        <span style={{ color: 'var(--color-error)' }}>
+          Error: Invalid theme '{subCommand}'. Type 'theme list' to see available options.
+        </span>,
+        'error'
+      );
+    }
+  },
+  autocomplete: (partial: string) => {
+    const subCommands = ['list', 'reset', ...AVAILABLE_THEMES];
+    return subCommands.filter((cmd) => cmd.startsWith(partial.toLowerCase()));
+  },
+};
+
+/**
+ * Resume command - download CV
+ */
+const resumeCommand: Command = {
+  name: 'resume',
+  description: 'Download my resume/CV',
+  usage: 'resume',
+  aliases: ['cv', 'download-cv'],
+  execute: (_args: string[], addOutput: OutputFunction) => {
+    addOutput(
+      <div>
+        <span style={{ color: 'var(--color-success)' }}>Initiating download...</span>
+        <br />
+        <span style={{ color: 'var(--color-text-secondary)' }}>
+          If download doesn't start automatically,{' '}
+          <a
+            href="/resume.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: 'var(--color-text-link)', textDecoration: 'underline' }}
+          >
+            click here
+          </a>
+          .
+        </span>
+      </div>,
+      'success'
+    );
+
+    // Trigger download
+    const link = document.createElement('a');
+    link.href = '/resume.pdf';
+    link.download = 'Ahmad_Ibrahim_Resume.pdf';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  },
+};
+
+/**
  * All basic commands
  */
 export const basicCommands: Command[] = [
@@ -480,6 +604,8 @@ export const basicCommands: Command[] = [
   educationCommand,
   projectsCommand,
   contactCommand,
+  themeCommand,
+  resumeCommand,
 ];
 
 /**
