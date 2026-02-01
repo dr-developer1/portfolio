@@ -101,6 +101,7 @@ export function useTerminal(): UseTerminalReturn {
       const customEvent = e as CustomEvent<{ theme: string }>;
       const newTheme = customEvent.detail.theme;
       if (isValidTheme(newTheme)) {
+        setStoredTheme(newTheme);
         setState((prev) => ({ ...prev, theme: newTheme }));
       }
     };

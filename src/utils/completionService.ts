@@ -28,7 +28,9 @@ function getCommandCompletions(partial: string): string[] {
 function getPathCompletions(partialPath: string, currentDirectory: string): string[] {
   // Handle empty path - list current directory
   if (!partialPath) {
-    const node = getNode(currentDirectory);
+    // Normalize currentDirectory (resolve ~ to absolute path)
+    const resolvedDir = resolvePath(currentDirectory, '.');
+    const node = getNode(resolvedDir);
     if (!node || node.type !== 'directory' || !node.children) return [];
     return Array.from(node.children.keys()).map(
       (name) => name + (node.children?.get(name)?.type === 'directory' ? '/' : '')
@@ -72,7 +74,6 @@ function getPathCompletions(partialPath: string, currentDirectory: string): stri
 /**
  * Main completion function
  * @param input The full input string
- * @param cursorPos The cursor position (currently defaults to end of string)
  * @param currentDirectory The current working directory
  */
 export function getCompletions(input: string, currentDirectory: string): CompletionResult | null {
