@@ -53,8 +53,10 @@ export function applyTheme(theme: ThemeName): void {
 /**
  * Resets theme to default
  */
-export function resetTheme(): ThemeName {
-  setStoredTheme(DEFAULT_THEME);
-  applyTheme(DEFAULT_THEME);
+/**
+ * Get the default theme name (pure helper, no side effects)
+ * Use the theme-change event to actually apply and persist the reset
+ */
+export function getDefaultTheme(): ThemeName {
   return DEFAULT_THEME;
 }

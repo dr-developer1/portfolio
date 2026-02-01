@@ -2,7 +2,7 @@ import React from 'react';
 import type { Command, OutputFunction } from '../types';
 import { getAllCommands, registerCommands } from '../utils/commandRegistry';
 import { content } from './content';
-import { AVAILABLE_THEMES, isValidTheme, resetTheme } from '../utils/themeService';
+import { AVAILABLE_THEMES, isValidTheme, getDefaultTheme } from '../utils/themeService';
 
 /**
  * Help command - displays all available commands
@@ -508,10 +508,9 @@ const themeCommand: Command = {
 
     // Reset theme
     if (subCommand === 'reset') {
-      const defaultTheme = resetTheme();
-      // We also need to dispatch a custom event or rely on useTerminal to update React state
-      // Since commands run outside React context, we need a way to signal the change
-      // A simple window event works well here for loose coupling
+      const defaultTheme = getDefaultTheme();
+      // Dispatch event to let useTerminal handle persistence and state update
+      // This keeps the theme change flow consistent with the 'set theme' branch
       window.dispatchEvent(new CustomEvent('theme-change', { detail: { theme: defaultTheme } }));
       addOutput(
         <span style={{ color: 'var(--color-success)' }}>
