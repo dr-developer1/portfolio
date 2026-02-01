@@ -50,6 +50,9 @@ function getPathCompletions(partialPath: string, currentDirectory: string): stri
 
     // Resolve the absolute path to the directory
     dirPath = resolvePath(currentDirectory, dirPart);
+  } else {
+    // No directory separator - normalize currentDirectory (resolve ~ to absolute path)
+    dirPath = resolvePath(currentDirectory, '.');
   }
 
   const node = getNode(dirPath);
@@ -77,11 +80,11 @@ function getPathCompletions(partialPath: string, currentDirectory: string): stri
  * @param currentDirectory The current working directory
  */
 export function getCompletions(input: string, currentDirectory: string): CompletionResult | null {
-  const trimmed = input.trimEnd(); // Don't trim start to preserve leading spaces if any?
-  // Actually standard terminal trimming:
-  const parts = trimmed.split(' ');
+  // Trim and split, filtering empty parts to handle multiple spaces consistently
+  const trimmed = input.trim();
+  const parts = trimmed.split(' ').filter((part) => part.length > 0);
 
-  if (parts.length === 0 || (parts.length === 1 && !input.endsWith(' '))) {
+  if (parts.length === 0 || (parts.length === 1 && !input.trimStart().includes(' '))) {
     // Completing the command name
     const cmdPartial = parts[0] || '';
     const matches = getCommandCompletions(cmdPartial);
