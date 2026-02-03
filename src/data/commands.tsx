@@ -583,6 +583,77 @@ const resumeCommand: Command = {
 };
 
 /**
+ * Effect command - control visual effects
+ */
+const effectCommand: Command = {
+  name: 'effect',
+  description: 'Control visual effects',
+  usage: 'effect matrix [on | off | toggle]',
+  execute: (args: string[], addOutput: OutputFunction) => {
+    if (args.length < 2 || args[0].toLowerCase() !== 'matrix') {
+      addOutput(
+        <div>
+          <div>Usage: effect matrix [on | off | toggle]</div>
+          <br />
+          <div>Controls the background rain effect.</div>
+        </div>
+      );
+      return;
+    }
+
+    const action = args[1].toLowerCase();
+
+    // We use custom events to communicate with React state
+    // since commands run outside the component context
+
+    if (action === 'on') {
+      window.dispatchEvent(new CustomEvent('matrix-toggle', { detail: { enabled: true } }));
+      addOutput(
+        <span style={{ color: 'var(--color-success)' }}>Matrix effect enabled.</span>,
+        'success'
+      );
+    } else if (action === 'off') {
+      window.dispatchEvent(new CustomEvent('matrix-toggle', { detail: { enabled: false } }));
+      addOutput(
+        <span style={{ color: 'var(--color-text-secondary)' }}>Matrix effect disabled.</span>,
+        'info'
+      );
+    } else if (action === 'toggle') {
+      // Toggle logic - explicit feedback required from user usually, but here we blindly toggle
+      // Since we can't easily read state here, we'll let the event handler handle the toggle logic if we sent a 'toggle' action?
+      // No, let's just use the boolean flip logic based on localStorage for best guess or just tell user to use on/off.
+      // Better: Read localStorage directly!
+      const stored = localStorage.getItem('portfolio_matrix_effect');
+      const current = stored !== 'false';
+      const newState = !current;
+
+      window.dispatchEvent(new CustomEvent('matrix-toggle', { detail: { enabled: newState } }));
+
+      addOutput(
+        <span style={{ color: newState ? 'var(--color-success)' : 'var(--color-text-secondary)' }}>
+          Matrix effect {newState ? 'enabled' : 'disabled'}.
+        </span>,
+        newState ? 'success' : 'info'
+      );
+    } else {
+      addOutput(
+        <span style={{ color: 'var(--color-error)' }}>
+          Invalid action. Use 'on', 'off', or 'toggle'.
+        </span>,
+        'error'
+      );
+    }
+  },
+  autocomplete: (partial: string) => {
+    // Basic autocomplete for 'matrix'
+    if ('matrix'.startsWith(partial.toLowerCase())) {
+      return ['matrix'];
+    }
+    return [];
+  },
+};
+
+/**
  * All basic commands
  */
 export const basicCommands: Command[] = [
@@ -605,6 +676,7 @@ export const basicCommands: Command[] = [
   contactCommand,
   themeCommand,
   resumeCommand,
+  effectCommand,
 ];
 
 /**

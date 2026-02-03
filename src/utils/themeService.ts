@@ -51,9 +51,6 @@ export function applyTheme(theme: ThemeName): void {
 }
 
 /**
- * Resets theme to default
- */
-/**
  * Get the default theme name (pure helper, no side effects)
  * Use the theme-change event to actually apply and persist the reset
  */

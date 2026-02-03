@@ -2,11 +2,13 @@ import React from 'react';
 import { TerminalOutput } from './TerminalOutput';
 import { TerminalInput } from './TerminalInput';
 import { TerminalProvider } from '../../hooks/TerminalProvider';
+import { MatrixRain } from '../Effects/MatrixRain';
 import styles from './Terminal.module.css';
 
 export const Terminal: React.FC = () => {
   return (
     <TerminalProvider>
+      <MatrixRain />
       <div className={styles.window}>
         <div className={styles.scanline} />
         <div className={styles.overlay} />

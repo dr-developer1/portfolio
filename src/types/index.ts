@@ -57,6 +57,8 @@ export interface TerminalState {
   theme: string;
   /** Whether a command is currently executing */
   isLoading: boolean;
+  /** Whether the Matrix background effect is enabled */
+  matrixEnabled: boolean;
 }
 
 /**
@@ -77,6 +79,8 @@ export interface TerminalActions {
   setCurrentDirectory: (path: string) => void;
   /** Change the theme */
   setTheme: (theme: string) => void;
+  /** Toggle Matrix background effect */
+  setMatrixEnabled: (enabled: boolean) => void;
 }
 
 /**

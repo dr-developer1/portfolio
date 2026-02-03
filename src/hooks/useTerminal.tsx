@@ -22,6 +22,7 @@ const INITIAL_STATE: TerminalState = {
   currentDirectory: '~',
   theme: getStoredTheme(),
   isLoading: false,
+  matrixEnabled: localStorage.getItem('portfolio_matrix_effect') !== 'false',
 };
 
 /**
@@ -88,26 +89,43 @@ function renderDirectoryTree(
 export function useTerminal(): UseTerminalReturn {
   const [state, setState] = useState<TerminalState>(INITIAL_STATE);
 
-  // Apply theme on mount and when changed
+  // Apply theme on mount
   useEffect(() => {
-    if (isValidTheme(state.theme)) {
-      applyTheme(state.theme);
+    const initialTheme = getStoredTheme();
+    if (isValidTheme(initialTheme)) {
+      applyTheme(initialTheme);
     }
-  }, [state.theme]);
+  }, []); // Only on mount, updates handled eagerly by setters
 
-  // Listen for theme change events from commands
+  // Listen for theme and matrix change events from commands
   useEffect(() => {
     const handleThemeChange = (e: Event) => {
       const customEvent = e as CustomEvent<{ theme: string }>;
       const newTheme = customEvent.detail.theme;
       if (isValidTheme(newTheme)) {
+        // Apply theme immediately before state update to ensure DOM is ready for children
+        applyTheme(newTheme);
         setStoredTheme(newTheme);
         setState((prev) => ({ ...prev, theme: newTheme }));
       }
     };
 
+    const handleMatrixToggle = (e: Event) => {
+      const customEvent = e as CustomEvent<{ enabled: boolean }>;
+      setState((prev) => {
+        const newState = customEvent.detail.enabled;
+        localStorage.setItem('portfolio_matrix_effect', String(newState));
+        return { ...prev, matrixEnabled: newState };
+      });
+    };
+
     window.addEventListener('theme-change', handleThemeChange);
-    return () => window.removeEventListener('theme-change', handleThemeChange);
+    window.addEventListener('matrix-toggle', handleMatrixToggle);
+
+    return () => {
+      window.removeEventListener('theme-change', handleThemeChange);
+      window.removeEventListener('matrix-toggle', handleMatrixToggle);
+    };
   }, []);
 
   /**
@@ -459,6 +477,7 @@ export function useTerminal(): UseTerminalReturn {
    */
   const setTheme: TerminalActions['setTheme'] = useCallback((theme: string) => {
     if (isValidTheme(theme)) {
+      applyTheme(theme); // Apply immediately
       setStoredTheme(theme);
       setState((prev) => ({
         ...prev,
@@ -467,14 +486,26 @@ export function useTerminal(): UseTerminalReturn {
     }
   }, []);
 
+  /**
+   * Set Matrix effect enabled state
+   */
+  const setMatrixEnabled: TerminalActions['setMatrixEnabled'] = useCallback((enabled: boolean) => {
+    localStorage.setItem('portfolio_matrix_effect', String(enabled));
+    setState((prev) => ({
+      ...prev,
+      matrixEnabled: enabled,
+    }));
+  }, []);
+
   return {
     ...state,
-    executeCommand,
     addOutput,
+    executeCommand,
     clearTerminal,
     navigateHistory,
     resetHistoryIndex,
     setCurrentDirectory,
     setTheme,
+    setMatrixEnabled,
   };
 }
