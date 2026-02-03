@@ -14,6 +14,14 @@ export const MatrixRain: React.FC = () => {
     // If not enabled, don't run animation
     if (!matrixEnabled) return;
 
+    // Respect user's reduced motion preference
+    if (typeof window !== 'undefined' && 'matchMedia' in window) {
+      const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+      if (mediaQuery.matches) {
+        return;
+      }
+    }
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -38,8 +46,8 @@ export const MatrixRain: React.FC = () => {
       .fill(0)
       .map(() => Math.floor(Math.random() * -100));
 
-    let animationId: number;
-    let startFrameId: number;
+    // Use undefined to explicitly indicate no frame has been requested yet
+    let animationId: number | undefined;
 
     // Get theme color from CSS variables
     // Uses requestAnimationFrame to ensure CSS is fully loaded and parsed
@@ -70,7 +78,7 @@ export const MatrixRain: React.FC = () => {
 
     // Wait for next animation frame to ensure CSS is loaded
     // This is crucial for the initial render when CSS might still be loading
-    startFrameId = requestAnimationFrame(() => {
+    const startFrameId = requestAnimationFrame(() => {
       const themeColor = getThemeColor();
 
       const draw = () => {
@@ -99,8 +107,8 @@ export const MatrixRain: React.FC = () => {
     });
 
     return () => {
-      cancelAnimationFrame(startFrameId);
-      cancelAnimationFrame(animationId);
+      if (startFrameId !== undefined) cancelAnimationFrame(startFrameId);
+      if (animationId !== undefined) cancelAnimationFrame(animationId);
       window.removeEventListener('resize', handleResize);
     };
   }, [matrixEnabled, theme]); // Re-run if enabled status or theme changes

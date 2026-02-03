@@ -15,6 +15,32 @@ import { getStoredTheme, setStoredTheme, applyTheme, isValidTheme } from '../uti
 
 const MAX_TREE_DEPTH = 10;
 
+/** Storage key for matrix effect preference - exported for use in commands */
+export const MATRIX_STORAGE_KEY = 'portfolio_matrix_effect';
+
+/**
+ * Safely get matrix effect preference from localStorage
+ * Returns true by default (effect enabled) if storage is unavailable
+ */
+function getStoredMatrixEnabled(): boolean {
+  try {
+    return localStorage.getItem(MATRIX_STORAGE_KEY) !== 'false';
+  } catch {
+    return true; // Default to enabled if localStorage unavailable
+  }
+}
+
+/**
+ * Safely set matrix effect preference in localStorage
+ */
+function setStoredMatrixEnabled(enabled: boolean): void {
+  try {
+    localStorage.setItem(MATRIX_STORAGE_KEY, String(enabled));
+  } catch {
+    // Ignore storage errors (e.g., disabled or unavailable localStorage)
+  }
+}
+
 const INITIAL_STATE: TerminalState = {
   history: [],
   commandHistory: [],
@@ -22,7 +48,7 @@ const INITIAL_STATE: TerminalState = {
   currentDirectory: '~',
   theme: getStoredTheme(),
   isLoading: false,
-  matrixEnabled: localStorage.getItem('portfolio_matrix_effect') !== 'false',
+  matrixEnabled: getStoredMatrixEnabled(),
 };
 
 /**
@@ -112,11 +138,12 @@ export function useTerminal(): UseTerminalReturn {
 
     const handleMatrixToggle = (e: Event) => {
       const customEvent = e as CustomEvent<{ enabled: boolean }>;
-      setState((prev) => {
-        const newState = customEvent.detail.enabled;
-        localStorage.setItem('portfolio_matrix_effect', String(newState));
-        return { ...prev, matrixEnabled: newState };
-      });
+      const enabled = customEvent.detail.enabled;
+      setStoredMatrixEnabled(enabled);
+      setState((prev) => ({
+        ...prev,
+        matrixEnabled: enabled,
+      }));
     };
 
     window.addEventListener('theme-change', handleThemeChange);
@@ -490,7 +517,7 @@ export function useTerminal(): UseTerminalReturn {
    * Set Matrix effect enabled state
    */
   const setMatrixEnabled: TerminalActions['setMatrixEnabled'] = useCallback((enabled: boolean) => {
-    localStorage.setItem('portfolio_matrix_effect', String(enabled));
+    setStoredMatrixEnabled(enabled);
     setState((prev) => ({
       ...prev,
       matrixEnabled: enabled,

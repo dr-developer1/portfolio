@@ -3,6 +3,7 @@ import type { Command, OutputFunction } from '../types';
 import { getAllCommands, registerCommands } from '../utils/commandRegistry';
 import { content } from './content';
 import { AVAILABLE_THEMES, isValidTheme, getDefaultTheme } from '../utils/themeService';
+import { MATRIX_STORAGE_KEY } from '../hooks/useTerminal';
 
 /**
  * Help command - displays all available commands
@@ -619,12 +620,14 @@ const effectCommand: Command = {
         'info'
       );
     } else if (action === 'toggle') {
-      // Toggle logic - explicit feedback required from user usually, but here we blindly toggle
-      // Since we can't easily read state here, we'll let the event handler handle the toggle logic if we sent a 'toggle' action?
-      // No, let's just use the boolean flip logic based on localStorage for best guess or just tell user to use on/off.
-      // Better: Read localStorage directly!
-      const stored = localStorage.getItem('portfolio_matrix_effect');
-      const current = stored !== 'false';
+      // Toggle based on persisted preference in localStorage
+      let current = true; // Default to enabled if storage unavailable
+      try {
+        const stored = localStorage.getItem(MATRIX_STORAGE_KEY);
+        current = stored !== 'false';
+      } catch {
+        // Ignore storage errors
+      }
       const newState = !current;
 
       window.dispatchEvent(new CustomEvent('matrix-toggle', { detail: { enabled: newState } }));
