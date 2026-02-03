@@ -15,6 +15,32 @@ import { getStoredTheme, setStoredTheme, applyTheme, isValidTheme } from '../uti
 
 const MAX_TREE_DEPTH = 10;
 
+/** Storage key for matrix effect preference - exported for use in commands */
+export const MATRIX_STORAGE_KEY = 'portfolio_matrix_effect';
+
+/**
+ * Safely get matrix effect preference from localStorage
+ * Returns true by default (effect enabled) if storage is unavailable
+ */
+function getStoredMatrixEnabled(): boolean {
+  try {
+    return localStorage.getItem(MATRIX_STORAGE_KEY) !== 'false';
+  } catch {
+    return true; // Default to enabled if localStorage unavailable
+  }
+}
+
+/**
+ * Safely set matrix effect preference in localStorage
+ */
+function setStoredMatrixEnabled(enabled: boolean): void {
+  try {
+    localStorage.setItem(MATRIX_STORAGE_KEY, String(enabled));
+  } catch {
+    // Ignore storage errors (e.g., disabled or unavailable localStorage)
+  }
+}
+
 const INITIAL_STATE: TerminalState = {
   history: [],
   commandHistory: [],
@@ -22,6 +48,7 @@ const INITIAL_STATE: TerminalState = {
   currentDirectory: '~',
   theme: getStoredTheme(),
   isLoading: false,
+  matrixEnabled: getStoredMatrixEnabled(),
 };
 
 /**
@@ -88,26 +115,44 @@ function renderDirectoryTree(
 export function useTerminal(): UseTerminalReturn {
   const [state, setState] = useState<TerminalState>(INITIAL_STATE);
 
-  // Apply theme on mount and when changed
+  // Apply theme on mount
   useEffect(() => {
-    if (isValidTheme(state.theme)) {
-      applyTheme(state.theme);
+    const initialTheme = getStoredTheme();
+    if (isValidTheme(initialTheme)) {
+      applyTheme(initialTheme);
     }
-  }, [state.theme]);
+  }, []); // Only on mount, updates handled eagerly by setters
 
-  // Listen for theme change events from commands
+  // Listen for theme and matrix change events from commands
   useEffect(() => {
     const handleThemeChange = (e: Event) => {
       const customEvent = e as CustomEvent<{ theme: string }>;
       const newTheme = customEvent.detail.theme;
       if (isValidTheme(newTheme)) {
+        // Apply theme immediately before state update to ensure DOM is ready for children
+        applyTheme(newTheme);
         setStoredTheme(newTheme);
         setState((prev) => ({ ...prev, theme: newTheme }));
       }
     };
 
+    const handleMatrixToggle = (e: Event) => {
+      const customEvent = e as CustomEvent<{ enabled: boolean }>;
+      const enabled = customEvent.detail.enabled;
+      setStoredMatrixEnabled(enabled);
+      setState((prev) => ({
+        ...prev,
+        matrixEnabled: enabled,
+      }));
+    };
+
     window.addEventListener('theme-change', handleThemeChange);
-    return () => window.removeEventListener('theme-change', handleThemeChange);
+    window.addEventListener('matrix-toggle', handleMatrixToggle);
+
+    return () => {
+      window.removeEventListener('theme-change', handleThemeChange);
+      window.removeEventListener('matrix-toggle', handleMatrixToggle);
+    };
   }, []);
 
   /**
@@ -459,6 +504,7 @@ export function useTerminal(): UseTerminalReturn {
    */
   const setTheme: TerminalActions['setTheme'] = useCallback((theme: string) => {
     if (isValidTheme(theme)) {
+      applyTheme(theme); // Apply immediately
       setStoredTheme(theme);
       setState((prev) => ({
         ...prev,
@@ -467,14 +513,26 @@ export function useTerminal(): UseTerminalReturn {
     }
   }, []);
 
+  /**
+   * Set Matrix effect enabled state
+   */
+  const setMatrixEnabled: TerminalActions['setMatrixEnabled'] = useCallback((enabled: boolean) => {
+    setStoredMatrixEnabled(enabled);
+    setState((prev) => ({
+      ...prev,
+      matrixEnabled: enabled,
+    }));
+  }, []);
+
   return {
     ...state,
-    executeCommand,
     addOutput,
+    executeCommand,
     clearTerminal,
     navigateHistory,
     resetHistoryIndex,
     setCurrentDirectory,
     setTheme,
+    setMatrixEnabled,
   };
 }
