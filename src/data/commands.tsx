@@ -691,7 +691,10 @@ const musicCommand: Command = {
           <br />
           <div>Controls the background music playback.</div>
           <div style={{ marginTop: '0.5rem' }}>
-            Current volume: <span style={{ color: 'var(--color-accent-cyan)' }}>{Math.round(currentVolume * 100)}%</span>
+            Current volume:{' '}
+            <span style={{ color: 'var(--color-accent-cyan)' }}>
+              {Math.round(currentVolume * 100)}%
+            </span>
           </div>
           <div style={{ marginTop: '0.5rem', color: 'var(--color-text-secondary)' }}>
             Note: Music requires user interaction to start due to browser policies.
@@ -751,7 +754,10 @@ const musicCommand: Command = {
         }
         addOutput(
           <span>
-            Current volume: <span style={{ color: 'var(--color-accent-cyan)' }}>{Math.round(currentVolume * 100)}%</span>
+            Current volume:{' '}
+            <span style={{ color: 'var(--color-accent-cyan)' }}>
+              {Math.round(currentVolume * 100)}%
+            </span>
           </span>
         );
         return;
@@ -772,9 +778,7 @@ const musicCommand: Command = {
       window.dispatchEvent(new CustomEvent('music-volume', { detail: { volume: volumeValue } }));
 
       addOutput(
-        <span style={{ color: 'var(--color-success)' }}>
-          ♪ Volume set to {volumeArg}%.
-        </span>,
+        <span style={{ color: 'var(--color-success)' }}>♪ Volume set to {volumeArg}%.</span>,
         'success'
       );
     } else {

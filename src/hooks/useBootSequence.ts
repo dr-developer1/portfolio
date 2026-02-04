@@ -13,7 +13,7 @@
  * }
  */
 
-import { useCallback, useEffect, useReducer, useRef } from 'react';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 
 import { BOOT_COMPLETE_DELAY, getBootMessages, getMessageDelay } from '../data/bootMessages';
 import type { BootMode, BootState, UseBootSequenceReturn } from '../types/boot';
@@ -82,8 +82,10 @@ function bootReducer(state: BootState, action: BootAction): BootState {
 export function useBootSequence(): UseBootSequenceReturn {
   const [state, dispatch] = useReducer(bootReducer, initialState);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  // Cache messages to prevent random failures from changing mid-boot
-  const messagesRef = useRef<ReturnType<typeof getBootMessages>>(getBootMessages('normal'));
+  // Store messages in state to be render-safe (refs can't be accessed during render)
+  const [messages, setMessages] = useState<ReturnType<typeof getBootMessages>>(() =>
+    getBootMessages('normal')
+  );
 
   /**
    * Start the boot sequence with optional mode override
@@ -99,7 +101,7 @@ export function useBootSequence(): UseBootSequenceReturn {
     }
 
     // Generate messages ONCE at boot start (caches random failures)
-    messagesRef.current = getBootMessages(mode);
+    setMessages(getBootMessages(mode));
     dispatch({ type: 'START_BOOT', mode });
   }, []);
 
@@ -122,11 +124,8 @@ export function useBootSequence(): UseBootSequenceReturn {
 
     if (phase !== 'booting') return;
 
-    // Use cached messages (generated once at boot start)
-    const currentMessages = messagesRef.current;
-
     // Check if we've shown all messages
-    if (currentMessageIndex >= currentMessages.length) {
+    if (currentMessageIndex >= messages.length) {
       // Wait a bit before completing
       timeoutRef.current = setTimeout(() => {
         dispatch({ type: 'COMPLETE_BOOT' });
@@ -135,7 +134,7 @@ export function useBootSequence(): UseBootSequenceReturn {
     }
 
     // Get delay for current message
-    const currentMessage = currentMessages[currentMessageIndex];
+    const currentMessage = messages[currentMessageIndex];
     const delay = getMessageDelay(currentMessage);
 
     // Schedule next message
@@ -150,12 +149,12 @@ export function useBootSequence(): UseBootSequenceReturn {
         timeoutRef.current = undefined;
       }
     };
-  }, [state]);
+  }, [state, messages]);
 
   return {
     state,
     startBoot,
     skipBoot,
-    messages: messagesRef.current,
+    messages,
   };
 }
