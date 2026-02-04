@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useTerminalContext } from '../../hooks/TerminalContext';
 import { getCompletions } from '../../utils/completionService';
+import { getPromptConfig } from '../../hooks/useTerminal';
 import styles from './TerminalInput.module.css';
 
 export const TerminalInput: React.FC = () => {
@@ -23,7 +24,11 @@ export const TerminalInput: React.FC = () => {
     resetHistoryIndex,
     currentDirectory,
     isLoading,
+    bootMode,
   } = useTerminalContext();
+
+  // Get dynamic prompt configuration based on boot mode
+  const { user, symbol } = getPromptConfig(bootMode);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInput(e.target.value);
@@ -221,12 +226,12 @@ export const TerminalInput: React.FC = () => {
   return (
     <div className={styles.inputContainer}>
       <span className={styles.prompt}>
-        <span className={styles.promptUser}>visitor</span>
+        <span className={styles.promptUser}>{user}</span>
         <span className={styles.promptAt}>@</span>
         <span className={styles.promptHost}>portfolio</span>
         <span className={styles.promptSeparator}>:</span>
         <span className={styles.promptPath}>{currentDirectory}</span>
-        <span className={styles.promptSymbol}>$</span>
+        <span className={styles.promptSymbol}>{symbol}</span>
       </span>
       <div className={styles.inputWrapper}>
         <input

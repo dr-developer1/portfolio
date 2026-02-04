@@ -6,6 +6,7 @@ import type {
   UseTerminalReturn,
   TerminalLine,
   LineType,
+  BootMode,
 } from '../types';
 import { parseCommand } from '../utils/commandParser';
 import { generateLineId } from '../utils/helpers';
@@ -17,6 +18,15 @@ const MAX_TREE_DEPTH = 10;
 
 /** Storage key for matrix effect preference - exported for use in commands */
 export const MATRIX_STORAGE_KEY = 'portfolio_matrix_effect';
+
+/** Storage key for music preference - exported for use in commands */
+export const MUSIC_STORAGE_KEY = 'portfolio_music_enabled';
+
+/** Storage key for music volume - exported for use in commands */
+export const MUSIC_VOLUME_KEY = 'portfolio_music_volume';
+
+/** Default music volume (0.0 to 1.0) */
+export const DEFAULT_MUSIC_VOLUME = 0.3;
 
 /**
  * Safely get matrix effect preference from localStorage
@@ -41,6 +51,59 @@ function setStoredMatrixEnabled(enabled: boolean): void {
   }
 }
 
+/**
+ * Safely get music preference from localStorage
+ * Returns true by default (music enabled) - browser may block autoplay until user interaction
+ */
+function getStoredMusicEnabled(): boolean {
+  try {
+    return localStorage.getItem(MUSIC_STORAGE_KEY) !== 'false';
+  } catch {
+    return true; // Default to enabled if localStorage unavailable
+  }
+}
+
+/**
+ * Safely set music preference in localStorage
+ */
+function setStoredMusicEnabled(enabled: boolean): void {
+  try {
+    localStorage.setItem(MUSIC_STORAGE_KEY, String(enabled));
+  } catch {
+    // Ignore storage errors (e.g., disabled or unavailable localStorage)
+  }
+}
+
+/**
+ * Safely get music volume from localStorage
+ * Returns DEFAULT_MUSIC_VOLUME if storage is unavailable
+ */
+function getStoredMusicVolume(): number {
+  try {
+    const stored = localStorage.getItem(MUSIC_VOLUME_KEY);
+    if (stored !== null) {
+      const volume = parseFloat(stored);
+      if (!isNaN(volume) && volume >= 0 && volume <= 1) {
+        return volume;
+      }
+    }
+    return DEFAULT_MUSIC_VOLUME;
+  } catch {
+    return DEFAULT_MUSIC_VOLUME;
+  }
+}
+
+/**
+ * Safely set music volume in localStorage
+ */
+function setStoredMusicVolume(volume: number): void {
+  try {
+    localStorage.setItem(MUSIC_VOLUME_KEY, String(volume));
+  } catch {
+    // Ignore storage errors
+  }
+}
+
 const INITIAL_STATE: TerminalState = {
   history: [],
   commandHistory: [],
@@ -49,7 +112,28 @@ const INITIAL_STATE: TerminalState = {
   theme: getStoredTheme(),
   isLoading: false,
   matrixEnabled: getStoredMatrixEnabled(),
+  musicEnabled: getStoredMusicEnabled(),
+  musicVolume: getStoredMusicVolume(),
+  hasUserInteracted: false,
+  bootMode: 'normal',
 };
+
+/**
+ * Prompt configuration for each boot mode
+ */
+const PROMPT_CONFIG: Record<BootMode, { user: string; symbol: string }> = {
+  normal: { user: 'visitor', symbol: '$' },
+  admin: { user: 'root', symbol: '#' },
+  dev: { user: 'developer', symbol: '$' },
+  matrix: { user: 'neo', symbol: '$' },
+};
+
+/**
+ * Get prompt user and symbol for a given boot mode
+ */
+export function getPromptConfig(mode: BootMode): { user: string; symbol: string } {
+  return PROMPT_CONFIG[mode];
+}
 
 /**
  * Render a directory tree recursively
@@ -146,12 +230,36 @@ export function useTerminal(): UseTerminalReturn {
       }));
     };
 
+    const handleMusicToggle = (e: Event) => {
+      const customEvent = e as CustomEvent<{ enabled: boolean }>;
+      const enabled = customEvent.detail.enabled;
+      setStoredMusicEnabled(enabled);
+      setState((prev) => ({
+        ...prev,
+        musicEnabled: enabled,
+      }));
+    };
+
+    const handleMusicVolume = (e: Event) => {
+      const customEvent = e as CustomEvent<{ volume: number }>;
+      const volume = Math.max(0, Math.min(1, customEvent.detail.volume));
+      setStoredMusicVolume(volume);
+      setState((prev) => ({
+        ...prev,
+        musicVolume: volume,
+      }));
+    };
+
     window.addEventListener('theme-change', handleThemeChange);
     window.addEventListener('matrix-toggle', handleMatrixToggle);
+    window.addEventListener('music-toggle', handleMusicToggle);
+    window.addEventListener('music-volume', handleMusicVolume);
 
     return () => {
       window.removeEventListener('theme-change', handleThemeChange);
       window.removeEventListener('matrix-toggle', handleMatrixToggle);
+      window.removeEventListener('music-toggle', handleMusicToggle);
+      window.removeEventListener('music-volume', handleMusicVolume);
     };
   }, []);
 
@@ -187,15 +295,18 @@ export function useTerminal(): UseTerminalReturn {
         return;
       }
 
+      // Get prompt configuration for current boot mode
+      const { user, symbol } = getPromptConfig(state.bootMode);
+
       // Add the command to history display (showing what user typed)
       addOutput(
         <span>
-          <span style={{ color: 'var(--color-prompt-user)' }}>visitor</span>
+          <span style={{ color: 'var(--color-prompt-user)' }}>{user}</span>
           <span style={{ color: 'var(--color-text-muted)' }}>@</span>
           <span style={{ color: 'var(--color-prompt-host)' }}>portfolio</span>
           <span style={{ color: 'var(--color-text-muted)' }}>:</span>
           <span style={{ color: 'var(--color-prompt-path)' }}>{state.currentDirectory}</span>
-          <span style={{ color: 'var(--color-accent-green)' }}>$ </span>
+          <span style={{ color: 'var(--color-accent-green)' }}>{symbol} </span>
           <span style={{ color: 'var(--color-command)' }}>{trimmedInput}</span>
         </span>,
         'command'
@@ -212,6 +323,12 @@ export function useTerminal(): UseTerminalReturn {
       const parsed = parseCommand(trimmedInput);
 
       if (!parsed.name) {
+        return;
+      }
+
+      // Easter egg: non-admin users trying to use sudo
+      if (parsed.name === 'sudo' && state.bootMode !== 'admin') {
+        addOutput(<span style={{ color: 'var(--color-warning)' }}>Nice try diddy</span>, 'warning');
         return;
       }
 
@@ -431,7 +548,7 @@ export function useTerminal(): UseTerminalReturn {
         setState((prev) => ({ ...prev, isLoading: false }));
       }
     },
-    [addOutput, state.currentDirectory, state.commandHistory]
+    [addOutput, state.currentDirectory, state.commandHistory, state.bootMode]
   );
 
   /**
@@ -524,6 +641,49 @@ export function useTerminal(): UseTerminalReturn {
     }));
   }, []);
 
+  /**
+   * Set background music enabled state
+   */
+  const setMusicEnabled: TerminalActions['setMusicEnabled'] = useCallback((enabled: boolean) => {
+    setStoredMusicEnabled(enabled);
+    setState((prev) => ({
+      ...prev,
+      musicEnabled: enabled,
+    }));
+  }, []);
+
+  /**
+   * Set music volume (0.0 to 1.0)
+   */
+  const setMusicVolume: TerminalActions['setMusicVolume'] = useCallback((volume: number) => {
+    const clampedVolume = Math.max(0, Math.min(1, volume));
+    setStoredMusicVolume(clampedVolume);
+    setState((prev) => ({
+      ...prev,
+      musicVolume: clampedVolume,
+    }));
+  }, []);
+
+  /**
+   * Mark that the user has interacted with the page (enables audio)
+   */
+  const setUserInteracted: TerminalActions['setUserInteracted'] = useCallback(() => {
+    setState((prev) => ({
+      ...prev,
+      hasUserInteracted: true,
+    }));
+  }, []);
+
+  /**
+   * Set the boot mode (determines prompt style and permissions)
+   */
+  const setBootMode: TerminalActions['setBootMode'] = useCallback((mode: BootMode) => {
+    setState((prev) => ({
+      ...prev,
+      bootMode: mode,
+    }));
+  }, []);
+
   return {
     ...state,
     addOutput,
@@ -534,5 +694,9 @@ export function useTerminal(): UseTerminalReturn {
     setCurrentDirectory,
     setTheme,
     setMatrixEnabled,
+    setMusicEnabled,
+    setMusicVolume,
+    setUserInteracted,
+    setBootMode,
   };
 }

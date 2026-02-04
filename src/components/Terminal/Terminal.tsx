@@ -1,14 +1,23 @@
 import React from 'react';
-import { TerminalOutput } from './TerminalOutput';
-import { TerminalInput } from './TerminalInput';
-import { TerminalProvider } from '../../hooks/TerminalProvider';
+
+import { BackgroundMusic } from '../Effects/BackgroundMusic';
 import { MatrixRain } from '../Effects/MatrixRain';
+import { useTerminalContext } from '../../hooks/TerminalContext';
+import { getPromptConfig } from '../../hooks/useTerminal';
+
+import { MusicToggleButton } from './MusicToggleButton';
 import styles from './Terminal.module.css';
+import { TerminalInput } from './TerminalInput';
+import { TerminalOutput } from './TerminalOutput';
 
 export const Terminal: React.FC = () => {
+  const { bootMode } = useTerminalContext();
+  const { user } = getPromptConfig(bootMode);
+
   return (
-    <TerminalProvider>
+    <>
       <MatrixRain />
+      <BackgroundMusic />
       <div className={styles.window}>
         <div className={styles.scanline} />
         <div className={styles.overlay} />
@@ -31,8 +40,10 @@ export const Terminal: React.FC = () => {
               tabIndex={-1}
             />
           </div>
-          <span className={styles.windowTitle}>visitor@portfolio — bash</span>
-          <div className={styles.windowActions} />
+          <span className={styles.windowTitle}>{user}@portfolio — bash</span>
+          <div className={styles.windowActions}>
+            <MusicToggleButton />
+          </div>
         </div>
 
         {/* Terminal body */}
@@ -41,6 +52,6 @@ export const Terminal: React.FC = () => {
           <TerminalInput />
         </div>
       </div>
-    </TerminalProvider>
+    </>
   );
 };

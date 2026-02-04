@@ -1,0 +1,293 @@
+/**
+ * Boot Screen Styles
+ *
+ * Scoped CSS Module for the boot sequence components.
+ * Includes animations, cursor effects, and accessibility support.
+ */
+
+/* ============================================================================
+   Container & Layout
+   ============================================================================ */
+
+.bootScreen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-bg-primary);
+  font-family: var(--font-mono);
+  color: var(--color-text-primary);
+  z-index: 1000;
+  padding: var(--spacing-xl);
+  overflow: hidden;
+}
+
+.bootContainer {
+  width: 100%;
+  max-width: 800px;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================================================
+   Header / Logo
+   ============================================================================ */
+
+.header {
+  margin-bottom: var(--spacing-xl);
+  text-align: center;
+}
+
+.logo {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-accent-cyan);
+  margin-bottom: var(--spacing-sm);
+  letter-spacing: 0.05em;
+}
+
+.version {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* ============================================================================
+   Start Prompt (Waiting Phase)
+   ============================================================================ */
+
+.promptContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  text-align: center;
+}
+
+.promptText {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-md);
+}
+
+.promptHint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-md);
+}
+
+.inputLine {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-lg);
+  margin-top: var(--spacing-lg);
+}
+
+.inputPrompt {
+  color: var(--color-accent-green);
+  font-weight: 600;
+}
+
+.typedText {
+  color: var(--color-text-primary);
+  letter-spacing: 0.05em;
+}
+
+.cursor {
+  display: inline-block;
+  width: 10px;
+  height: 1.2em;
+  background-color: var(--color-accent-green);
+  animation: blink 1s step-end infinite;
+  vertical-align: middle;
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ============================================================================
+   Boot Messages (Booting Phase)
+   ============================================================================ */
+
+.messagesContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+  padding-right: var(--spacing-sm);
+}
+
+.message {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-base);
+  line-height: 1.6;
+  opacity: 0;
+  animation: fade-in 0.15s ease-out forwards;
+}
+
+.messageText {
+  color: var(--color-text-primary);
+}
+
+.messageEmpty {
+  height: 1.6em;
+}
+
+/* Status indicators */
+.statusOk {
+  color: var(--color-success);
+  font-weight: 600;
+}
+
+.statusOk::before {
+  content: '[ ';
+}
+
+.statusOk::after {
+  content: ' ]';
+}
+
+.statusFail {
+  color: var(--color-error);
+  font-weight: 600;
+}
+
+.statusFail::before {
+  content: '[ ';
+}
+
+.statusFail::after {
+  content: ' ]';
+}
+
+.statusWarn {
+  color: var(--color-warning);
+  font-weight: 600;
+}
+
+.statusWarn::before {
+  content: '[ ';
+}
+
+.statusWarn::after {
+  content: ' ]';
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Visually hidden but accessible to screen readers */
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ============================================================================
+   Boot Mode Variants
+   ============================================================================ */
+
+/* Admin mode - red accent */
+.bootScreen[data-mode='admin'] .logo {
+  color: var(--color-error);
+}
+
+.bootScreen[data-mode='admin'] .cursor {
+  background-color: var(--color-error);
+}
+
+/* Dev mode - purple accent */
+.bootScreen[data-mode='dev'] .logo {
+  color: var(--color-accent-purple);
+}
+
+.bootScreen[data-mode='dev'] .cursor {
+  background-color: var(--color-accent-purple);
+}
+
+/* Matrix mode - green with special effects */
+.bootScreen[data-mode='matrix'] .logo {
+  color: var(--color-accent-green);
+  text-shadow: 0 0 10px var(--color-accent-green);
+}
+
+.bootScreen[data-mode='matrix'] .cursor {
+  background-color: var(--color-accent-green);
+  box-shadow: 0 0 10px var(--color-accent-green);
+}
+
+.bootScreen[data-mode='matrix'] .messageText {
+  color: var(--color-accent-green);
+}
+
+/* ============================================================================
+   Reduced Motion
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .cursor {
+    animation: none;
+    opacity: 1;
+  }
+
+  .message {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+/* ============================================================================
+   Responsive
+   ============================================================================ */
+
+@media (width <= 600px) {
+  .bootScreen {
+    padding: var(--spacing-md);
+  }
+
+  .bootContainer {
+    min-height: 300px;
+  }
+
+  .logo {
+    font-size: var(--font-size-lg);
+  }
+
+  .promptText {
+    font-size: var(--font-size-base);
+  }
+
+  .message {
+    font-size: var(--font-size-sm);
+  }
+}
