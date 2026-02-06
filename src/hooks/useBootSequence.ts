@@ -130,7 +130,13 @@ export function useBootSequence(): UseBootSequenceReturn {
       timeoutRef.current = setTimeout(() => {
         dispatch({ type: 'COMPLETE_BOOT' });
       }, BOOT_COMPLETE_DELAY);
-      return;
+      // Return cleanup to clear timeout if component unmounts or state changes
+      return () => {
+        if (timeoutRef.current !== undefined) {
+          clearTimeout(timeoutRef.current);
+          timeoutRef.current = undefined;
+        }
+      };
     }
 
     // Get delay for current message

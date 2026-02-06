@@ -116,11 +116,11 @@ export function getMessageDelay(message: BootMessage): number {
 
 /**
  * Get messages for a specific boot mode with optional random failures
- * 
+ *
  * Dynamic values are injected at runtime:
  * - Normal mode: Time-based greeting computed when boot starts
  * - Dev mode: React version and session start time computed when boot starts
- * 
+ *
  * Failures only occur on messages with status: 'ok' (not first/last messages)
  * When a failure occurs, adds a retry sequence that eventually succeeds
  * Matrix mode never fails to preserve the mystical vibe

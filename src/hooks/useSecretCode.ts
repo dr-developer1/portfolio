@@ -27,6 +27,13 @@ const BUFFER_MAX_LENGTH = 20;
 const BUFFER_TIMEOUT = 2000;
 
 /**
+ * Pre-sorted secret codes by length (descending) to check longer codes first
+ * This prevents prefix collisions (e.g., "dev" matching before "developer")
+ * Computed once at module load for performance
+ */
+const SORTED_SECRET_CODES = Object.entries(SECRET_CODES).sort((a, b) => b[0].length - a[0].length);
+
+/**
  * Hook to detect secret codes typed by the user
  *
  * @returns Object with detectedMode, typedText (visible buffer), and reset function
@@ -52,16 +59,13 @@ export function useSecretCode(): UseSecretCodeReturn {
 
   /**
    * Check if current buffer ends with any secret code
-   * Checks longer codes first to avoid prefix collisions
+   * Uses pre-sorted codes (longest first) to avoid prefix collisions
    */
   const checkForSecretCode = useCallback((buffer: string): BootMode | null => {
     const lowerBuffer = buffer.toLowerCase();
 
-    // Sort codes by length descending to check longer codes first
-    // This prevents "dev" from matching before "developer" or "debug"
-    const sortedCodes = Object.entries(SECRET_CODES).sort((a, b) => b[0].length - a[0].length);
-
-    for (const [code, mode] of sortedCodes) {
+    // Use pre-sorted codes (computed once at module level)
+    for (const [code, mode] of SORTED_SECRET_CODES) {
       if (lowerBuffer.endsWith(code)) {
         return mode;
       }

@@ -1,3 +1,4 @@
+import type { FC } from 'react';
 import { useEffect, useRef, useCallback } from 'react';
 import { useTerminalContext } from '../../hooks/TerminalContext';
 
@@ -14,7 +15,7 @@ const MUSIC_SRC = '/audio/background.mp3';
  * This solves browser autoplay restrictions - the boot sequence triggers
  * hasUserInteracted when the user interacts to start the system.
  */
-export const BackgroundMusic: React.FC = () => {
+export const BackgroundMusic: FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { musicEnabled, hasUserInteracted } = useTerminalContext();
 

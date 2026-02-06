@@ -1,3 +1,4 @@
+import type { FC } from 'react';
 import { useCallback, useState } from 'react';
 
 import { BootScreen } from './components/Boot';
@@ -15,7 +16,7 @@ interface AppContentProps {
   onBootComplete: () => void;
 }
 
-const AppContent: React.FC<AppContentProps> = ({ bootComplete, onBootComplete }) => {
+const AppContent: FC<AppContentProps> = ({ bootComplete, onBootComplete }) => {
   const { setUserInteracted, setBootMode } = useTerminalContext();
 
   const handleBootComplete = useCallback(() => {
