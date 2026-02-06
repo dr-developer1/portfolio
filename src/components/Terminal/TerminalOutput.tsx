@@ -3,12 +3,14 @@ import { useTerminalContext } from '../../hooks/TerminalContext';
 import styles from './TerminalOutput.module.css';
 
 const ASCII_BANNER = `
- ██████╗  ██████╗ ██████╗ ████████╗███████╗ ██████╗ ██╗     ██╗ ██████╗ 
- ██╔══██╗██╔═══██╗██╔══██╗╚══██╔══╝██╔════╝██╔═══██╗██║     ██║██╔═══██╗
- ██████╔╝██║   ██║██████╔╝   ██║   █████╗  ██║   ██║██║     ██║██║   ██║
- ██╔═══╝ ██║   ██║██╔══██╗   ██║   ██╔══╝  ██║   ██║██║     ██║██║   ██║
- ██║     ╚██████╔╝██║  ██║   ██║   ██║     ╚██████╔╝███████╗██║╚██████╔╝
- ╚═╝      ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚═╝      ╚═════╝ ╚══════╝╚═╝ ╚═════╝ 
+ ╔═══════════════════════════════════════════════════════════╗
+ ║  DEVELOPER PORTFOLIO v2.0                    SYSTEM BOOT  ║
+ ║  Full-Stack Development Environment - Production Ready    ║
+ ╚═══════════════════════════════════════════════════════════╝
+
+ CPU: TypeScript 5.3 @ 4.8 GHz      Memory: React 18 Hooks
+ Stack: Node.js + Express            Database: PostgreSQL
+ Tools: Vite + Docker                Location: Lyon, France
 `;
 
 export const TerminalOutput: React.FC = () => {
@@ -25,14 +27,12 @@ export const TerminalOutput: React.FC = () => {
       {/* Welcome banner - always shown */}
       <pre className={styles.welcomeBanner}>{ASCII_BANNER}</pre>
       <div className={styles.line}>
-        <span className={styles.welcomeText}>
-          Welcome to my interactive portfolio terminal{' '}
-          <span className={styles.highlight}>v2.0.0</span>
-        </span>
+        <span className={styles.welcomeText}>Ingénieur Développeur Full-Stack</span>
       </div>
       <div className={styles.line}>
         <span className={styles.muted}>
-          Type '<span className={styles.highlight}>help</span>' to see available commands.
+          Tapez '<span className={styles.highlight}>help</span>' pour explorer mes projets et
+          compétences
         </span>
       </div>
       <div className={styles.line}>&nbsp;</div>

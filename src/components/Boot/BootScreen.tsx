@@ -62,9 +62,9 @@ export const BootScreen: React.FC<BootScreenProps> = ({ onBootComplete, onModeDe
   // Notify parent when boot completes
   useEffect(() => {
     if (state.phase === 'complete') {
-      onBootComplete();
+      onBootComplete(state.mode);
     }
-  }, [state.phase, onBootComplete]);
+  }, [state.phase, state.mode, onBootComplete]);
 
   // Don't render anything once complete (parent will switch to terminal)
   if (state.phase === 'complete') {

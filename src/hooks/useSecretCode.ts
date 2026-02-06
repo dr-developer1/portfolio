@@ -105,8 +105,9 @@ export function useSecretCode(): UseSecretCodeReturn {
 
       // Set timeout to reset buffer after inactivity
       timeoutRef.current = setTimeout(() => {
-        bufferRef.current = '';
-        setTypedText('');
+        bufferRef.current = ''; // Clear the actual buffer ref
+        setTypedText(''); // Clear the visual display
+        setDetectedMode(null); // Clear the detected mode state
       }, BUFFER_TIMEOUT);
     },
     [checkForSecretCode]

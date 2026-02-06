@@ -71,8 +71,8 @@ export interface UseSecretCodeReturn {
  * Props for the BootScreen component
  */
 export interface BootScreenProps {
-  /** Callback when boot sequence completes */
-  onBootComplete: () => void;
+  /** Callback when boot sequence completes, receives the boot mode that was used */
+  onBootComplete: (mode: BootMode) => void;
   /** Callback when boot mode is determined (before boot messages start) */
   onModeDetected?: (mode: BootMode) => void;
 }

@@ -51,6 +51,8 @@ export const TerminalInput: React.FC = () => {
       setInput('');
       setCursorPos(0);
       setCompletionState(null);
+      // Ensure focus returns after clearing
+      requestAnimationFrame(() => inputRef.current?.focus());
       return;
     }
 
@@ -61,6 +63,8 @@ export const TerminalInput: React.FC = () => {
     setInput('');
     setCursorPos(0);
     setCompletionState(null);
+    // Ensure focus returns after command execution (fixes Chrome focus loss)
+    requestAnimationFrame(() => inputRef.current?.focus());
   }, [input, executeCommand, clearTerminal]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
