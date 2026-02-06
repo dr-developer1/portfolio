@@ -113,6 +113,39 @@
 
 .windowActions {
   width: 52px; /* Balance the controls on the left */
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+/* Music toggle button */
+.musicToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.musicToggle:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-tertiary);
+}
+
+.musicToggle:focus-visible {
+  outline: 2px solid var(--color-accent-cyan);
+  outline-offset: 2px;
+}
+
+.musicToggle svg {
+  flex-shrink: 0;
 }
 
 /* ========================================

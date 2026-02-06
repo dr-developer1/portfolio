@@ -3,7 +3,7 @@ import type { Command, OutputFunction } from '../types';
 import { getAllCommands, registerCommands } from '../utils/commandRegistry';
 import { content } from './content';
 import { AVAILABLE_THEMES, isValidTheme, getDefaultTheme } from '../utils/themeService';
-import { MATRIX_STORAGE_KEY } from '../hooks/useTerminal';
+import { MATRIX_STORAGE_KEY, MUSIC_STORAGE_KEY } from '../hooks/useTerminal';
 
 /**
  * Help command - displays all available commands
@@ -657,6 +657,77 @@ const effectCommand: Command = {
 };
 
 /**
+ * Music command - control background music
+ */
+const musicCommand: Command = {
+  name: 'music',
+  description: 'Control background music',
+  usage: 'music [on | off | toggle]',
+  aliases: ['audio', 'sound'],
+  execute: (args: string[], addOutput: OutputFunction) => {
+    if (args.length === 0) {
+      addOutput(
+        <div>
+          <div>Usage: music [on | off | toggle]</div>
+          <br />
+          <div>Controls the background music playback.</div>
+          <div style={{ marginTop: '0.5rem', color: 'var(--color-text-secondary)' }}>
+            Note: Music requires user interaction to start due to browser policies.
+          </div>
+        </div>
+      );
+      return;
+    }
+
+    const action = args[0].toLowerCase();
+
+    if (action === 'on') {
+      window.dispatchEvent(new CustomEvent('music-toggle', { detail: { enabled: true } }));
+      addOutput(
+        <span style={{ color: 'var(--color-success)' }}>♪ Background music enabled.</span>,
+        'success'
+      );
+    } else if (action === 'off') {
+      window.dispatchEvent(new CustomEvent('music-toggle', { detail: { enabled: false } }));
+      addOutput(
+        <span style={{ color: 'var(--color-text-secondary)' }}>♪ Background music disabled.</span>,
+        'info'
+      );
+    } else if (action === 'toggle') {
+      // Toggle based on persisted preference in localStorage
+      // Default to true (enabled) if storage unavailable, consistent with getStoredMusicEnabled()
+      let current = true;
+      try {
+        current = localStorage.getItem(MUSIC_STORAGE_KEY) !== 'false';
+      } catch {
+        // Ignore storage errors
+      }
+      const newState = !current;
+
+      window.dispatchEvent(new CustomEvent('music-toggle', { detail: { enabled: newState } }));
+
+      addOutput(
+        <span style={{ color: newState ? 'var(--color-success)' : 'var(--color-text-secondary)' }}>
+          ♪ Background music {newState ? 'enabled' : 'disabled'}.
+        </span>,
+        newState ? 'success' : 'info'
+      );
+    } else {
+      addOutput(
+        <span style={{ color: 'var(--color-error)' }}>
+          Invalid action. Use 'on', 'off', or 'toggle'.
+        </span>,
+        'error'
+      );
+    }
+  },
+  autocomplete: (partial: string) => {
+    const subCommands = ['on', 'off', 'toggle'];
+    return subCommands.filter((cmd) => cmd.startsWith(partial.toLowerCase()));
+  },
+};
+
+/**
  * All basic commands
  */
 export const basicCommands: Command[] = [
@@ -680,6 +751,7 @@ export const basicCommands: Command[] = [
   themeCommand,
   resumeCommand,
   effectCommand,
+  musicCommand,
 ];
 
 /**

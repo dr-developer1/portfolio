@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 
+import type { BootMode } from './boot';
+
 /**
  * Represents the type of a terminal output line
  */
@@ -59,6 +61,12 @@ export interface TerminalState {
   isLoading: boolean;
   /** Whether the Matrix background effect is enabled */
   matrixEnabled: boolean;
+  /** Whether background music is enabled */
+  musicEnabled: boolean;
+  /** Whether the user has interacted with the page (enables audio) */
+  hasUserInteracted: boolean;
+  /** Current boot mode (determines prompt style and permissions) */
+  bootMode: BootMode;
 }
 
 /**
@@ -71,7 +79,7 @@ export interface TerminalActions {
   addOutput: OutputFunction;
   /** Clear the terminal output */
   clearTerminal: () => void;
-  /** Navigate command history (direction: 1 for older, -1 for newer) */
+  /** Navigate command history (direction: 1 | -1) */
   navigateHistory: (direction: 1 | -1) => string | null;
   /** Reset history navigation */
   resetHistoryIndex: () => void;
@@ -81,6 +89,12 @@ export interface TerminalActions {
   setTheme: (theme: string) => void;
   /** Toggle Matrix background effect */
   setMatrixEnabled: (enabled: boolean) => void;
+  /** Toggle background music */
+  setMusicEnabled: (enabled: boolean) => void;
+  /** Mark that the user has interacted with the page */
+  setUserInteracted: () => void;
+  /** Set the boot mode (determines prompt style and permissions) */
+  setBootMode: (mode: BootMode) => void;
 }
 
 /**
@@ -92,3 +106,6 @@ export interface UseTerminalReturn extends TerminalState, TerminalActions {}
  * Command registry type - maps command names to Command objects
  */
 export type CommandRegistry = Map<string, Command>;
+
+// Re-export BootMode for convenience
+export type { BootMode } from './boot';

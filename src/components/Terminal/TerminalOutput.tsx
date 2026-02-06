@@ -27,7 +27,7 @@ export const TerminalOutput: React.FC = () => {
       <div className={styles.line}>
         <span className={styles.welcomeText}>
           Welcome to my interactive portfolio terminal{' '}
-          <span className={styles.highlight}>v1.0.0</span>
+          <span className={styles.highlight}>v2.0.0</span>
         </span>
       </div>
       <div className={styles.line}>
