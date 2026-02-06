@@ -8,6 +8,8 @@ export const TerminalInput: React.FC = () => {
   const [input, setInput] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const [cursorPos, setCursorPos] = useState(0);
+  // Track whether we should restore focus when loading completes
+  const shouldRefocusRef = useRef(false);
 
   // State for tab completion cycling
   const [completionState, setCompletionState] = useState<{
@@ -58,13 +60,13 @@ export const TerminalInput: React.FC = () => {
 
     if (trimmedInput) {
       executeCommand(trimmedInput);
+      // Mark that we should restore focus when loading completes
+      shouldRefocusRef.current = true;
     }
 
     setInput('');
     setCursorPos(0);
     setCompletionState(null);
-    // Ensure focus returns after command execution (fixes Chrome focus loss)
-    requestAnimationFrame(() => inputRef.current?.focus());
   }, [input, executeCommand, clearTerminal]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -226,6 +228,18 @@ export const TerminalInput: React.FC = () => {
     document.addEventListener('click', handleGlobalClick);
     return () => document.removeEventListener('click', handleGlobalClick);
   }, []);
+
+  // Restore focus when command completes (isLoading transitions to false)
+  // This fixes Chrome focus loss after commands like 'help' that render complex output
+  useEffect(() => {
+    if (!isLoading && shouldRefocusRef.current) {
+      shouldRefocusRef.current = false;
+      // Use requestAnimationFrame to ensure React has finished rendering
+      requestAnimationFrame(() => {
+        inputRef.current?.focus();
+      });
+    }
+  }, [isLoading]);
 
   return (
     <div className={styles.inputContainer}>
