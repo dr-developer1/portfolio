@@ -3,12 +3,7 @@ import type { Command, OutputFunction } from '../types';
 import { getAllCommands, registerCommands } from '../utils/commandRegistry';
 import { content } from './content';
 import { AVAILABLE_THEMES, isValidTheme, getDefaultTheme } from '../utils/themeService';
-import {
-  MATRIX_STORAGE_KEY,
-  MUSIC_STORAGE_KEY,
-  MUSIC_VOLUME_KEY,
-  DEFAULT_MUSIC_VOLUME,
-} from '../hooks/useTerminal';
+import { MATRIX_STORAGE_KEY, MUSIC_STORAGE_KEY } from '../hooks/useTerminal';
 
 /**
  * Help command - displays all available commands
@@ -667,35 +662,15 @@ const effectCommand: Command = {
 const musicCommand: Command = {
   name: 'music',
   description: 'Control background music',
-  usage: 'music [on | off | toggle | volume <0-100>]',
+  usage: 'music [on | off | toggle]',
   aliases: ['audio', 'sound'],
   execute: (args: string[], addOutput: OutputFunction) => {
     if (args.length === 0) {
-      // Get current volume for display
-      let currentVolume = DEFAULT_MUSIC_VOLUME;
-      try {
-        const stored = localStorage.getItem(MUSIC_VOLUME_KEY);
-        if (stored !== null) {
-          const vol = parseFloat(stored);
-          if (!isNaN(vol) && vol >= 0 && vol <= 1) {
-            currentVolume = vol;
-          }
-        }
-      } catch {
-        // Ignore
-      }
-
       addOutput(
         <div>
-          <div>Usage: music [on | off | toggle | volume &lt;0-100&gt;]</div>
+          <div>Usage: music [on | off | toggle]</div>
           <br />
           <div>Controls the background music playback.</div>
-          <div style={{ marginTop: '0.5rem' }}>
-            Current volume:{' '}
-            <span style={{ color: 'var(--color-accent-cyan)' }}>
-              {Math.round(currentVolume * 100)}%
-            </span>
-          </div>
           <div style={{ marginTop: '0.5rem', color: 'var(--color-text-secondary)' }}>
             Note: Music requires user interaction to start due to browser policies.
           </div>
@@ -737,61 +712,17 @@ const musicCommand: Command = {
         </span>,
         newState ? 'success' : 'info'
       );
-    } else if (action === 'volume' || action === 'vol') {
-      if (args.length < 2) {
-        // Show current volume
-        let currentVolume = DEFAULT_MUSIC_VOLUME;
-        try {
-          const stored = localStorage.getItem(MUSIC_VOLUME_KEY);
-          if (stored !== null) {
-            const vol = parseFloat(stored);
-            if (!isNaN(vol) && vol >= 0 && vol <= 1) {
-              currentVolume = vol;
-            }
-          }
-        } catch {
-          // Ignore
-        }
-        addOutput(
-          <span>
-            Current volume:{' '}
-            <span style={{ color: 'var(--color-accent-cyan)' }}>
-              {Math.round(currentVolume * 100)}%
-            </span>
-          </span>
-        );
-        return;
-      }
-
-      const volumeArg = parseInt(args[1], 10);
-      if (isNaN(volumeArg) || volumeArg < 0 || volumeArg > 100) {
-        addOutput(
-          <span style={{ color: 'var(--color-error)' }}>
-            Invalid volume. Please specify a value between 0 and 100.
-          </span>,
-          'error'
-        );
-        return;
-      }
-
-      const volumeValue = volumeArg / 100;
-      window.dispatchEvent(new CustomEvent('music-volume', { detail: { volume: volumeValue } }));
-
-      addOutput(
-        <span style={{ color: 'var(--color-success)' }}>♪ Volume set to {volumeArg}%.</span>,
-        'success'
-      );
     } else {
       addOutput(
         <span style={{ color: 'var(--color-error)' }}>
-          Invalid action. Use 'on', 'off', 'toggle', or 'volume &lt;0-100&gt;'.
+          Invalid action. Use 'on', 'off', or 'toggle'.
         </span>,
         'error'
       );
     }
   },
   autocomplete: (partial: string) => {
-    const subCommands = ['on', 'off', 'toggle', 'volume'];
+    const subCommands = ['on', 'off', 'toggle'];
     return subCommands.filter((cmd) => cmd.startsWith(partial.toLowerCase()));
   },
 };

@@ -22,12 +22,6 @@ export const MATRIX_STORAGE_KEY = 'portfolio_matrix_effect';
 /** Storage key for music preference - exported for use in commands */
 export const MUSIC_STORAGE_KEY = 'portfolio_music_enabled';
 
-/** Storage key for music volume - exported for use in commands */
-export const MUSIC_VOLUME_KEY = 'portfolio_music_volume';
-
-/** Default music volume (0.0 to 1.0) */
-export const DEFAULT_MUSIC_VOLUME = 0.3;
-
 /**
  * Safely get matrix effect preference from localStorage
  * Returns true by default (effect enabled) if storage is unavailable
@@ -74,36 +68,6 @@ function setStoredMusicEnabled(enabled: boolean): void {
   }
 }
 
-/**
- * Safely get music volume from localStorage
- * Returns DEFAULT_MUSIC_VOLUME if storage is unavailable
- */
-function getStoredMusicVolume(): number {
-  try {
-    const stored = localStorage.getItem(MUSIC_VOLUME_KEY);
-    if (stored !== null) {
-      const volume = parseFloat(stored);
-      if (!isNaN(volume) && volume >= 0 && volume <= 1) {
-        return volume;
-      }
-    }
-    return DEFAULT_MUSIC_VOLUME;
-  } catch {
-    return DEFAULT_MUSIC_VOLUME;
-  }
-}
-
-/**
- * Safely set music volume in localStorage
- */
-function setStoredMusicVolume(volume: number): void {
-  try {
-    localStorage.setItem(MUSIC_VOLUME_KEY, String(volume));
-  } catch {
-    // Ignore storage errors
-  }
-}
-
 const INITIAL_STATE: TerminalState = {
   history: [],
   commandHistory: [],
@@ -113,7 +77,6 @@ const INITIAL_STATE: TerminalState = {
   isLoading: false,
   matrixEnabled: getStoredMatrixEnabled(),
   musicEnabled: getStoredMusicEnabled(),
-  musicVolume: getStoredMusicVolume(),
   hasUserInteracted: false,
   bootMode: 'normal',
 };
@@ -240,26 +203,14 @@ export function useTerminal(): UseTerminalReturn {
       }));
     };
 
-    const handleMusicVolume = (e: Event) => {
-      const customEvent = e as CustomEvent<{ volume: number }>;
-      const volume = Math.max(0, Math.min(1, customEvent.detail.volume));
-      setStoredMusicVolume(volume);
-      setState((prev) => ({
-        ...prev,
-        musicVolume: volume,
-      }));
-    };
-
     window.addEventListener('theme-change', handleThemeChange);
     window.addEventListener('matrix-toggle', handleMatrixToggle);
     window.addEventListener('music-toggle', handleMusicToggle);
-    window.addEventListener('music-volume', handleMusicVolume);
 
     return () => {
       window.removeEventListener('theme-change', handleThemeChange);
       window.removeEventListener('matrix-toggle', handleMatrixToggle);
       window.removeEventListener('music-toggle', handleMusicToggle);
-      window.removeEventListener('music-volume', handleMusicVolume);
     };
   }, []);
 
@@ -653,18 +604,6 @@ export function useTerminal(): UseTerminalReturn {
   }, []);
 
   /**
-   * Set music volume (0.0 to 1.0)
-   */
-  const setMusicVolume: TerminalActions['setMusicVolume'] = useCallback((volume: number) => {
-    const clampedVolume = Math.max(0, Math.min(1, volume));
-    setStoredMusicVolume(clampedVolume);
-    setState((prev) => ({
-      ...prev,
-      musicVolume: clampedVolume,
-    }));
-  }, []);
-
-  /**
    * Mark that the user has interacted with the page (enables audio)
    */
   const setUserInteracted: TerminalActions['setUserInteracted'] = useCallback(() => {
@@ -695,7 +634,6 @@ export function useTerminal(): UseTerminalReturn {
     setTheme,
     setMatrixEnabled,
     setMusicEnabled,
-    setMusicVolume,
     setUserInteracted,
     setBootMode,
   };

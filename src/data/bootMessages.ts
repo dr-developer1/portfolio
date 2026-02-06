@@ -21,12 +21,13 @@ export const BOOT_COMPLETE_DELAY = 2000;
 
 /**
  * Probability of a random boot failure (0.0 to 1.0)
- * Set to ~8% chance for occasional failures without being annoying
+ * Set to 15% chance for occasional failures without being annoying
  */
-const FAILURE_PROBABILITY = 0.4;
+const FAILURE_PROBABILITY = 0.15;
 
 /**
- * Get time-based greeting message
+ * Get time-based greeting message based on current hour
+ * Called dynamically when boot messages are generated to ensure accurate time
  */
 function getTimeBasedGreeting(): string {
   const hour = new Date().getHours();
@@ -51,7 +52,7 @@ export const BOOT_MESSAGES: Record<BootMode, BootMessage[]> = {
     { text: 'Loading projects database...', status: 'ok', delay: 600 },
     { text: 'Starting terminal interface...', status: 'ok', delay: 500 },
     { text: '', delay: 300 },
-    { text: `System boot complete. ${getTimeBasedGreeting()}`, delay: 1000 },
+    { text: 'System boot complete.', delay: 1000 },
   ],
 
   admin: [
@@ -68,8 +69,8 @@ export const BOOT_MESSAGES: Record<BootMode, BootMessage[]> = {
   dev: [
     { text: '🔧 DEVELOPER MODE ACTIVATED', delay: 1000 },
     { text: 'Loading debug symbols...', status: 'ok', delay: 500 },
-    { text: `React version: ${reactVersion}`, status: 'ok', delay: 450 },
-    { text: `Build time: ${new Date().toISOString()}`, status: 'ok', delay: 500 },
+    { text: 'React version', status: 'ok', delay: 450 },
+    { text: 'Session start', status: 'ok', delay: 500 },
     { text: 'Enabling verbose logging...', status: 'ok', delay: 450 },
     { text: 'Mounting development tools...', status: 'ok', delay: 550 },
     { text: '', delay: 300 },
@@ -115,11 +116,39 @@ export function getMessageDelay(message: BootMessage): number {
 
 /**
  * Get messages for a specific boot mode with optional random failures
+ * 
+ * Dynamic values are injected at runtime:
+ * - Normal mode: Time-based greeting computed when boot starts
+ * - Dev mode: React version and session start time computed when boot starts
+ * 
  * Failures only occur on messages with status: 'ok' (not first/last messages)
  * When a failure occurs, adds a retry sequence that eventually succeeds
+ * Matrix mode never fails to preserve the mystical vibe
  */
 export function getBootMessages(mode: BootMode): BootMessage[] {
-  const baseMessages = BOOT_MESSAGES[mode];
+  let baseMessages = BOOT_MESSAGES[mode];
+
+  // Apply dynamic values for normal mode (time-based greeting)
+  if (mode === 'normal') {
+    baseMessages = baseMessages.map((msg, index) =>
+      index === baseMessages.length - 1
+        ? { ...msg, text: `System boot complete. ${getTimeBasedGreeting()}` }
+        : msg
+    );
+  }
+
+  // Apply dynamic values for dev mode (React version and session start time)
+  if (mode === 'dev') {
+    baseMessages = baseMessages.map((msg) => {
+      if (msg.text === 'React version') {
+        return { ...msg, text: `React version: ${reactVersion}` };
+      }
+      if (msg.text === 'Session start') {
+        return { ...msg, text: `Session start: ${new Date().toISOString()}` };
+      }
+      return msg;
+    });
+  }
 
   // Matrix mode doesn't get failures (preserve the mystical vibe)
   if (mode === 'matrix') {

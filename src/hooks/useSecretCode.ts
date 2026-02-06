@@ -1,12 +1,13 @@
 /**
  * useSecretCode Hook
  *
- * Detects secret key sequences typed by the user on the boot screen.
+ * Detects secret key sequences typed by the user on the boot screen using keydown events.
  * When a known secret code is detected, it returns the corresponding boot mode.
+ * Secret codes are checked from longest to shortest to avoid prefix collisions.
  *
  * @example
- * const { detectedMode, reset } = useSecretCode();
- * // User types "admin" → detectedMode becomes 'admin'
+ * const { detectedMode, typedText, reset } = useSecretCode();
+ * // User types "admin" → detectedMode becomes 'admin', typedText shows "admin"
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -28,7 +29,7 @@ const BUFFER_TIMEOUT = 2000;
 /**
  * Hook to detect secret codes typed by the user
  *
- * @returns Object with detectedMode and reset function
+ * @returns Object with detectedMode, typedText (visible buffer), and reset function
  */
 export function useSecretCode(): UseSecretCodeReturn {
   const [detectedMode, setDetectedMode] = useState<BootMode | null>(null);
@@ -51,11 +52,16 @@ export function useSecretCode(): UseSecretCodeReturn {
 
   /**
    * Check if current buffer ends with any secret code
+   * Checks longer codes first to avoid prefix collisions
    */
   const checkForSecretCode = useCallback((buffer: string): BootMode | null => {
     const lowerBuffer = buffer.toLowerCase();
 
-    for (const [code, mode] of Object.entries(SECRET_CODES)) {
+    // Sort codes by length descending to check longer codes first
+    // This prevents "dev" from matching before "developer" or "debug"
+    const sortedCodes = Object.entries(SECRET_CODES).sort((a, b) => b[0].length - a[0].length);
+
+    for (const [code, mode] of sortedCodes) {
       if (lowerBuffer.endsWith(code)) {
         return mode;
       }
@@ -65,9 +71,10 @@ export function useSecretCode(): UseSecretCodeReturn {
   }, []);
 
   /**
-   * Handle keypress events
+   * Handle keydown events to detect secret codes
+   * Filters for printable ASCII characters without modifier keys
    */
-  const handleKeyPress = useCallback(
+  const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       // Only track printable ASCII characters without modifiers
       // Using ASCII range \x20-\x7E (space through tilde) to exclude dead keys and composed characters
@@ -103,15 +110,15 @@ export function useSecretCode(): UseSecretCodeReturn {
 
   // Set up and clean up event listener
   useEffect(() => {
-    window.addEventListener('keypress', handleKeyPress);
+    window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      window.removeEventListener('keypress', handleKeyPress);
+      window.removeEventListener('keydown', handleKeyDown);
       if (timeoutRef.current !== undefined) {
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [handleKeyPress]);
+  }, [handleKeyDown]);
 
   return { detectedMode, typedText, reset };
 }

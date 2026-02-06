@@ -54,12 +54,7 @@ const MessageLine: React.FC<{ message: BootMessage; index: number }> = memo(
     }
 
     return (
-      <div
-        className={styles.message}
-        style={{ animationDelay: `${index * 50}ms` }}
-        role="status"
-        aria-live="polite"
-      >
+      <div className={styles.message} style={{ animationDelay: `${index * 50}ms` }}>
         <span className={styles.messageText}>{message.text}</span>
         {message.status && message.status !== 'none' && (
           <span className={getStatusClass(message.status)}>{getStatusText(message.status)}</span>

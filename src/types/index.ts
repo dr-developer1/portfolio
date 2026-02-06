@@ -63,8 +63,6 @@ export interface TerminalState {
   matrixEnabled: boolean;
   /** Whether background music is enabled */
   musicEnabled: boolean;
-  /** Music volume level (0.0 to 1.0) */
-  musicVolume: number;
   /** Whether the user has interacted with the page (enables audio) */
   hasUserInteracted: boolean;
   /** Current boot mode (determines prompt style and permissions) */
@@ -93,8 +91,6 @@ export interface TerminalActions {
   setMatrixEnabled: (enabled: boolean) => void;
   /** Toggle background music */
   setMusicEnabled: (enabled: boolean) => void;
-  /** Set music volume (0.0 to 1.0) */
-  setMusicVolume: (volume: number) => void;
   /** Mark that the user has interacted with the page */
   setUserInteracted: () => void;
   /** Set the boot mode (determines prompt style and permissions) */
