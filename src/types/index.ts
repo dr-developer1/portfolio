@@ -27,6 +27,16 @@ export interface ParsedCommand {
 }
 
 /**
+ * Context provided to commands for accessing terminal state
+ */
+export interface CommandContext {
+  bootMode: BootMode;
+  currentDirectory: string;
+  user: string;
+  symbol: string;
+}
+
+/**
  * Represents a command that can be executed in the terminal
  */
 export interface Command {
@@ -34,7 +44,11 @@ export interface Command {
   description: string;
   usage: string;
   aliases?: string[];
-  execute: (args: string[], addOutput: OutputFunction) => void | Promise<void>;
+  execute: (
+    args: string[],
+    addOutput: OutputFunction,
+    context?: CommandContext
+  ) => void | Promise<void>;
   autocomplete?: (partial: string) => string[];
 }
 

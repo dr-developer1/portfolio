@@ -3,7 +3,11 @@ import type { Command, OutputFunction } from '../types';
 import { getAllCommands, registerCommands } from '../utils/commandRegistry';
 import { content } from './content';
 import { AVAILABLE_THEMES, isValidTheme, getDefaultTheme } from '../utils/themeService';
-import { MATRIX_STORAGE_KEY, MUSIC_STORAGE_KEY } from '../hooks/useTerminal';
+import { SYSTEM_CONFIG } from '../config';
+import { MATRIX_STORAGE_KEY, MUSIC_STORAGE_KEY } from '../hooks/storageKeys';
+import { getStoredBoolean } from '../utils/storageHelpers';
+import { SkillSection, JobEntry, EducationEntry, ProjectCard } from '../components/Output';
+import styles from '../styles/TerminalOutput.module.css';
 
 /**
  * Help command - displays all available commands
@@ -24,32 +28,25 @@ const helpCommand: Command = {
 
       if (command) {
         addOutput(
-          <div style={{ marginTop: '0.5rem' }}>
-            <div style={{ color: 'var(--color-accent-cyan)', fontWeight: 'bold' }}>
-              {command.name}
-            </div>
-            <div style={{ marginLeft: '1rem', marginTop: '0.25rem' }}>
-              <div style={{ color: 'var(--color-text-secondary)' }}>{command.description}</div>
-              <div style={{ marginTop: '0.25rem' }}>
-                <span style={{ color: 'var(--color-text-muted)' }}>Usage: </span>
-                <span style={{ color: 'var(--color-accent-green)' }}>{command.usage}</span>
+          <div className={styles.marginTopMedium}>
+            <div className={`${styles.accentCyan} ${styles.bold}`}>{command.name}</div>
+            <div className={`${styles.marginLeftLarge} ${styles.marginTopSmall}`}>
+              <div className={styles.textSecondary}>{command.description}</div>
+              <div className={styles.marginTopSmall}>
+                <span className={styles.textMuted}>Usage: </span>
+                <span className={styles.accentGreen}>{command.usage}</span>
               </div>
               {command.aliases && command.aliases.length > 0 && (
-                <div style={{ marginTop: '0.25rem' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Aliases: </span>
-                  <span style={{ color: 'var(--color-accent-purple)' }}>
-                    {command.aliases.join(', ')}
-                  </span>
+                <div className={styles.marginTopSmall}>
+                  <span className={styles.textMuted}>Aliases: </span>
+                  <span className={styles.accentPurple}>{command.aliases.join(', ')}</span>
                 </div>
               )}
             </div>
           </div>
         );
       } else {
-        addOutput(
-          <span style={{ color: 'var(--color-error)' }}>Unknown command: {commandName}</span>,
-          'error'
-        );
+        addOutput(<span className={styles.error}>Unknown command: {commandName}</span>, 'error');
       }
       return;
     }
@@ -59,41 +56,20 @@ const helpCommand: Command = {
 
     addOutput(
       <div>
-        <div
-          style={{
-            color: 'var(--color-accent-cyan)',
-            marginBottom: '0.75rem',
-            fontWeight: 'bold',
-          }}
-        >
-          Available Commands:
-        </div>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'auto 1fr',
-            gap: '0.25rem 1.5rem',
-            marginLeft: '0.5rem',
-          }}
-        >
+        <div className={styles.headerSection}>Available Commands:</div>
+        <div className={styles.commandGrid}>
           {commands
             .sort((a, b) => a.name.localeCompare(b.name))
             .map((cmd) => (
               <React.Fragment key={cmd.name}>
-                <span style={{ color: 'var(--color-accent-green)' }}>{cmd.name}</span>
-                <span style={{ color: 'var(--color-text-secondary)' }}>{cmd.description}</span>
+                <span className={styles.accentGreen}>{cmd.name}</span>
+                <span className={styles.textSecondary}>{cmd.description}</span>
               </React.Fragment>
             ))}
         </div>
-        <div
-          style={{
-            marginTop: '0.75rem',
-            color: 'var(--color-text-muted)',
-            fontSize: '0.875rem',
-          }}
-        >
-          Type '<span style={{ color: 'var(--color-accent-green)' }}>help [command]</span>' for more
-          info on a specific command.
+        <div className={`${styles.textMuted} ${styles.textSmall} ${styles.marginTopLarge}`}>
+          Type '<span className={styles.accentGreen}>help [command]</span>' for more info on a
+          specific command.
         </div>
       </div>
     );
@@ -137,13 +113,13 @@ const aboutCommand: Command = {
   execute: (_args: string[], addOutput: OutputFunction) => {
     addOutput(
       <div>
-        <div style={{ color: 'var(--color-accent-cyan)', fontWeight: 'bold', fontSize: '1.1em' }}>
+        <div className={`${styles.accentCyan} ${styles.bold} ${styles.fontSize11}`}>
           {content.bio.name}
         </div>
-        <div style={{ color: 'var(--color-accent-purple)', marginBottom: '0.5rem' }}>
+        <div className={`${styles.accentPurple} ${styles.marginBottomMedium}`}>
           {content.bio.tagline}
         </div>
-        <div style={{ color: 'var(--color-text-primary)', lineHeight: '1.5' }}>
+        <div className={`${styles.textPrimary} ${styles.lineHeight}`}>
           {content.bio.description.map((line, i) => (
             <div key={i}>{line}</div>
           ))}
@@ -162,21 +138,12 @@ const skillsCommand: Command = {
   usage: 'skills',
   aliases: ['stack', 'tech'],
   execute: (_args: string[], addOutput: OutputFunction) => {
-    const renderSection = (title: string, items: string[], color: string) => (
-      <div style={{ marginBottom: '0.5rem' }}>
-        <span style={{ color: 'var(--color-text-muted)', display: 'inline-block', width: '120px' }}>
-          {title}:
-        </span>
-        <span style={{ color }}>{items.join(', ')}</span>
-      </div>
-    );
-
     addOutput(
       <div>
-        {renderSection('Languages', content.skills.languages, 'var(--color-accent-orange)')}
-        {renderSection('Frameworks', content.skills.frameworks, 'var(--color-accent-green)')}
-        {renderSection('Infra & Tools', content.skills.tools, 'var(--color-accent-cyan)')}
-        {renderSection('Soft Skills', content.skills.softSkills, 'var(--color-accent-purple)')}
+        <SkillSection title="Languages" items={content.skills.languages} color="orange" />
+        <SkillSection title="Frameworks" items={content.skills.frameworks} color="green" />
+        <SkillSection title="Infra & Tools" items={content.skills.tools} color="cyan" />
+        <SkillSection title="Soft Skills" items={content.skills.softSkills} color="purple" />
       </div>
     );
   },
@@ -192,49 +159,9 @@ const experienceCommand: Command = {
   aliases: ['exp', 'work', 'jobs'],
   execute: (_args: string[], addOutput: OutputFunction) => {
     addOutput(
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <div className={styles.flexColumnLarge}>
         {content.experience.map((job, index) => (
-          <div key={index}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-              <span
-                style={{
-                  color: 'var(--color-accent-yellow)',
-                  fontWeight: 'bold',
-                  fontSize: '1.05em',
-                }}
-              >
-                {job.role}
-              </span>
-              <span style={{ color: 'var(--color-text-muted)', fontSize: '0.9em' }}>
-                {job.date}
-              </span>
-            </div>
-            <div style={{ marginBottom: '0.5rem' }}>
-              <span style={{ color: 'var(--color-accent-cyan)' }}>@ {job.company}</span>
-              <span style={{ color: 'var(--color-text-muted)', fontSize: '0.9em' }}>
-                {' '}
-                | {job.location}
-              </span>
-            </div>
-            <ul style={{ listStyleType: 'disc', paddingLeft: '20px', margin: 0 }}>
-              {job.description.map((desc, i) => (
-                <li
-                  key={i}
-                  style={{ color: 'var(--color-text-secondary)', marginBottom: '0.25rem' }}
-                >
-                  {desc}
-                </li>
-              ))}
-            </ul>
-            {job.technologies && (
-              <div style={{ marginTop: '0.5rem', fontSize: '0.9em' }}>
-                <span style={{ color: 'var(--color-text-muted)' }}>Tech: </span>
-                <span style={{ color: 'var(--color-accent-purple)' }}>
-                  {job.technologies.join(', ')}
-                </span>
-              </div>
-            )}
-          </div>
+          <JobEntry key={index} job={job} />
         ))}
       </div>
     );
@@ -251,22 +178,9 @@ const educationCommand: Command = {
   aliases: ['edu'],
   execute: (_args: string[], addOutput: OutputFunction) => {
     addOutput(
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div className={styles.flexColumn}>
         {content.education.map((edu, index) => (
-          <div key={index}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-              <span style={{ color: 'var(--color-accent-green)', fontWeight: 'bold' }}>
-                {edu.school}
-              </span>
-              <span style={{ color: 'var(--color-text-muted)', fontSize: '0.9em' }}>
-                {edu.date}
-              </span>
-            </div>
-            <div style={{ color: 'var(--color-text-primary)' }}>{edu.degree}</div>
-            <div style={{ color: 'var(--color-text-muted)', fontSize: '0.9em' }}>
-              {edu.location}
-            </div>
-          </div>
+          <EducationEntry key={index} education={edu} />
         ))}
       </div>
     );
@@ -283,41 +197,9 @@ const projectsCommand: Command = {
   aliases: ['proj', 'portfolio'],
   execute: (_args: string[], addOutput: OutputFunction) => {
     addOutput(
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div className={styles.flexColumn}>
         {content.projects.map((project, index) => (
-          <div key={index}>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
-              <span style={{ color: 'var(--color-accent-cyan)', fontWeight: 'bold' }}>
-                {project.name}
-              </span>
-              {project.url && (
-                <a
-                  href={project.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: 'var(--color-text-link)', textDecoration: 'underline' }}
-                >
-                  Live Demo
-                </a>
-              )}
-              {project.repo && (
-                <a
-                  href={project.repo}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: 'var(--color-text-link)', textDecoration: 'underline' }}
-                >
-                  Source Code
-                </a>
-              )}
-            </div>
-            <div style={{ color: 'var(--color-text-secondary)', margin: '0.25rem 0' }}>
-              {project.description}
-            </div>
-            <div style={{ color: 'var(--color-text-muted)', fontSize: '0.9em' }}>
-              [{project.technologies.join(', ')}]
-            </div>
-          </div>
+          <ProjectCard key={index} project={project} />
         ))}
       </div>
     );
@@ -334,15 +216,15 @@ const contactCommand: Command = {
   aliases: ['socials', 'email'],
   execute: (_args: string[], addOutput: OutputFunction) => {
     addOutput(
-      <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: '0.5rem' }}>
+      <div className={styles.infoGrid}>
         {content.socials.map((link) => (
           <React.Fragment key={link.platform}>
-            <span style={{ color: 'var(--color-accent-purple)' }}>{link.platform}:</span>
+            <span className={styles.accentPurple}>{link.platform}:</span>
             <a
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              style={{ color: 'var(--color-text-link)' }}
+              className={styles.textLink}
             >
               {link.username}
             </a>
@@ -360,8 +242,9 @@ const whoamiCommand: Command = {
   name: 'whoami',
   description: 'Display current user',
   usage: 'whoami',
-  execute: (_args: string[], addOutput: OutputFunction) => {
-    addOutput(<span style={{ color: 'var(--color-accent-green)' }}>visitor</span>);
+  execute: (_args: string[], addOutput: OutputFunction, context) => {
+    const username = context?.user || SYSTEM_CONFIG.defaultUser;
+    addOutput(<span className={styles.accentGreen}>{username}</span>);
   },
 };
 
@@ -476,9 +359,9 @@ const themeCommand: Command = {
           <div>Usage: theme [list | reset | &lt;name&gt;]</div>
           <br />
           <div>Available themes:</div>
-          <div style={{ paddingLeft: '1rem' }}>
+          <div className={styles.paddingLeftMedium}>
             {AVAILABLE_THEMES.map((t) => (
-              <span key={t} style={{ marginRight: '1rem', color: 'var(--color-text-secondary)' }}>
+              <span key={t} className={`${styles.textSecondary} ${styles.marginRight1}`}>
                 {t}
               </span>
             ))}
@@ -495,10 +378,10 @@ const themeCommand: Command = {
       addOutput(
         <div>
           <div>Available themes:</div>
-          <ul style={{ listStyle: 'none', paddingLeft: '1rem', marginTop: '0.5rem' }}>
+          <ul className={`${styles.listNone} ${styles.paddingLeftLarge} ${styles.marginTopMedium}`}>
             {AVAILABLE_THEMES.map((t) => (
-              <li key={t} style={{ marginBottom: '0.25rem' }}>
-                <span style={{ color: 'var(--color-accent-green)' }}>•</span> {t}
+              <li key={t} className={styles.marginBottomSmall}>
+                <span className={styles.accentGreen}>•</span> {t}
               </li>
             ))}
           </ul>
@@ -514,9 +397,7 @@ const themeCommand: Command = {
       // This keeps the theme change flow consistent with the 'set theme' branch
       window.dispatchEvent(new CustomEvent('theme-change', { detail: { theme: defaultTheme } }));
       addOutput(
-        <span style={{ color: 'var(--color-success)' }}>
-          Theme reset to default ({defaultTheme})
-        </span>,
+        <span className={styles.success}>Theme reset to default ({defaultTheme})</span>,
         'success'
       );
       return;
@@ -525,13 +406,10 @@ const themeCommand: Command = {
     // Set theme
     if (isValidTheme(subCommand)) {
       window.dispatchEvent(new CustomEvent('theme-change', { detail: { theme: subCommand } }));
-      addOutput(
-        <span style={{ color: 'var(--color-success)' }}>Theme switched to: {subCommand}</span>,
-        'success'
-      );
+      addOutput(<span className={styles.success}>Theme switched to: {subCommand}</span>, 'success');
     } else {
       addOutput(
-        <span style={{ color: 'var(--color-error)' }}>
+        <span className={styles.error}>
           Error: Invalid theme '{subCommand}'. Type 'theme list' to see available options.
         </span>,
         'error'
@@ -555,15 +433,15 @@ const resumeCommand: Command = {
   execute: (_args: string[], addOutput: OutputFunction) => {
     addOutput(
       <div>
-        <span style={{ color: 'var(--color-success)' }}>Initiating download...</span>
+        <span className={styles.success}>Initiating download...</span>
         <br />
-        <span style={{ color: 'var(--color-text-secondary)' }}>
+        <span className={styles.textSecondary}>
           If download doesn't start automatically,{' '}
           <a
             href="/resume.pdf"
             target="_blank"
             rel="noopener noreferrer"
-            style={{ color: 'var(--color-text-link)', textDecoration: 'underline' }}
+            className={styles.textLink}
           >
             click here
           </a>
@@ -609,40 +487,26 @@ const effectCommand: Command = {
 
     if (action === 'on') {
       window.dispatchEvent(new CustomEvent('matrix-toggle', { detail: { enabled: true } }));
-      addOutput(
-        <span style={{ color: 'var(--color-success)' }}>Matrix effect enabled.</span>,
-        'success'
-      );
+      addOutput(<span className={styles.success}>Matrix effect enabled.</span>, 'success');
     } else if (action === 'off') {
       window.dispatchEvent(new CustomEvent('matrix-toggle', { detail: { enabled: false } }));
-      addOutput(
-        <span style={{ color: 'var(--color-text-secondary)' }}>Matrix effect disabled.</span>,
-        'info'
-      );
+      addOutput(<span className={styles.textSecondary}>Matrix effect disabled.</span>, 'info');
     } else if (action === 'toggle') {
       // Toggle based on persisted preference in localStorage
-      let current = true; // Default to enabled if storage unavailable
-      try {
-        const stored = localStorage.getItem(MATRIX_STORAGE_KEY);
-        current = stored !== 'false';
-      } catch {
-        // Ignore storage errors
-      }
+      const current = getStoredBoolean(MATRIX_STORAGE_KEY, true);
       const newState = !current;
 
       window.dispatchEvent(new CustomEvent('matrix-toggle', { detail: { enabled: newState } }));
 
       addOutput(
-        <span style={{ color: newState ? 'var(--color-success)' : 'var(--color-text-secondary)' }}>
+        <span className={newState ? styles.success : styles.textSecondary}>
           Matrix effect {newState ? 'enabled' : 'disabled'}.
         </span>,
         newState ? 'success' : 'info'
       );
     } else {
       addOutput(
-        <span style={{ color: 'var(--color-error)' }}>
-          Invalid action. Use 'on', 'off', or 'toggle'.
-        </span>,
+        <span className={styles.error}>Invalid action. Use 'on', 'off', or 'toggle'.</span>,
         'error'
       );
     }
@@ -671,7 +535,7 @@ const musicCommand: Command = {
           <div>Usage: music [on | off | toggle]</div>
           <br />
           <div>Controls the background music playback.</div>
-          <div style={{ marginTop: '0.5rem', color: 'var(--color-text-secondary)' }}>
+          <div className={`${styles.marginTopMedium} ${styles.textSecondary}`}>
             Note: Music requires user interaction to start due to browser policies.
           </div>
         </div>
@@ -683,40 +547,26 @@ const musicCommand: Command = {
 
     if (action === 'on') {
       window.dispatchEvent(new CustomEvent('music-toggle', { detail: { enabled: true } }));
-      addOutput(
-        <span style={{ color: 'var(--color-success)' }}>♪ Background music enabled.</span>,
-        'success'
-      );
+      addOutput(<span className={styles.success}>♪ Background music enabled.</span>, 'success');
     } else if (action === 'off') {
       window.dispatchEvent(new CustomEvent('music-toggle', { detail: { enabled: false } }));
-      addOutput(
-        <span style={{ color: 'var(--color-text-secondary)' }}>♪ Background music disabled.</span>,
-        'info'
-      );
+      addOutput(<span className={styles.textSecondary}>♪ Background music disabled.</span>, 'info');
     } else if (action === 'toggle') {
       // Toggle based on persisted preference in localStorage
-      // Default to true (enabled) if storage unavailable, consistent with getStoredMusicEnabled()
-      let current = true;
-      try {
-        current = localStorage.getItem(MUSIC_STORAGE_KEY) !== 'false';
-      } catch {
-        // Ignore storage errors
-      }
+      const current = getStoredBoolean(MUSIC_STORAGE_KEY, true);
       const newState = !current;
 
       window.dispatchEvent(new CustomEvent('music-toggle', { detail: { enabled: newState } }));
 
       addOutput(
-        <span style={{ color: newState ? 'var(--color-success)' : 'var(--color-text-secondary)' }}>
+        <span className={newState ? styles.success : styles.textSecondary}>
           ♪ Background music {newState ? 'enabled' : 'disabled'}.
         </span>,
         newState ? 'success' : 'info'
       );
     } else {
       addOutput(
-        <span style={{ color: 'var(--color-error)' }}>
-          Invalid action. Use 'on', 'off', or 'toggle'.
-        </span>,
+        <span className={styles.error}>Invalid action. Use 'on', 'off', or 'toggle'.</span>,
         'error'
       );
     }

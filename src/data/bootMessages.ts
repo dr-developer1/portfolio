@@ -8,22 +8,23 @@
 import { version as reactVersion } from 'react';
 
 import type { BootMessage, BootMode } from '../types/boot';
+import { UI_CONSTANTS } from '../config';
 
 /**
  * Default delay between messages in milliseconds
  */
-export const DEFAULT_MESSAGE_DELAY = 600;
+export const DEFAULT_MESSAGE_DELAY = UI_CONSTANTS.DEFAULT_MESSAGE_DELAY;
 
 /**
  * Delay before transitioning to terminal after boot completes
  */
-export const BOOT_COMPLETE_DELAY = 2000;
+export const BOOT_COMPLETE_DELAY = UI_CONSTANTS.BOOT_COMPLETE_DELAY;
 
 /**
  * Probability of a random boot failure (0.0 to 1.0)
  * Set to 15% chance for occasional failures without being annoying
  */
-const FAILURE_PROBABILITY = 0.15;
+const FAILURE_PROBABILITY = UI_CONSTANTS.BOOT_FAILURE_PROBABILITY;
 
 /**
  * Get time-based greeting message based on current hour

@@ -1,0 +1,61 @@
+/**
+ * JobEntry Component Styles
+ */
+
+.container {
+  /* Spacing handled by parent */
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.role {
+  color: var(--color-accent-yellow);
+  font-weight: bold;
+  font-size: 1.05em;
+}
+
+.date {
+  color: var(--color-text-muted);
+  font-size: 0.9em;
+}
+
+.companySection {
+  margin-bottom: 0.5rem;
+}
+
+.company {
+  color: var(--color-accent-cyan);
+}
+
+.location {
+  color: var(--color-text-muted);
+  font-size: 0.9em;
+}
+
+.descriptionList {
+  list-style-type: disc;
+  padding-left: 20px;
+  margin: 0;
+}
+
+.descriptionItem {
+  color: var(--color-text-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.techSection {
+  margin-top: 0.5rem;
+  font-size: 0.9em;
+}
+
+.techLabel {
+  color: var(--color-text-muted);
+}
+
+.techItems {
+  color: var(--color-accent-purple);
+}

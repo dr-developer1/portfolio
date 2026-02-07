@@ -1,0 +1,33 @@
+/**
+ * ProjectCard Component Styles
+ */
+
+.container {
+  /* Spacing handled by parent */
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.name {
+  color: var(--color-accent-cyan);
+  font-weight: bold;
+}
+
+.link {
+  color: var(--color-text-link);
+  text-decoration: underline;
+}
+
+.description {
+  color: var(--color-text-secondary);
+  margin: 0.25rem 0;
+}
+
+.technologies {
+  color: var(--color-text-muted);
+  font-size: 0.9em;
+}

@@ -3,11 +3,12 @@
  * Handles persistence to localStorage and application to the DOM
  */
 
+import { STORAGE_KEYS } from '../config';
+
 export const AVAILABLE_THEMES = ['dark', 'light', 'dracula', 'nord', 'monokai', 'matrix'] as const;
 
 export type ThemeName = (typeof AVAILABLE_THEMES)[number];
 
-const THEME_STORAGE_KEY = 'portfolio_theme';
 const DEFAULT_THEME: ThemeName = 'dark';
 
 /**
@@ -22,7 +23,7 @@ export function isValidTheme(theme: string): theme is ThemeName {
  */
 export function getStoredTheme(): ThemeName {
   try {
-    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    const stored = localStorage.getItem(STORAGE_KEYS.theme);
     if (stored && isValidTheme(stored)) {
       return stored;
     }
@@ -37,7 +38,7 @@ export function getStoredTheme(): ThemeName {
  */
 export function setStoredTheme(theme: ThemeName): void {
   try {
-    localStorage.setItem(THEME_STORAGE_KEY, theme);
+    localStorage.setItem(STORAGE_KEYS.theme, theme);
   } catch (e) {
     console.warn('Failed to save theme to localStorage', e);
   }
