@@ -94,7 +94,8 @@ export const content: PortfolioContent = {
     softSkills: [
       'Autonomie complète',
       "Esprit d'équipe (Agile/Scrum)",
-      'Débogage avancé (Bug Hunter)',
+      'Bug Hunter',
+      'Résolution de problèmes complexes',
       'Migration de code Legacy',
       'Mentorat technique',
     ],
@@ -120,8 +121,9 @@ export const content: PortfolioContent = {
       company: 'SILICO',
       location: 'Lyon, France',
       description: [
-        "Conception d'une application desktop cross-platform (Electron) pour le suivi médical; architecture 'Offline First' avec stockage local et synchronisation bidirectionnelle automatique.",
-        "Développement d'un système complexe de gestion des congés payés (secteur transport), incluant des algorithmes de calculs de droits pour horaires irréguliers.",
+        "Conception d’une application desktop cross-platform (Electron) pour le suivi médical avec système de mise à jour automatique; architecture 'Offline First' utilisant IndexedDB pour le stockage local, synchronisation bidirectionnelle automatique et gestion du téléchargement/envoi des formulaires et rapports médicaux.",
+        "Refonte complète d'une application web de gestion des congés payés pour la CICPR (secteur transport/logistique), servant d'interface entre entreprises adhérentes et association. Migration de technologies legacy vers Vue3/TypeScript/NestJS, incluant des algorithmes de calcul de droits pour horaires irréguliers et cotisations.",
+        "Développement d'une solution innovante de remboursement de produits médicaux défectueux (R2D2) intégrant l'IA (GPT custom) pour automatiser le mapping entre formulaires variables et données patients, avec interface de vérification et correction manuelle des prédictions.",
         "Pilotage de la migration technique d'une GED legacy de Symfony/Vue2 vers NestJS/Vue3/TypeScript, résultant en une refonte UI totale et une meilleure maintenabilité.",
         "Développement et maintenance d'une application web de suivi des interventions pour les patients. Implémentation de fonctionnalités clés telles que la synchronisation temps réel, la génération de rapports d'activité et l'envoi automatisé de comptes-rendus par email aux médecins.",
       ],
@@ -133,6 +135,8 @@ export const content: PortfolioContent = {
         'PostgreSQL',
         'MongoDB',
         'Electron',
+        'IndexedDB',
+        'OpenAI API',
       ],
     },
     {
