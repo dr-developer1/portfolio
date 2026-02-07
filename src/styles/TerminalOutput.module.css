@@ -1,0 +1,249 @@
+/**
+ * Terminal Output Shared Styles
+ * 
+ * CSS Module for terminal command output styling.
+ * Used across commands.tsx, useTerminal.tsx, and Output components.
+ */
+
+/* Text Colors */
+.textPrimary {
+  color: var(--color-text-primary);
+}
+
+.textSecondary {
+  color: var(--color-text-secondary);
+}
+
+.textMuted {
+  color: var(--color-text-muted);
+}
+
+.textLink {
+  color: var(--color-text-link);
+  text-decoration: underline;
+}
+
+.textSmall {
+  font-size: 0.9em;
+}
+
+.textPreWrap {
+  white-space: pre-wrap;
+}
+
+/* Accent Colors */
+.accentCyan {
+  color: var(--color-accent-cyan);
+}
+
+.accentGreen {
+  color: var(--color-accent-green);
+}
+
+.accentYellow {
+  color: var(--color-accent-yellow);
+}
+
+.accentPurple {
+  color: var(--color-accent-purple);
+}
+
+.accentOrange {
+  color: var(--color-accent-orange);
+}
+
+.accentBlue {
+  color: var(--color-accent-blue);
+}
+
+/* Message Types */
+.error {
+  color: var(--color-error);
+}
+
+.success {
+  color: var(--color-success);
+}
+
+.warning {
+  color: var(--color-warning);
+}
+
+.info {
+  color: var(--color-text-secondary);
+}
+
+/* Prompt Elements */
+.promptUser {
+  color: var(--color-prompt-user);
+}
+
+.promptHost {
+  color: var(--color-prompt-host);
+}
+
+.promptPath {
+  color: var(--color-prompt-path);
+}
+
+.promptSymbol {
+  color: var(--color-accent-green);
+}
+
+.promptCommand {
+  color: var(--color-command);
+}
+
+/* Spacing */
+.marginTopSmall {
+  margin-top: 0.25rem;
+}
+
+.marginTopMedium {
+  margin-top: 0.5rem;
+}
+
+.marginTopLarge {
+  margin-top: 0.75rem;
+}
+
+.marginBottomSmall {
+  margin-bottom: 0.25rem;
+}
+
+.marginBottomMedium {
+  margin-bottom: 0.5rem;
+}
+
+.marginBottomLarge {
+  margin-bottom: 0.75rem;
+}
+
+.marginLeftSmall {
+  margin-left: 0.5rem;
+}
+
+.marginLeftMedium {
+  margin-left: 1rem;
+}
+
+.marginLeftLarge {
+  margin-left: 1.5rem;
+}
+
+.paddingLeftSmall {
+  padding-left: 0.5rem;
+}
+
+.paddingLeftMedium {
+  padding-left: 1rem;
+}
+
+.paddingLeftLarge {
+  padding-left: 1.5rem;
+}
+
+/* Layout */
+.flexColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.flexColumnLarge {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.flexRow {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.flexRowGap {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.flexBaseline {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.inlineBlock {
+  display: inline-block;
+}
+
+/* List Styles */
+.listDisc {
+  list-style-type: disc;
+  padding-left: 20px;
+  margin: 0;
+}
+
+.listNone {
+  list-style: none;
+  padding-left: 1rem;
+  margin-top: 0.5rem;
+}
+
+.commandGrid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 1.5rem;
+  margin-left: 0.5rem;
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 0.5rem;
+}
+
+/* Text Styles */
+.bold {
+  font-weight: bold;
+}
+
+.lineHeight {
+  line-height: 1.5;
+}
+
+.fontSize11 {
+  font-size: 1.1em;
+}
+
+.fontSize105 {
+  font-size: 1.05em;
+}
+
+/* Specific Combinations */
+.headerSection {
+  color: var(--color-accent-cyan);
+  margin-bottom: 0.75rem;
+  font-weight: bold;
+}
+
+.skillTitle {
+  color: var(--color-text-muted);
+  display: inline-block;
+  width: 120px;
+}
+
+.margin025 {
+  margin: 0.25rem 0;
+}
+
+.marginRight1 {
+  margin-right: 1rem;
+}
+
+.historyIndex {
+  margin-right: 1rem;
+  display: inline-block;
+  width: 2rem;
+  text-align: right;
+}

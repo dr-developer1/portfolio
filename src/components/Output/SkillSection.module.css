@@ -1,0 +1,17 @@
+/**
+ * SkillSection Component Styles
+ */
+
+.container {
+  margin-bottom: 0.5rem;
+}
+
+.title {
+  color: var(--color-text-muted);
+  display: inline-block;
+  width: 120px;
+}
+
+.items {
+  /* Color will be applied via inline style prop for dynamic colors */
+}

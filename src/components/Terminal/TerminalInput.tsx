@@ -1,26 +1,27 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useTerminalContext } from '../../hooks/TerminalContext';
-import { getCompletions } from '../../utils/completionService';
 import { getPromptConfig } from '../../hooks/useTerminal';
+import { SYSTEM_CONFIG } from '../../config';
+import { useTabCompletion } from '../../hooks/useTabCompletion';
+import { useCursorPosition } from '../../hooks/useCursorPosition';
+import { PromptDisplay } from './PromptDisplay';
 import styles from './TerminalInput.module.css';
+import outputStyles from '../../styles/TerminalOutput.module.css';
 
 export const TerminalInput: React.FC = () => {
   const [input, setInput] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
   const [cursorPos, setCursorPos] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
   // Track whether we should restore focus when loading completes
   const shouldRefocusRef = useRef(false);
 
-  // State for tab completion cycling
-  const [completionState, setCompletionState] = useState<{
-    originalInput: string;
-    completionPrefix: string; // The partial text being completed (e.g. "te" in "ls te")
-    matches: string[];
-    index: number;
-  } | null>(null);
+  // Use custom hooks
+  const { handleTabKey, resetCompletion } = useTabCompletion();
+  const { cursorRef } = useCursorPosition(input, cursorPos, inputRef);
 
   const {
     executeCommand,
+    addOutput,
     clearTerminal,
     navigateHistory,
     resetHistoryIndex,
@@ -36,8 +37,7 @@ export const TerminalInput: React.FC = () => {
     setInput(e.target.value);
     setCursorPos(e.target.selectionStart || 0);
     resetHistoryIndex();
-    // Reset completion state on any input change that isn't from tab
-    setCompletionState(null);
+    resetCompletion();
   };
 
   const handleSubmit = useCallback(() => {
@@ -51,92 +51,52 @@ export const TerminalInput: React.FC = () => {
     ) {
       clearTerminal();
       setInput('');
-      setCursorPos(0);
-      setCompletionState(null);
+      resetCompletion();
       // Ensure focus returns after clearing
       requestAnimationFrame(() => inputRef.current?.focus());
       return;
     }
 
-    if (trimmedInput) {
+    // If empty input, show prompt line (Linux behavior)
+    if (!trimmedInput) {
+      addOutput(
+        <PromptDisplay
+          user={user}
+          hostname={SYSTEM_CONFIG.hostname}
+          directory={currentDirectory}
+          symbol={symbol}
+        />,
+        'command'
+      );
+    } else {
       executeCommand(trimmedInput);
       // Mark that we should restore focus when loading completes
       shouldRefocusRef.current = true;
     }
 
     setInput('');
-    setCursorPos(0);
-    setCompletionState(null);
-  }, [input, executeCommand, clearTerminal]);
+    resetCompletion();
+  }, [
+    input,
+    executeCommand,
+    addOutput,
+    clearTerminal,
+    user,
+    symbol,
+    currentDirectory,
+    resetCompletion,
+  ]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     // If pressing Tab
     if (e.key === 'Tab') {
       e.preventDefault();
-
       if (isLoading) return;
 
-      // If already cycling through completions
-      if (completionState && completionState.matches.length > 0) {
-        const nextIndex = (completionState.index + 1) % completionState.matches.length;
-        const nextMatch = completionState.matches[nextIndex];
-
-        // Replace the completion part in the original input
-        // This is a bit tricky: we need to replace the *last* occurrence or the specific part
-        // Simplification: We assume we are appending/replacing the end
-
-        // Actually, better approach:
-        // We know the "originalInput" when we started tabbing.
-        // We know the "matchToComplete" (the partial string).
-        // We can reconstruct the input.
-
-        // Find where the partial string was in the original input
-        // Note: This logic assumes we are completing at the end of the string
-        // For a more robust solution we'd need cursor position from start
-
-        const prefix =
-          completionState.completionPrefix.length > 0
-            ? completionState.originalInput.slice(0, -completionState.completionPrefix.length)
-            : completionState.originalInput;
-        const newInput = prefix + nextMatch;
-
+      const newInput = handleTabKey(input, currentDirectory);
+      if (newInput !== null) {
         setInput(newInput);
-        setCompletionState({
-          ...completionState,
-          index: nextIndex,
-        });
-
-        // Move cursor to end
-        requestAnimationFrame(() => {
-          if (inputRef.current) {
-            inputRef.current.setSelectionRange(newInput.length, newInput.length);
-            setCursorPos(newInput.length);
-          }
-        });
-        return;
-      }
-
-      // Start new completion
-      const result = getCompletions(input, currentDirectory);
-
-      if (result && result.matches.length > 0) {
-        // Use the first match
-        const firstMatch = result.matches[0];
-
-        // Calculate the prefix (input without the partial part)
-        const prefix = result.original.length > 0 ? input.slice(0, -result.original.length) : input;
-        const newInput = prefix + firstMatch;
-
-        setInput(newInput);
-
-        // Initialize completion state
-        setCompletionState({
-          originalInput: input,
-          completionPrefix: result.original,
-          matches: result.matches,
-          index: 0,
-        });
-
+        // Set cursor to end after tab completion
         requestAnimationFrame(() => {
           if (inputRef.current) {
             inputRef.current.setSelectionRange(newInput.length, newInput.length);
@@ -147,10 +107,9 @@ export const TerminalInput: React.FC = () => {
       return;
     }
 
-    // Reset completion on navigation keys if desired, or let it stick?
-    // Usually moving cursor breaks completion cycle
+    // Reset completion on navigation keys
     if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
-      setCompletionState(null);
+      resetCompletion();
     }
 
     switch (e.key) {
@@ -202,12 +161,41 @@ export const TerminalInput: React.FC = () => {
         break;
 
       case 'c':
-        // Ctrl+C to cancel/clear input
+        // Ctrl+C to cancel/clear input (Linux-style)
         if (e.ctrlKey) {
           e.preventDefault();
+
+          // Show prompt line with ^C if there's input, or just prompt if empty
+          if (input) {
+            addOutput(
+              <PromptDisplay
+                user={user}
+                hostname={SYSTEM_CONFIG.hostname}
+                directory={currentDirectory}
+                symbol={symbol}
+              >
+                <span className={outputStyles.promptCommand}>{input}^C</span>
+              </PromptDisplay>,
+              'command'
+            );
+          } else {
+            // Show prompt line with ^C even on empty input
+            addOutput(
+              <PromptDisplay
+                user={user}
+                hostname={SYSTEM_CONFIG.hostname}
+                directory={currentDirectory}
+                symbol={symbol}
+              >
+                <span className={outputStyles.promptCommand}>^C</span>
+              </PromptDisplay>,
+              'command'
+            );
+          }
+
           setInput('');
-          setCursorPos(0);
           resetHistoryIndex();
+          resetCompletion();
         }
         break;
 
@@ -246,7 +234,7 @@ export const TerminalInput: React.FC = () => {
       <span className={styles.prompt}>
         <span className={styles.promptUser}>{user}</span>
         <span className={styles.promptAt}>@</span>
-        <span className={styles.promptHost}>portfolio</span>
+        <span className={styles.promptHost}>{SYSTEM_CONFIG.hostname}</span>
         <span className={styles.promptSeparator}>:</span>
         <span className={styles.promptPath}>{currentDirectory}</span>
         <span className={styles.promptSymbol}>{symbol}</span>
@@ -266,7 +254,7 @@ export const TerminalInput: React.FC = () => {
           placeholder={isLoading ? 'Processing...' : "Type 'help' for available commands..."}
         />
         {/* Custom cursor implementation */}
-        <span className={styles.cursor} style={{ left: `${cursorPos}ch` }} />
+        <span ref={cursorRef} className={styles.cursor} />
       </div>
     </div>
   );

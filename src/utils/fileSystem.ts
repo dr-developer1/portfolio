@@ -4,6 +4,7 @@ import {
   type ProjectItem,
   type EducationItem,
 } from '../data/content';
+import { getAllUsernames, getUserHomePath } from '../config';
 
 export type NodeType = 'file' | 'directory';
 
@@ -42,38 +43,45 @@ function createUniqueFilename(baseName: string, counts: Map<string, number>): st
 function createFileSystem(): FileSystemNode {
   const root = createDirectory('/', null);
   const home = createDirectory('home', root);
-  const user = createDirectory('visitor', home);
 
-  // ~ (Home) content
-  createFile('bio.txt', user, formatBio());
-  createFile('skills.txt', user, formatSkills());
-  createFile('contact.md', user, formatContact());
+  // Create user directories for all profiles (from centralized config)
+  // Deduplicate to prevent map overwrites if usernames are not unique
+  const users = Array.from(new Set(getAllUsernames()));
 
-  // Experience directory
-  const expDir = createDirectory('experience', user);
-  const expCounts = new Map<string, number>();
-  content.experience.forEach((job) => {
-    const baseName = sanitizeFilename(job.company);
-    const filename = createUniqueFilename(baseName, expCounts);
-    createFile(filename, expDir, formatExperience(job));
-  });
+  users.forEach((username) => {
+    const user = createDirectory(username, home);
 
-  // Projects directory
-  const projDir = createDirectory('projects', user);
-  const projCounts = new Map<string, number>();
-  content.projects.forEach((proj) => {
-    const baseName = sanitizeFilename(proj.name);
-    const filename = createUniqueFilename(baseName, projCounts);
-    createFile(filename, projDir, formatProject(proj));
-  });
+    // ~ (Home) content
+    createFile('bio.txt', user, formatBio());
+    createFile('skills.txt', user, formatSkills());
+    createFile('contact.md', user, formatContact());
 
-  // Education directory
-  const eduDir = createDirectory('education', user);
-  const eduCounts = new Map<string, number>();
-  content.education.forEach((edu) => {
-    const baseName = sanitizeFilename(edu.school);
-    const filename = createUniqueFilename(baseName, eduCounts);
-    createFile(filename, eduDir, formatEducation(edu));
+    // Experience directory
+    const expDir = createDirectory('experience', user);
+    const expCounts = new Map<string, number>();
+    content.experience.forEach((job) => {
+      const baseName = sanitizeFilename(job.company);
+      const filename = createUniqueFilename(baseName, expCounts);
+      createFile(filename, expDir, formatExperience(job));
+    });
+
+    // Projects directory
+    const projDir = createDirectory('projects', user);
+    const projCounts = new Map<string, number>();
+    content.projects.forEach((proj) => {
+      const baseName = sanitizeFilename(proj.name);
+      const filename = createUniqueFilename(baseName, projCounts);
+      createFile(filename, projDir, formatProject(proj));
+    });
+
+    // Education directory
+    const eduDir = createDirectory('education', user);
+    const eduCounts = new Map<string, number>();
+    content.education.forEach((edu) => {
+      const baseName = sanitizeFilename(edu.school);
+      const filename = createUniqueFilename(baseName, eduCounts);
+      createFile(filename, eduDir, formatEducation(edu));
+    });
   });
 
   return root;
@@ -160,14 +168,19 @@ function normalizePath(path: string): string {
 /**
  * Resolve a path string to an absolute path
  */
-export function resolvePath(currentPath: string, targetPath: string): string {
+export function resolvePath(
+  currentPath: string,
+  targetPath: string,
+  user: string = 'visitor'
+): string {
   // Normalize currentPath to handle ~
-  const normalizedCurrent = currentPath === '~' ? '/home/visitor' : currentPath;
+  const normalizedCurrent = currentPath === '~' ? getUserHomePath(user) : currentPath;
 
   if (!targetPath) return normalizePath(normalizedCurrent);
 
-  if (targetPath === '~') return '/home/visitor';
-  if (targetPath.startsWith('~/')) return normalizePath(`/home/visitor/${targetPath.slice(2)}`);
+  if (targetPath === '~') return getUserHomePath(user);
+  if (targetPath.startsWith('~/'))
+    return normalizePath(`${getUserHomePath(user)}/${targetPath.slice(2)}`);
 
   let parts: string[];
   if (targetPath.startsWith('/')) {

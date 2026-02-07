@@ -11,62 +11,14 @@ import type {
 import { parseCommand } from '../utils/commandParser';
 import { generateLineId } from '../utils/helpers';
 import { getCommand } from '../utils/commandRegistry';
-import { resolvePath, getNode, type FileSystemNode } from '../utils/fileSystem';
+import { resolvePath, getNode } from '../utils/fileSystem';
 import { getStoredTheme, setStoredTheme, applyTheme, isValidTheme } from '../utils/themeService';
-
-const MAX_TREE_DEPTH = 10;
-
-/** Storage key for matrix effect preference - exported for use in commands */
-export const MATRIX_STORAGE_KEY = 'portfolio_matrix_effect';
-
-/** Storage key for music preference - exported for use in commands */
-export const MUSIC_STORAGE_KEY = 'portfolio_music_enabled';
-
-/**
- * Safely get matrix effect preference from localStorage
- * Returns true by default (effect enabled) if storage is unavailable
- */
-function getStoredMatrixEnabled(): boolean {
-  try {
-    return localStorage.getItem(MATRIX_STORAGE_KEY) !== 'false';
-  } catch {
-    return true; // Default to enabled if localStorage unavailable
-  }
-}
-
-/**
- * Safely set matrix effect preference in localStorage
- */
-function setStoredMatrixEnabled(enabled: boolean): void {
-  try {
-    localStorage.setItem(MATRIX_STORAGE_KEY, String(enabled));
-  } catch {
-    // Ignore storage errors (e.g., disabled or unavailable localStorage)
-  }
-}
-
-/**
- * Safely get music preference from localStorage
- * Returns true by default (music enabled) - browser may block autoplay until user interaction
- */
-function getStoredMusicEnabled(): boolean {
-  try {
-    return localStorage.getItem(MUSIC_STORAGE_KEY) !== 'false';
-  } catch {
-    return true; // Default to enabled if localStorage unavailable
-  }
-}
-
-/**
- * Safely set music preference in localStorage
- */
-function setStoredMusicEnabled(enabled: boolean): void {
-  try {
-    localStorage.setItem(MUSIC_STORAGE_KEY, String(enabled));
-  } catch {
-    // Ignore storage errors (e.g., disabled or unavailable localStorage)
-  }
-}
+import { getUserProfile, UI_CONSTANTS, SYSTEM_CONFIG } from '../config';
+import { MATRIX_STORAGE_KEY, MUSIC_STORAGE_KEY } from './storageKeys';
+import { getStoredBoolean, setStoredBoolean } from '../utils/storageHelpers';
+import { renderDirectoryTree } from '../utils/treeRenderer';
+import { PromptDisplay } from '../components/Terminal/PromptDisplay';
+import styles from '../styles/TerminalOutput.module.css';
 
 const INITIAL_STATE: TerminalState = {
   history: [],
@@ -75,85 +27,18 @@ const INITIAL_STATE: TerminalState = {
   currentDirectory: '~',
   theme: getStoredTheme(),
   isLoading: false,
-  matrixEnabled: getStoredMatrixEnabled(),
-  musicEnabled: getStoredMusicEnabled(),
+  matrixEnabled: getStoredBoolean(MATRIX_STORAGE_KEY, true),
+  musicEnabled: getStoredBoolean(MUSIC_STORAGE_KEY, true),
   hasUserInteracted: false,
   bootMode: 'normal',
-};
-
-/**
- * Prompt configuration for each boot mode
- */
-const PROMPT_CONFIG: Record<BootMode, { user: string; symbol: string }> = {
-  normal: { user: 'visitor', symbol: '$' },
-  admin: { user: 'root', symbol: '#' },
-  dev: { user: 'developer', symbol: '$' },
-  matrix: { user: 'neo', symbol: '$' },
 };
 
 /**
  * Get prompt user and symbol for a given boot mode
  */
 export function getPromptConfig(mode: BootMode): { user: string; symbol: string } {
-  return PROMPT_CONFIG[mode];
-}
-
-/**
- * Render a directory tree recursively
- * Returns [lines, wasLimited] where wasLimited indicates if depth limit was reached
- */
-function renderDirectoryTree(
-  node: FileSystemNode,
-  prefix: string = '',
-  depth: number = 0,
-  currentPath: string = ''
-): [ReactNode[], boolean] {
-  if (!node.children || depth >= MAX_TREE_DEPTH) {
-    return [[], depth >= MAX_TREE_DEPTH];
-  }
-
-  const entries = Array.from(node.children.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-  const lines: ReactNode[] = [];
-  let wasLimited = false;
-
-  entries.forEach(([name, child], index) => {
-    const isLast = index === entries.length - 1;
-    const connector = isLast ? '└── ' : '├── ';
-    const childPrefix = prefix + (isLast ? '    ' : '│   ');
-    const childPath = `${currentPath}/${name}`;
-
-    lines.push(
-      <div key={childPath}>
-        <span style={{ color: 'var(--color-text-muted)' }}>
-          {prefix}
-          {connector}
-        </span>
-        <span
-          style={{
-            color:
-              child.type === 'directory' ? 'var(--color-accent-blue)' : 'var(--color-text-primary)',
-            fontWeight: child.type === 'directory' ? 'bold' : 'normal',
-          }}
-        >
-          {name}
-          {child.type === 'directory' ? '/' : ''}
-        </span>
-      </div>
-    );
-
-    if (child.type === 'directory') {
-      const [childLines, childLimited] = renderDirectoryTree(
-        child,
-        childPrefix,
-        depth + 1,
-        childPath
-      );
-      lines.push(...childLines);
-      if (childLimited) wasLimited = true;
-    }
-  });
-
-  return [lines, wasLimited];
+  const profile = getUserProfile(mode);
+  return { user: profile.username, symbol: profile.symbol };
 }
 
 /**
@@ -186,7 +71,7 @@ export function useTerminal(): UseTerminalReturn {
     const handleMatrixToggle = (e: Event) => {
       const customEvent = e as CustomEvent<{ enabled: boolean }>;
       const enabled = customEvent.detail.enabled;
-      setStoredMatrixEnabled(enabled);
+      setStoredBoolean(MATRIX_STORAGE_KEY, enabled);
       setState((prev) => ({
         ...prev,
         matrixEnabled: enabled,
@@ -196,7 +81,7 @@ export function useTerminal(): UseTerminalReturn {
     const handleMusicToggle = (e: Event) => {
       const customEvent = e as CustomEvent<{ enabled: boolean }>;
       const enabled = customEvent.detail.enabled;
-      setStoredMusicEnabled(enabled);
+      setStoredBoolean(MUSIC_STORAGE_KEY, enabled);
       setState((prev) => ({
         ...prev,
         musicEnabled: enabled,
@@ -251,15 +136,14 @@ export function useTerminal(): UseTerminalReturn {
 
       // Add the command to history display (showing what user typed)
       addOutput(
-        <span>
-          <span style={{ color: 'var(--color-prompt-user)' }}>{user}</span>
-          <span style={{ color: 'var(--color-text-muted)' }}>@</span>
-          <span style={{ color: 'var(--color-prompt-host)' }}>portfolio</span>
-          <span style={{ color: 'var(--color-text-muted)' }}>:</span>
-          <span style={{ color: 'var(--color-prompt-path)' }}>{state.currentDirectory}</span>
-          <span style={{ color: 'var(--color-accent-green)' }}>{symbol} </span>
-          <span style={{ color: 'var(--color-command)' }}>{trimmedInput}</span>
-        </span>,
+        <PromptDisplay
+          user={user}
+          hostname={SYSTEM_CONFIG.hostname}
+          directory={state.currentDirectory}
+          symbol={symbol}
+        >
+          <span className={styles.promptCommand}>{trimmedInput}</span>
+        </PromptDisplay>,
         'command'
       );
 
@@ -279,25 +163,15 @@ export function useTerminal(): UseTerminalReturn {
 
       // Easter egg: non-admin users trying to use sudo
       if (parsed.name === 'sudo' && state.bootMode !== 'admin') {
-        addOutput(<span style={{ color: 'var(--color-warning)' }}>Nice try diddy</span>, 'warning');
+        addOutput(<span className={styles.warning}>Nice try diddy</span>, 'warning');
         return;
       }
 
       // Handle history command internally to access state
       if (parsed.name === 'history') {
         const historyOutput = state.commandHistory.map((cmd, index) => (
-          <div key={index} style={{ color: 'var(--color-text-secondary)' }}>
-            <span
-              style={{
-                color: 'var(--color-text-muted)',
-                marginRight: '1rem',
-                display: 'inline-block',
-                width: '2rem',
-                textAlign: 'right',
-              }}
-            >
-              {index + 1}
-            </span>
+          <div key={index} className={styles.textSecondary}>
+            <span className={`${styles.textMuted} ${styles.historyIndex}`}>{index + 1}</span>
             {cmd}
           </div>
         ));
@@ -308,20 +182,22 @@ export function useTerminal(): UseTerminalReturn {
 
       // Handle PWD command
       if (parsed.name === 'pwd') {
-        const absolutePath = resolvePath(state.currentDirectory, '.');
+        const { user } = getPromptConfig(state.bootMode);
+        const absolutePath = resolvePath(state.currentDirectory, '.', user);
         addOutput(<span>{absolutePath}</span>);
         return;
       }
 
       // Handle LS command
       if (parsed.name === 'ls') {
-        const targetPath = resolvePath(state.currentDirectory, parsed.args[0] ?? '.');
+        const { user } = getPromptConfig(state.bootMode);
+        const targetPath = resolvePath(state.currentDirectory, parsed.args[0] ?? '.', user);
 
         const node = getNode(targetPath);
 
         if (!node) {
           addOutput(
-            <span style={{ color: 'var(--color-error)' }}>
+            <span className={styles.error}>
               ls: cannot access '{parsed.args[0] ?? '.'}': No such file or directory
             </span>,
             'error'
@@ -345,16 +221,13 @@ export function useTerminal(): UseTerminalReturn {
         );
 
         addOutput(
-          <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+          <div className={styles.flexRowGap}>
             {entries.map(([name, child]) => {
               const isDir = child.type === 'directory';
               return (
                 <span
                   key={name}
-                  style={{
-                    color: isDir ? 'var(--color-accent-blue)' : 'var(--color-text-primary)',
-                    fontWeight: isDir ? 'bold' : 'normal',
-                  }}
+                  className={isDir ? `${styles.accentBlue} ${styles.bold}` : styles.textPrimary}
                 >
                   {name}
                   {isDir ? '/' : ''}
@@ -368,15 +241,14 @@ export function useTerminal(): UseTerminalReturn {
 
       // Handle CD command
       if (parsed.name === 'cd') {
+        const { user } = getPromptConfig(state.bootMode);
         const targetArg = parsed.args[0] || '~';
-        const targetPath = resolvePath(state.currentDirectory, targetArg);
+        const targetPath = resolvePath(state.currentDirectory, targetArg, user);
         const node = getNode(targetPath);
 
         if (!node) {
           addOutput(
-            <span style={{ color: 'var(--color-error)' }}>
-              cd: {targetArg}: No such file or directory
-            </span>,
+            <span className={styles.error}>cd: {targetArg}: No such file or directory</span>,
             'error'
           );
           return;
@@ -384,7 +256,7 @@ export function useTerminal(): UseTerminalReturn {
 
         if (node.type !== 'directory') {
           addOutput(
-            <span style={{ color: 'var(--color-error)' }}>cd: {targetArg}: Not a directory</span>,
+            <span className={styles.error}>cd: {targetArg}: Not a directory</span>,
             'error'
           );
           return;
@@ -397,21 +269,17 @@ export function useTerminal(): UseTerminalReturn {
       // Handle CAT command
       if (parsed.name === 'cat') {
         if (!parsed.args[0]) {
-          addOutput(
-            <span style={{ color: 'var(--color-error)' }}>Usage: cat [file]</span>,
-            'error'
-          );
+          addOutput(<span className={styles.error}>Usage: cat [file]</span>, 'error');
           return;
         }
 
-        const targetPath = resolvePath(state.currentDirectory, parsed.args[0]);
+        const { user } = getPromptConfig(state.bootMode);
+        const targetPath = resolvePath(state.currentDirectory, parsed.args[0], user);
         const node = getNode(targetPath);
 
         if (!node) {
           addOutput(
-            <span style={{ color: 'var(--color-error)' }}>
-              cat: {parsed.args[0]}: No such file or directory
-            </span>,
+            <span className={styles.error}>cat: {parsed.args[0]}: No such file or directory</span>,
             'error'
           );
           return;
@@ -419,28 +287,25 @@ export function useTerminal(): UseTerminalReturn {
 
         if (node.type === 'directory') {
           addOutput(
-            <span style={{ color: 'var(--color-error)' }}>
-              cat: {parsed.args[0]}: Is a directory
-            </span>,
+            <span className={styles.error}>cat: {parsed.args[0]}: Is a directory</span>,
             'error'
           );
           return;
         }
 
-        addOutput(<div style={{ whiteSpace: 'pre-wrap' }}>{node.content}</div>);
+        addOutput(<div className={styles.textPreWrap}>{node.content}</div>);
         return;
       }
 
       // Handle TREE command
       if (parsed.name === 'tree') {
-        const rootPath = resolvePath(state.currentDirectory, parsed.args[0] || '.');
+        const { user } = getPromptConfig(state.bootMode);
+        const rootPath = resolvePath(state.currentDirectory, parsed.args[0] || '.', user);
 
         const rootNode = getNode(rootPath);
         if (!rootNode || rootNode.type !== 'directory') {
           addOutput(
-            <span style={{ color: 'var(--color-error)' }}>
-              tree: {parsed.args[0] || '.'}: Not a directory
-            </span>,
+            <span className={styles.error}>tree: {parsed.args[0] || '.'}: Not a directory</span>,
             'error'
           );
           return;
@@ -452,13 +317,12 @@ export function useTerminal(): UseTerminalReturn {
 
         addOutput(
           <div>
-            <div style={{ color: 'var(--color-accent-blue)', fontWeight: 'bold' }}>{rootLabel}</div>
+            <div className={`${styles.accentBlue} ${styles.bold}`}>{rootLabel}</div>
             {treeLines}
             {wasLimited && (
-              <div
-                style={{ color: 'var(--color-text-muted)', fontSize: '0.9em', marginTop: '0.5rem' }}
-              >
-                Maximum depth reached ({MAX_TREE_DEPTH} levels) - some directories not shown
+              <div className={`${styles.textMuted} ${styles.textSmall} ${styles.marginTopMedium}`}>
+                Maximum depth reached ({UI_CONSTANTS.MAX_TREE_DEPTH} levels) - some directories not
+                shown
               </div>
             )}
           </div>
@@ -473,24 +337,30 @@ export function useTerminal(): UseTerminalReturn {
         // Command not found
         addOutput(
           <span>
-            Command not found: <span style={{ color: 'var(--color-error)' }}>{parsed.name}</span>
+            Command not found: <span className={styles.error}>{parsed.name}</span>
             <br />
-            Type '<span style={{ color: 'var(--color-accent-green)' }}>help</span>' to see available
-            commands.
+            Type '<span className={styles.accentGreen}>help</span>' to see available commands.
           </span>,
           'error'
         );
         return;
       }
 
-      // Execute the command
+      // Execute the command with context
       setState((prev) => ({ ...prev, isLoading: true }));
 
       try {
-        await command.execute(parsed.args, addOutput);
+        const { user, symbol } = getPromptConfig(state.bootMode);
+        const context = {
+          bootMode: state.bootMode,
+          currentDirectory: state.currentDirectory,
+          user,
+          symbol,
+        };
+        await command.execute(parsed.args, addOutput, context);
       } catch (error) {
         addOutput(
-          <span style={{ color: 'var(--color-error)' }}>
+          <span className={styles.error}>
             Error executing command: {error instanceof Error ? error.message : 'Unknown error'}
           </span>,
           'error'
@@ -585,7 +455,7 @@ export function useTerminal(): UseTerminalReturn {
    * Set Matrix effect enabled state
    */
   const setMatrixEnabled: TerminalActions['setMatrixEnabled'] = useCallback((enabled: boolean) => {
-    setStoredMatrixEnabled(enabled);
+    setStoredBoolean(MATRIX_STORAGE_KEY, enabled);
     setState((prev) => ({
       ...prev,
       matrixEnabled: enabled,
@@ -596,7 +466,7 @@ export function useTerminal(): UseTerminalReturn {
    * Set background music enabled state
    */
   const setMusicEnabled: TerminalActions['setMusicEnabled'] = useCallback((enabled: boolean) => {
-    setStoredMusicEnabled(enabled);
+    setStoredBoolean(MUSIC_STORAGE_KEY, enabled);
     setState((prev) => ({
       ...prev,
       musicEnabled: enabled,

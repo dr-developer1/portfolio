@@ -14,12 +14,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { SECRET_CODES } from '../data/bootMessages';
 import type { BootMode, UseSecretCodeReturn } from '../types/boot';
-
-/**
- * Maximum length of the input buffer
- * Keeps memory usage constant and ensures old keys are discarded
- */
-const BUFFER_MAX_LENGTH = 20;
+import { UI_CONSTANTS } from '../config';
 
 /**
  * Time in ms after which the buffer resets if no key is pressed
@@ -80,6 +75,34 @@ export function useSecretCode(): UseSecretCodeReturn {
    */
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
+      // Handle Backspace to allow deleting characters
+      if (event.key === 'Backspace') {
+        // Reset timeout on backspace
+        if (timeoutRef.current !== undefined) {
+          clearTimeout(timeoutRef.current);
+        }
+
+        // Remove last character from buffer
+        bufferRef.current = bufferRef.current.slice(0, -1);
+        setTypedText(bufferRef.current);
+
+        // Clear detected mode if buffer changes
+        if (detectedMode !== null) {
+          setDetectedMode(null);
+        }
+
+        // Set timeout to reset buffer after inactivity
+        if (bufferRef.current.length > 0) {
+          timeoutRef.current = setTimeout(() => {
+            bufferRef.current = '';
+            setTypedText('');
+            setDetectedMode(null);
+          }, BUFFER_TIMEOUT);
+        }
+
+        return;
+      }
+
       // Only track printable ASCII characters without modifiers
       // Using ASCII range \x20-\x7E (space through tilde) to exclude dead keys and composed characters
       const isPrintableASCII = /^[\x20-\x7E]$/.test(event.key);
@@ -93,7 +116,9 @@ export function useSecretCode(): UseSecretCodeReturn {
       }
 
       // Add key to buffer, keeping it bounded
-      bufferRef.current = (bufferRef.current + event.key).slice(-BUFFER_MAX_LENGTH);
+      bufferRef.current = (bufferRef.current + event.key).slice(
+        -UI_CONSTANTS.SECRET_CODE_BUFFER_LENGTH
+      );
       setTypedText(bufferRef.current);
 
       // Check for secret codes
@@ -110,7 +135,7 @@ export function useSecretCode(): UseSecretCodeReturn {
         setDetectedMode(null); // Clear the detected mode state
       }, BUFFER_TIMEOUT);
     },
-    [checkForSecretCode]
+    [checkForSecretCode, detectedMode]
   );
 
   // Set up and clean up event listener

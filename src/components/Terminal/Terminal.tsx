@@ -4,6 +4,7 @@ import { BackgroundMusic } from '../Effects/BackgroundMusic';
 import { MatrixRain } from '../Effects/MatrixRain';
 import { useTerminalContext } from '../../hooks/TerminalContext';
 import { getPromptConfig } from '../../hooks/useTerminal';
+import { SYSTEM_CONFIG } from '../../config';
 
 import { MusicToggleButton } from './MusicToggleButton';
 import styles from './Terminal.module.css';
@@ -40,7 +41,9 @@ export const Terminal: React.FC = () => {
               tabIndex={-1}
             />
           </div>
-          <span className={styles.windowTitle}>{user}@portfolio — bash</span>
+          <span className={styles.windowTitle}>
+            {user}@{SYSTEM_CONFIG.hostname} — bash
+          </span>
           <div className={styles.windowActions}>
             <MusicToggleButton />
           </div>
