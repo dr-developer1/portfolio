@@ -2,15 +2,24 @@ import React, { useEffect, useRef } from 'react';
 import { useTerminalContext } from '../../hooks/TerminalContext';
 import styles from './TerminalOutput.module.css';
 
-const ASCII_BANNER = `
- ╔═══════════════════════════════════════════════════════════╗
- ║  DEVELOPER PORTFOLIO v2.0                    SYSTEM BOOT  ║
- ║  Full-Stack Development Environment - Production Ready    ║
- ╚═══════════════════════════════════════════════════════════╝
-
- CPU: TypeScript 5.3 @ 4.8 GHz      Memory: React 18 Hooks
- Stack: Node.js + Express            Database: PostgreSQL
- Tools: Vite + Docker                Location: Lyon, France
+const ASCII_BANNER = String.raw`
+╔═══════════════════════════════════════════════════════════╗
+║                                                           ║
+║  ▓█████▄  ██▀███     ▓█████▄ ▓█████ ██▒   █▓▓█████  ██▓     ▒█████   ██▓███  ▓█████  ██▀███  
+║  ▒██▀ ██▌▓██ ▒ ██▒   ▒██▀ ██▌▓█   ▀▓██░   █▒▓█   ▀ ▓██▒    ▒██▒  ██▒▓██░  ██▒▓█   ▀ ▓██ ▒ ██▒
+║  ░██   █▌▓██ ░▄█ ▒   ░██   █▌▒███   ▓██  █▒░▒███   ▒██░    ▒██░  ██▒▓██░ ██▓▒▒███   ▓██ ░▄█ ▒
+║  ░▓█▄   ▌▒██▀▀█▄     ░▓█▄   ▌▒▓█  ▄  ▒██ █░░▒▓█  ▄ ▒██░    ▒██   ██░▒██▄█▓▒ ▒▒▓█  ▄ ▒██▀▀█▄  
+║  ░▒████▓ ░██▓ ▒██▒   ░▒████▓ ░▒████▒  ▒▀█░  ░▒████▒░██████▒░ ████▓▒░▒██▒ ░  ░░▒████▒░██▓ ▒██▒
+║  ▒▒▓  ▒ ░ ▒▓ ░▒▓░    ▒▒▓  ▒ ░░ ▒░ ░  ░ ▐░  ░░ ▒░ ░░ ▒░▓  ░░ ▒░▒░▒░ ▒▓▒░ ░  ░░░ ▒░ ░░ ▒▓ ░▒▓░
+║  ░ ▒  ▒   ░▒ ░ ▒░    ░ ▒  ▒  ░ ░  ░  ░ ░░   ░ ░  ░░ ░ ▒  ░  ░ ▒ ▒░ ░▒ ░      ░ ░  ░  ░▒ ░ ▒░
+║  ░ ░  ░   ░░   ░     ░ ░  ░    ░       ░░     ░     ░ ░   ░ ░ ░ ▒  ░░          ░     ░░   ░ 
+║    ░       ░           ░       ░  ░     ░     ░  ░    ░  ░    ░ ░              ░  ░   ░     
+║  ░                   ░                 ░                                                    
+║                                                           ║
+║               AHMAD IBRAHIM • LYON, FRANCE                ║
+║               Ingénieur Développeur Full-Stack            ║
+║                                                           ║
+╚═══════════════════════════════════════════════════════════╝
 `;
 
 export const TerminalOutput: React.FC = () => {
@@ -26,9 +35,6 @@ export const TerminalOutput: React.FC = () => {
     <div className={styles.output}>
       {/* Welcome banner - always shown */}
       <pre className={styles.welcomeBanner}>{ASCII_BANNER}</pre>
-      <div className={styles.line}>
-        <span className={styles.welcomeText}>Ingénieur Développeur Full-Stack</span>
-      </div>
       <div className={styles.line}>
         <span className={styles.muted}>
           Tapez '<span className={styles.highlight}>help</span>' pour explorer mes projets et
