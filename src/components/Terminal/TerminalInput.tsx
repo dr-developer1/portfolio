@@ -93,7 +93,7 @@ export const TerminalInput: React.FC = () => {
       e.preventDefault();
       if (isLoading) return;
 
-      const newInput = handleTabKey(input, currentDirectory);
+      const newInput = handleTabKey(input, currentDirectory, user);
       if (newInput !== null) {
         setInput(newInput);
         // Set cursor to end after tab completion

@@ -27,7 +27,7 @@ export interface UseTabCompletionReturn {
   /** Current completion state */
   completionState: CompletionState | null;
   /** Handle Tab key press */
-  handleTabKey: (input: string, currentDirectory: string) => string | null;
+  handleTabKey: (input: string, currentDirectory: string, user: string) => string | null;
   /** Reset completion state */
   resetCompletion: () => void;
 }
@@ -39,7 +39,7 @@ export function useTabCompletion(): UseTabCompletionReturn {
   const [completionState, setCompletionState] = useState<CompletionState | null>(null);
 
   const handleTabKey = useCallback(
-    (input: string, currentDirectory: string): string | null => {
+    (input: string, currentDirectory: string, user: string): string | null => {
       // If already cycling through completions
       if (completionState && completionState.matches.length > 0) {
         const nextIndex = (completionState.index + 1) % completionState.matches.length;
@@ -61,7 +61,7 @@ export function useTabCompletion(): UseTabCompletionReturn {
       }
 
       // Start new completion
-      const result = getCompletions(input, currentDirectory);
+      const result = getCompletions(input, currentDirectory, user);
 
       if (result && result.matches.length > 0) {
         // Use the first match

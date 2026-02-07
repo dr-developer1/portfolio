@@ -24,12 +24,13 @@ function getCommandCompletions(partial: string): string[] {
  * Get completions for file paths
  * @param partialPath The partial path string (e.g., "src/comp")
  * @param currentDirectory The current working directory
+ * @param user The current username for resolving ~ correctly
  */
-function getPathCompletions(partialPath: string, currentDirectory: string): string[] {
+function getPathCompletions(partialPath: string, currentDirectory: string, user: string): string[] {
   // Handle empty path - list current directory
   if (!partialPath) {
     // Normalize currentDirectory (resolve ~ to absolute path)
-    const resolvedDir = resolvePath(currentDirectory, '.');
+    const resolvedDir = resolvePath(currentDirectory, '.', user);
     const node = getNode(resolvedDir);
     if (!node || node.type !== 'directory' || !node.children) return [];
     return Array.from(node.children.keys()).map(
@@ -49,10 +50,10 @@ function getPathCompletions(partialPath: string, currentDirectory: string): stri
     filePrefix = partialPath.substring(lastSlashIndex + 1);
 
     // Resolve the absolute path to the directory
-    dirPath = resolvePath(currentDirectory, dirPart);
+    dirPath = resolvePath(currentDirectory, dirPart, user);
   } else {
     // No directory separator - normalize currentDirectory (resolve ~ to absolute path)
-    dirPath = resolvePath(currentDirectory, '.');
+    dirPath = resolvePath(currentDirectory, '.', user);
   }
 
   const node = getNode(dirPath);
@@ -78,8 +79,13 @@ function getPathCompletions(partialPath: string, currentDirectory: string): stri
  * Main completion function
  * @param input The full input string
  * @param currentDirectory The current working directory
+ * @param user The current username for resolving ~ correctly
  */
-export function getCompletions(input: string, currentDirectory: string): CompletionResult | null {
+export function getCompletions(
+  input: string,
+  currentDirectory: string,
+  user: string
+): CompletionResult | null {
   // Trim and split, filtering empty parts to handle multiple spaces consistently
   const trimmed = input.trim();
   const parts = trimmed.split(' ').filter((part) => part.length > 0);
@@ -106,6 +112,6 @@ export function getCompletions(input: string, currentDirectory: string): Complet
   }
 
   // Default to path completion for arguments
-  const matches = getPathCompletions(lastArg, currentDirectory);
+  const matches = getPathCompletions(lastArg, currentDirectory, user);
   return { matches, type: 'path', original: lastArg };
 }
