@@ -28,6 +28,7 @@ export const TerminalInput: React.FC = () => {
     currentDirectory,
     isLoading,
     bootMode,
+    isPlaygroundOpen,
   } = useTerminalContext();
 
   // Get dynamic prompt configuration based on boot mode
@@ -211,23 +212,28 @@ export const TerminalInput: React.FC = () => {
 
   // Keep focus on input
   useEffect(() => {
+    if (isPlaygroundOpen) {
+      inputRef.current?.blur();
+      return;
+    }
+
     inputRef.current?.focus();
     const handleGlobalClick = () => inputRef.current?.focus();
     document.addEventListener('click', handleGlobalClick);
     return () => document.removeEventListener('click', handleGlobalClick);
-  }, []);
+  }, [isPlaygroundOpen]);
 
   // Restore focus when command completes (isLoading transitions to false)
   // This fixes Chrome focus loss after commands like 'help' that render complex output
   useEffect(() => {
-    if (!isLoading && shouldRefocusRef.current) {
+    if (!isLoading && shouldRefocusRef.current && !isPlaygroundOpen) {
       shouldRefocusRef.current = false;
       // Use requestAnimationFrame to ensure React has finished rendering
       requestAnimationFrame(() => {
         inputRef.current?.focus();
       });
     }
-  }, [isLoading]);
+  }, [isLoading, isPlaygroundOpen]);
 
   return (
     <div className={styles.inputContainer}>
@@ -250,7 +256,7 @@ export const TerminalInput: React.FC = () => {
           autoFocus
           spellCheck={false}
           autoComplete="off"
-          disabled={isLoading}
+          disabled={isLoading || isPlaygroundOpen}
           placeholder={isLoading ? 'Processing...' : "Type 'help' for available commands..."}
         />
         {/* Custom cursor implementation */}

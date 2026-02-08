@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Command, OutputFunction } from '../types';
+import type { Command, CommandContext, OutputFunction } from '../types';
 import { getAllCommands, registerCommands } from '../utils/commandRegistry';
 import { content } from './content';
 import { AVAILABLE_THEMES, isValidTheme, getDefaultTheme } from '../utils/themeService';
@@ -462,6 +462,25 @@ const resumeCommand: Command = {
 };
 
 /**
+ * Playground command - launches the coding playground
+ */
+const playgroundCommand: Command = {
+  name: 'playground',
+  description: 'Launch the interactive coding playground',
+  usage: 'playground',
+  aliases: ['code', 'editor'],
+  execute: (_args: string[], addOutput: OutputFunction, context?: CommandContext) => {
+    if (context?.openPlayground) {
+      context.openPlayground();
+      addOutput(<span className={styles.textSecondary}>Opening playground…</span>, 'info');
+      return;
+    }
+
+    addOutput(<span className={styles.error}>Playground failed to open.</span>, 'error');
+  },
+};
+
+/**
  * Effect command - control visual effects
  */
 const effectCommand: Command = {
@@ -600,6 +619,7 @@ export const basicCommands: Command[] = [
   contactCommand,
   themeCommand,
   resumeCommand,
+  playgroundCommand,
   effectCommand,
   musicCommand,
 ];

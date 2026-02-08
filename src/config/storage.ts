@@ -11,4 +11,7 @@ export const STORAGE_KEYS = {
 
   /** Background music enabled/disabled */
   music: 'portfolio_music_enabled',
+
+  /** Playground workspace persistence */
+  playground: 'portfolio_playground_workspace',
 } as const;

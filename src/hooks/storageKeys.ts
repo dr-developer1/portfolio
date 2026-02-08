@@ -10,3 +10,6 @@ export const MATRIX_STORAGE_KEY = STORAGE_KEYS.matrix;
 
 /** Storage key for music preference */
 export const MUSIC_STORAGE_KEY = STORAGE_KEYS.music;
+
+/** Storage key for playground workspace persistence */
+export const PLAYGROUND_STORAGE_KEY = STORAGE_KEYS.playground;

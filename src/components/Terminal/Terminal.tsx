@@ -7,12 +7,13 @@ import { getPromptConfig } from '../../hooks/useTerminal';
 import { SYSTEM_CONFIG } from '../../config';
 
 import { MusicToggleButton } from './MusicToggleButton';
+import { PlaygroundOverlay } from '../Playground';
 import styles from './Terminal.module.css';
 import { TerminalInput } from './TerminalInput';
 import { TerminalOutput } from './TerminalOutput';
 
 export const Terminal: React.FC = () => {
-  const { bootMode } = useTerminalContext();
+  const { bootMode, isPlaygroundOpen, closePlayground } = useTerminalContext();
   const { user } = getPromptConfig(bootMode);
 
   return (
@@ -55,6 +56,7 @@ export const Terminal: React.FC = () => {
           <TerminalInput />
         </div>
       </div>
+      <PlaygroundOverlay isOpen={isPlaygroundOpen} onClose={closePlayground} />
     </>
   );
 };

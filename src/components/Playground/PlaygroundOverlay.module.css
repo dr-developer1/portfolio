@@ -1,0 +1,56 @@
+/* Playground Overlay */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 65%);
+  z-index: 100;
+}
+
+.panel {
+  width: min(1200px, 92vw);
+  height: min(720px, 90vh);
+  background: rgb(10 10 10 / 95%);
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 12px;
+  box-shadow: 0 20px 80px rgb(0 0 0 / 60%);
+  display: grid;
+  grid-template-rows: auto 1fr;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgb(255 255 255 / 10%);
+  background: rgb(20 20 20 / 90%);
+}
+
+.title {
+  font-size: 0.9rem;
+  color: var(--color-text-primary);
+}
+
+.closeButton {
+  border: none;
+  background: rgb(255 90 90 / 20%);
+  color: var(--color-text-primary);
+  padding: 0.35rem 0.7rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.closeButton:hover {
+  background: rgb(255 90 90 / 35%);
+}
+
+.body {
+  padding: 0.75rem;
+  overflow: hidden;
+}

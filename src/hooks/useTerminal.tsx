@@ -31,6 +31,7 @@ const INITIAL_STATE: TerminalState = {
   musicEnabled: getStoredBoolean(MUSIC_STORAGE_KEY, true),
   hasUserInteracted: false,
   bootMode: 'normal',
+  isPlaygroundOpen: false,
 };
 
 /**
@@ -118,6 +119,26 @@ export function useTerminal(): UseTerminalReturn {
     },
     []
   );
+
+  /**
+   * Open the playground overlay
+   */
+  const openPlayground: TerminalActions['openPlayground'] = useCallback(() => {
+    setState((prev) => ({
+      ...prev,
+      isPlaygroundOpen: true,
+    }));
+  }, []);
+
+  /**
+   * Close the playground overlay
+   */
+  const closePlayground: TerminalActions['closePlayground'] = useCallback(() => {
+    setState((prev) => ({
+      ...prev,
+      isPlaygroundOpen: false,
+    }));
+  }, []);
 
   /**
    * Execute a command string
@@ -356,6 +377,8 @@ export function useTerminal(): UseTerminalReturn {
           currentDirectory: state.currentDirectory,
           user,
           symbol,
+          openPlayground,
+          closePlayground,
         };
         await command.execute(parsed.args, addOutput, context);
       } catch (error) {
@@ -369,7 +392,14 @@ export function useTerminal(): UseTerminalReturn {
         setState((prev) => ({ ...prev, isLoading: false }));
       }
     },
-    [addOutput, state.currentDirectory, state.commandHistory, state.bootMode]
+    [
+      addOutput,
+      state.currentDirectory,
+      state.commandHistory,
+      state.bootMode,
+      openPlayground,
+      closePlayground,
+    ]
   );
 
   /**
@@ -506,5 +536,7 @@ export function useTerminal(): UseTerminalReturn {
     setMusicEnabled,
     setUserInteracted,
     setBootMode,
+    openPlayground,
+    closePlayground,
   };
 }

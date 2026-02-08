@@ -34,6 +34,8 @@ export interface CommandContext {
   currentDirectory: string;
   user: string;
   symbol: string;
+  openPlayground?: () => void;
+  closePlayground?: () => void;
 }
 
 /**
@@ -81,6 +83,8 @@ export interface TerminalState {
   hasUserInteracted: boolean;
   /** Current boot mode (determines prompt style and permissions) */
   bootMode: BootMode;
+  /** Whether the playground overlay is open */
+  isPlaygroundOpen: boolean;
 }
 
 /**
@@ -109,6 +113,10 @@ export interface TerminalActions {
   setUserInteracted: () => void;
   /** Set the boot mode (determines prompt style and permissions) */
   setBootMode: (mode: BootMode) => void;
+  /** Open the coding playground overlay */
+  openPlayground: () => void;
+  /** Close the coding playground overlay */
+  closePlayground: () => void;
 }
 
 /**
