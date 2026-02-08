@@ -57,7 +57,8 @@ export const BackgroundMusic: FC = () => {
     // Cleanup on unmount
     return () => {
       audio.pause();
-      audio.src = '';
+      audio.removeAttribute('src');
+      audio.load(); // Abort any pending network requests
       audioRef.current = null;
     };
   }, []);
