@@ -18,11 +18,18 @@ export interface FileSystemNode {
 
 /**
  * Sanitize a string to be used as a filename
+ * Handles accented characters by normalizing and removing diacritics
  */
 function sanitizeFilename(name: string): string {
   const sanitized = name
     .toLowerCase()
+    // Normalize Unicode to decompose accented characters (é → e + combining accent)
+    .normalize('NFD')
+    // Remove diacritical marks (combining accents)
+    .replace(/[\u0300-\u036f]/g, '')
+    // Replace any remaining non-alphanumeric characters with dashes
     .replace(/[^a-z0-9]+/g, '-')
+    // Remove leading/trailing dashes
     .replace(/^-+|-+$/g, '');
 
   return sanitized || 'untitled';
