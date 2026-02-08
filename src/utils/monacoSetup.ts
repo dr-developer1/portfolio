@@ -15,7 +15,9 @@ import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
 import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
 import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
 
-self.MonacoEnvironment = {
+const globalScope = self as Window & typeof globalThis;
+
+globalScope.MonacoEnvironment = {
   getWorker(_, label) {
     if (label === 'json') return new jsonWorker();
     if (label === 'css' || label === 'scss' || label === 'less') return new cssWorker();

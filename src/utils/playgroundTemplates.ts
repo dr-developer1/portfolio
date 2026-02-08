@@ -6,7 +6,7 @@
 
 import type { PlaygroundFile, PlaygroundLanguage, PlaygroundWorkspace } from '../types/playground';
 
-const jsTemplate = `// JavaScript Playground\n\nfunction greet(name) {\n  return \`Hello, ${name}!\`;\n}\n\nconsole.log(greet('World'));\n`;
+const jsTemplate = `// JavaScript Playground\n\nfunction greet(name) {\n  return \`Hello, \${name}!\`;\n}\n\nconsole.log(greet('World'));\n`;
 
 const tsTemplate = `// TypeScript Playground\n\ninterface User {\n  id: number;\n  name: string;\n}\n\nconst user: User = { id: 1, name: 'Ahmad' };\n\nconsole.log(user);\n`;
 

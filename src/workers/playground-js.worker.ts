@@ -32,7 +32,11 @@ let esbuildInitPromise: Promise<void> | null = null;
 
 async function ensureEsbuildReady(): Promise<void> {
   if (!esbuildInitPromise) {
-    esbuildInitPromise = esbuild.initialize({ wasmURL: ESBUILD_WASM_URL });
+    esbuildInitPromise = esbuild.initialize({ wasmURL: ESBUILD_WASM_URL }).catch((error) => {
+      // Reset so that subsequent calls can retry initialization
+      esbuildInitPromise = null;
+      throw error;
+    });
   }
   await esbuildInitPromise;
 }
@@ -93,9 +97,36 @@ function createConsoleProxy(id: string, originalConsole: Console): Console {
 async function runJavaScript(code: string, id: string): Promise<void> {
   const originalConsole = self.console;
   const proxy = createConsoleProxy(id, originalConsole);
+  const activeTimeouts = new Set<number>();
+  const activeIntervals = new Set<number>();
+
+  const trackedSetTimeout: typeof self.setTimeout = (handler, timeout, ...args) => {
+    const timerId = self.setTimeout(handler, timeout, ...args);
+    activeTimeouts.add(timerId);
+    return timerId;
+  };
+
+  const trackedSetInterval: typeof self.setInterval = (handler, timeout, ...args) => {
+    const timerId = self.setInterval(handler, timeout, ...args);
+    activeIntervals.add(timerId);
+    return timerId;
+  };
+
+  const trackedClearTimeout: typeof self.clearTimeout = (timerId) => {
+    if (typeof timerId === 'number') {
+      activeTimeouts.delete(timerId);
+    }
+    self.clearTimeout(timerId);
+  };
+
+  const trackedClearInterval: typeof self.clearInterval = (timerId) => {
+    if (typeof timerId === 'number') {
+      activeIntervals.delete(timerId);
+    }
+    self.clearInterval(timerId);
+  };
 
   try {
-    self.console = proxy;
     const asyncFn = new Function(
       'console',
       'setTimeout',
@@ -106,10 +137,10 @@ async function runJavaScript(code: string, id: string): Promise<void> {
     );
     const result = await asyncFn(
       proxy,
-      self.setTimeout,
-      self.setInterval,
-      self.clearTimeout,
-      self.clearInterval
+      trackedSetTimeout,
+      trackedSetInterval,
+      trackedClearTimeout,
+      trackedClearInterval
     );
 
     if (result !== undefined) {
@@ -124,7 +155,10 @@ async function runJavaScript(code: string, id: string): Promise<void> {
       payload: error instanceof Error ? error.message : 'Unknown error',
     });
   } finally {
-    self.console = originalConsole;
+    activeTimeouts.forEach((timerId) => self.clearTimeout(timerId));
+    activeIntervals.forEach((timerId) => self.clearInterval(timerId));
+    activeTimeouts.clear();
+    activeIntervals.clear();
   }
 }
 
