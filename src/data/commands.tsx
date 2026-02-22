@@ -7,7 +7,7 @@ import { SYSTEM_CONFIG } from '../config';
 import { MATRIX_STORAGE_KEY, MUSIC_STORAGE_KEY } from '../hooks/storageKeys';
 import { getStoredBoolean } from '../utils/storageHelpers';
 import { SkillSection, JobEntry, EducationEntry, ProjectCard } from '../components/Output';
-import styles from '../styles/TerminalOutput.module.css';
+import styles from '../styles/outputUtilities.module.css';
 
 /**
  * Help command - displays all available commands

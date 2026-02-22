@@ -14,6 +14,7 @@ import { usePlaygroundRunner } from '../../hooks/usePlaygroundRunner';
 import '../../utils/monacoSetup';
 
 import styles from './Playground.module.css';
+import { PlaygroundMobile } from './PlaygroundMobile';
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -78,12 +79,21 @@ const TabItem: React.FC<TabItemProps> = ({ file, isActive, onSelect }) => (
 // ── Main Component ───────────────────────────────────────────────────────────
 
 export const Playground: React.FC = () => {
+  const [isMobile, setIsMobile] = useState(false);
   const [workspace, setWorkspace] = useState<PlaygroundWorkspace>(() => {
     const stored = loadPlaygroundWorkspace();
     return stored ?? getDefaultWorkspace('javascript');
   });
 
   const { outputs, isRunning, runCode, stopRun, clearOutputs } = usePlaygroundRunner();
+
+  // Detect mobile
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const handleEditorMount = useCallback((editor: MonacoEditor.IStandaloneCodeEditor) => {
     editor.focus();
@@ -137,6 +147,23 @@ export const Playground: React.FC = () => {
     setWorkspace(getDefaultWorkspace(workspace.activeLanguage));
     clearOutputs();
   }, [workspace.activeLanguage, clearOutputs]);
+
+  if (isMobile) {
+    return (
+      <PlaygroundMobile
+        workspace={workspace}
+        onFileSelect={handleFileSelect}
+        onCodeChange={updateActiveFile}
+        onLanguageChange={handleLanguageChange}
+        onRun={handleRun}
+        onStop={() => stopRun('stopped')}
+        onClear={clearOutputs}
+        onReset={handleReset}
+        isRunning={isRunning}
+        outputs={outputs}
+      />
+    );
+  }
 
   return (
     <div className={styles.container}>

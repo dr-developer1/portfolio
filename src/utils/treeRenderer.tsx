@@ -8,7 +8,7 @@ import type { ReactNode } from 'react';
 
 import type { FileSystemNode } from './fileSystem';
 import { UI_CONSTANTS } from '../config';
-import styles from '../styles/TerminalOutput.module.css';
+import styles from '../styles/outputUtilities.module.css';
 
 /**
  * Render a directory tree recursively

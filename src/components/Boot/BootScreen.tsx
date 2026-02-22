@@ -23,7 +23,7 @@ import { StartPrompt } from './StartPrompt';
  */
 export const BootScreen: React.FC<BootScreenProps> = ({ onBootComplete, onModeDetected }) => {
   const { state, startBoot, messages } = useBootSequence();
-  const { detectedMode, typedText, reset: resetSecretCode } = useSecretCode();
+  const { detectedMode, typedText, reset: resetSecretCode, feedInput } = useSecretCode();
   const hasStartedRef = useRef(false);
 
   /**
@@ -87,7 +87,12 @@ export const BootScreen: React.FC<BootScreenProps> = ({ onBootComplete, onModeDe
 
         {/* Phase-dependent content */}
         {state.phase === 'waiting' && (
-          <StartPrompt hint="or try typing a secret code..." typedText={typedText} />
+          <StartPrompt
+            hint="or try typing a secret code..."
+            typedText={typedText}
+            onStart={() => handleStart(detectedMode ?? 'normal')}
+            onInputChange={feedInput}
+          />
         )}
 
         {state.phase === 'booting' && (

@@ -33,31 +33,42 @@
    Command Lines
    ======================================== */
 .command {
-  display: flex;
-  gap: var(--spacing-sm);
+  display: block;
+  /* gap: var(--spacing-sm); -- Removed for inline flow compatibility */
   color: var(--color-command);
+  line-height: var(--line-height-normal);
 }
 
 .commandPrompt {
+  display: inline;
   color: var(--color-text-muted);
   white-space: nowrap;
+  margin-right: var(--spacing-sm);
 }
 
 .commandText {
+  display: inline;
   color: var(--color-command);
   font-weight: 500;
+  overflow-wrap: break-word; /* Ensure wrapping */
+  word-break: break-all; /* Fallback for very long strings */
 }
 
 /* ========================================
    Welcome Banner
    ======================================== */
-.welcomeBanner {
-  color: var(--color-accent-cyan);
+.bannerContainer {
   margin-bottom: var(--spacing-md);
+}
+
+.banner {
+  color: var(--color-accent-cyan);
   white-space: pre;
   font-size: var(--font-size-sm);
   line-height: 1.2;
   text-shadow: var(--text-glow-cyan);
+  display: block;
+  overflow-x: hidden;
 }
 
 .welcomeText {
@@ -145,14 +156,62 @@
 @media (width <= 768px) {
   .output {
     padding-right: 0;
+    gap: 2px;
   }
 
   .line {
     font-size: var(--font-size-sm);
   }
 
-  .welcomeBanner {
+  .banner {
+    font-size: 6px;
+    line-height: 1.15;
+  }
+
+  .section {
+    padding-left: var(--spacing-sm);
+  }
+}
+
+/* ========================================
+   Responsive Adjustments — Small Phone
+   ======================================== */
+@media (width <= 480px) {
+  .banner {
+    font-size: 5px;
+    line-height: 1.1;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .line {
     font-size: var(--font-size-xs);
-    overflow-x: auto;
+  }
+
+  .section {
+    padding-left: var(--spacing-xs);
+    border-left-width: 1px;
+  }
+}
+
+/* ========================================
+   Very Small Screens (320px)
+   ======================================== */
+@media (width <= 360px) {
+  .banner {
+    font-size: 4px;
+  }
+}
+
+/* ========================================
+   Landscape Phone
+   ======================================== */
+@media (width <= 768px) and (orientation: landscape) {
+  .banner {
+    font-size: 5px;
+    margin-bottom: var(--spacing-xs);
+  }
+
+  .output {
+    gap: 1px;
   }
 }

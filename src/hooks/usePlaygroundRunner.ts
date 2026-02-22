@@ -9,7 +9,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { PlaygroundLanguage, PlaygroundOutputEntry } from '../types/playground';
 import { generateLineId } from '../utils/helpers';
 
-const RUN_TIMEOUT_MS = 8000;
+const RUN_TIMEOUT_MS = 20000;
 
 type WorkerMessage = {
   id: string;

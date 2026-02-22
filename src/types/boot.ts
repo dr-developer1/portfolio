@@ -65,6 +65,8 @@ export interface UseSecretCodeReturn {
   typedText: string;
   /** Reset the detection buffer */
   reset: () => void;
+  /** Feed a complete input value from an input element (for mobile virtual keyboard support) */
+  feedInput: (value: string) => void;
 }
 
 /**
@@ -85,6 +87,10 @@ export interface StartPromptProps {
   hint?: string;
   /** Currently typed text to display after the prompt */
   typedText?: string;
+  /** Callback to start the boot sequence (used for mobile tap-to-start) */
+  onStart?: () => void;
+  /** Feed input value to secret code detection (for mobile virtual keyboard) */
+  onInputChange?: (value: string) => void;
 }
 
 /**

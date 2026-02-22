@@ -16,7 +16,7 @@ const ASCII_BANNER = String.raw`
 ║    ░       ░           ░       ░  ░     ░     ░  ░    ░  ░    ░ ░              ░  ░   ░     
 ║  ░                   ░                 ░                                                    
 ║                                                           ║
-║               AHMAD IBRAHIM • LYON, FRANCE                ║
+║               AHMAD IBRAHIM • FRANCE                      ║
 ║               Ingénieur Développeur Full-Stack            ║
 ║                                                           ║
 ╚═══════════════════════════════════════════════════════════╝
@@ -33,12 +33,11 @@ export const TerminalOutput: React.FC = () => {
 
   return (
     <div className={styles.output}>
-      {/* Welcome banner - always shown */}
-      <pre className={styles.welcomeBanner}>{ASCII_BANNER}</pre>
+      <pre className={styles.banner}>{ASCII_BANNER}</pre>
       <div className={styles.line}>
         <span className={styles.muted}>
-          Tapez '<span className={styles.highlight}>help</span>' pour explorer mes projets et
-          compétences
+          Tapez &apos;<span className={styles.highlight}>help</span>&apos; pour explorer mes projets
+          et compétences
         </span>
       </div>
       <div className={styles.line}>&nbsp;</div>

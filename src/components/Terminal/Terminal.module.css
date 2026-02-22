@@ -206,11 +206,21 @@
 }
 
 /* ========================================
-   Responsive Adjustments
+   Responsive Adjustments — Tablet
+   ======================================== */
+@media (width <= 1024px) {
+  .window {
+    border-radius: var(--radius-md);
+  }
+}
+
+/* ========================================
+   Responsive Adjustments — Mobile
    ======================================== */
 @media (width <= 768px) {
   .window {
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-md);
   }
 
   .container {
@@ -229,14 +239,89 @@
     width: 10px;
     height: 10px;
   }
-}
 
-@media (width <= 480px) {
-  .windowTitle {
+  /* Reduce CRT effects on mobile for performance */
+  .scanline {
     display: none;
   }
 
+  .overlay {
+    opacity: 0.3;
+  }
+}
+
+/* ========================================
+   Responsive Adjustments — Small Phone
+   ======================================== */
+@media (width <= 480px) {
+  .window {
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border-default);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .container {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  .titleBar {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    min-height: 32px;
+  }
+
+  .windowTitle {
+    display: block;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0 4px;
+    flex: 1;
+  }
+
   .windowActions {
+    display: flex;
+    width: auto;
+  }
+
+  /* Compact controls */
+  .windowControls {
+    gap: 6px;
+  }
+
+  .windowButton {
+    width: 8px;
+    height: 8px;
+  }
+
+  .windowButton::before {
+    display: none;
+  }
+
+  .overlay {
+    display: none;
+  }
+}
+
+/* ========================================
+   Landscape Phone
+   ======================================== */
+@media (width <= 768px) and (orientation: landscape) {
+  .container {
+    padding: var(--spacing-xs) var(--spacing-md);
+  }
+
+  .titleBar {
+    padding: 2px var(--spacing-sm);
+    min-height: 24px;
+  }
+
+  .windowButton {
+    width: 8px;
+    height: 8px;
+  }
+
+  .windowTitle {
     display: none;
   }
 }

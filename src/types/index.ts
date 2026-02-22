@@ -85,6 +85,8 @@ export interface TerminalState {
   bootMode: BootMode;
   /** Whether the playground overlay is open */
   isPlaygroundOpen: boolean;
+  /** Current input value in the terminal */
+  input: string;
 }
 
 /**
@@ -93,6 +95,8 @@ export interface TerminalState {
 export interface TerminalActions {
   /** Execute a command string */
   executeCommand: (input: string) => void;
+  /** Set the current input value */
+  setInput: (value: string) => void;
   /** Add output to the terminal */
   addOutput: OutputFunction;
   /** Clear the terminal output */

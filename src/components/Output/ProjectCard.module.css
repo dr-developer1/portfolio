@@ -31,3 +31,32 @@
   color: var(--color-text-muted);
   font-size: 0.9em;
 }
+
+/* ========================================
+   Responsive — Mobile
+   ======================================== */
+@media (width <= 768px) {
+  .header {
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+
+  .technologies {
+    font-size: 0.8em;
+  }
+}
+
+/* ========================================
+   Responsive — Small Phone
+   ======================================== */
+@media (width <= 480px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.15rem;
+  }
+
+  .description {
+    font-size: 0.9em;
+  }
+}

@@ -1,5 +1,4 @@
-/* Import modern monospace font */
-@import 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap';
+/* Font loaded via <link> in index.html for parallel resource loading */
 
 *,
 *::before,
@@ -20,12 +19,15 @@ body {
   font-family: var(--font-mono);
   background: var(--color-bg-canvas);
   color: var(--color-text-primary);
-  overflow: hidden;
-  min-height: 100vh;
+  overflow: hidden; /* Prevent body scroll, handle in #root or components */
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height for mobile */
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--spacing-lg);
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
 }
 
 #root {
@@ -33,6 +35,77 @@ body {
   max-width: 1200px;
   height: 90vh;
   max-height: 800px;
+
+  /* Remove fixed height constraints on mobile to allow flex growth */
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* ========================================
+   iOS Zoom Prevention
+   Prevent iOS Safari from zooming in on input focus.
+   Any input/textarea/select with font-size < 16px triggers
+   the zoom. This rule guarantees a floor of 16px on mobile
+   for all interactive elements, including Monaco's internal
+   textarea (.inputarea) which would otherwise zoom the
+   playground viewport on editor mount.
+   ======================================== */
+@media (width <= 768px) {
+  input,
+  textarea,
+  select,
+  [contenteditable] {
+    /* stylelint-disable-next-line declaration-no-important */
+    font-size: max(1rem, 16px) !important;
+  }
+
+  /* Monaco editor hidden textarea override */
+  .monaco-editor .inputarea {
+    /* stylelint-disable-next-line declaration-no-important */
+    font-size: 16px !important;
+  }
+}
+
+/* ========================================
+   Responsive Layout — Tablet
+   ======================================== */
+@media (width <= 1024px) {
+  #root {
+    /* Respect desktop max-height, just adapt height unit */
+    height: 90dvh;
+  }
+}
+
+/* ========================================
+   Responsive Layout — Mobile
+   ======================================== */
+@media (width <= 768px) {
+  body {
+    padding: calc(var(--spacing-sm) + var(--safe-area-top))
+      calc(var(--spacing-sm) + var(--safe-area-right))
+      calc(var(--spacing-sm) + var(--safe-area-bottom))
+      calc(var(--spacing-sm) + var(--safe-area-left));
+    align-items: center; /* Center vertically like desktop */
+  }
+
+  #root {
+    /* Use 85dvh to show background gaps */
+    height: 85dvh;
+    border-radius: 0;
+  }
+}
+
+/* ========================================
+   Responsive Layout — Small Phone
+   ======================================== */
+@media (width <= 480px) {
+  body {
+    /* Keep padding from <= 768px rule to show background */
+    padding-left: var(--spacing-sm);
+    padding-right: var(--spacing-sm);
+  }
+  /* #root inherits height calc from <= 768px rule */
 }
 
 /* Selection styling */
@@ -83,5 +156,32 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* ========================================
+   Mobile Touch & Scroll Optimization
+   ======================================== */
+@media (width <= 768px) {
+  /* Optimize scrolling for touch */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    border: none;
+  }
+}
+
+@media (width <= 480px) {
+  /* Hide scrollbars on very small screens — use native touch scroll */
+  ::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+
+  * {
+    scrollbar-width: none;
   }
 }

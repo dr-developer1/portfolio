@@ -11,8 +11,8 @@
 }
 
 .panel {
-  width: min(1200px, 92vw);
-  height: min(720px, 90vh);
+  width: min(1400px, 96vw);
+  height: min(860px, 92vh);
   background: rgb(10 10 10 / 95%);
   border: 1px solid rgb(255 255 255 / 10%);
   border-radius: 12px;
@@ -53,4 +53,87 @@
 .body {
   padding: 0.75rem;
   overflow: hidden;
+}
+
+/* ========================================
+   Responsive — Tablet
+   ======================================== */
+@media (width <= 1024px) {
+  .panel {
+    width: min(1400px, 98vw);
+    height: min(860px, 96vh);
+  }
+
+  .body {
+    padding: 0.5rem;
+  }
+}
+
+/* ========================================
+   Responsive — Mobile (Full-screen takeover)
+   ======================================== */
+@media (width <= 768px) {
+  .overlay {
+    align-items: stretch;
+    justify-content: stretch;
+    padding: 0;
+  }
+
+  .panel {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+  }
+
+  .header {
+    padding: 0.5rem 0.75rem;
+    min-height: 44px; /* Touch target */
+  }
+
+  .title {
+    font-size: 0.8rem;
+  }
+
+  .closeButton {
+    min-height: 36px;
+    min-width: 60px;
+    font-size: 0.8rem;
+  }
+
+  .body {
+    padding: 0.35rem;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ========================================
+   Responsive — Small Phone
+   ======================================== */
+@media (width <= 480px) {
+  .header {
+    padding: 0.35rem 0.5rem;
+  }
+
+  .title {
+    font-size: 0.75rem;
+  }
+
+  .body {
+    padding: 0.25rem;
+  }
+}
+
+/* ========================================
+   Landscape Phone
+   ======================================== */
+@media (width <= 768px) and (orientation: landscape) {
+  .header {
+    padding: 0.25rem 0.5rem;
+    min-height: 32px;
+  }
 }
