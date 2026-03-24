@@ -1,21 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+
+import { BP } from '../../config/breakpoints';
+import { useMediaQuery } from '../../hooks/useMediaQuery';
+
 import { TerminalInputDesktop } from './TerminalInputDesktop';
 import { TerminalInputMobile } from './TerminalInputMobile';
 
 export const TerminalInput: React.FC = () => {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      // Matches standard tablet/mobile breakpoint
-      setIsMobile(window.matchMedia('(max-width: 768px)').matches || window.matchMedia('(hover: none)').matches);
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  const isMobile = useMediaQuery(
+    `(max-width: ${BP.mobile}px), (hover: none) and (pointer: coarse)`
+  );
 
   return isMobile ? <TerminalInputMobile /> : <TerminalInputDesktop />;
 };
-

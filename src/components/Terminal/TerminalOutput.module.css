@@ -2,9 +2,6 @@
    Output Container
    ======================================== */
 .output {
-  /* flex: 1; -- Removed to allow natural height */
-
-  /* overflow: hidden auto; -- Removed to use window scroll */
   margin-bottom: var(--spacing-md);
   display: flex;
   flex-direction: column;
@@ -34,7 +31,6 @@
    ======================================== */
 .command {
   display: block;
-  /* gap: var(--spacing-sm); -- Removed for inline flow compatibility */
   color: var(--color-command);
   line-height: var(--line-height-normal);
 }

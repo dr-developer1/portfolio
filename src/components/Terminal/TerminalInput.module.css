@@ -16,7 +16,7 @@
   padding: 0;
   margin: -1px;
   overflow: hidden;
-  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
   border: 0;
   white-space: nowrap;
 
@@ -27,7 +27,7 @@
 /* Force wrapping alignment */
 .inputDisplay {
   display: inline;
-  overflow-wrap: break-word; /* Ensure wrapping */
+  overflow-wrap: break-word;
   word-break: break-all;
   color: var(--color-command);
   line-height: var(--line-height-normal);
@@ -37,8 +37,8 @@
   display: inline-block;
   background-color: var(--color-accent-green);
   color: var(--color-background);
-  min-width: 0.6em; /* Ensure width for spaces */
-  white-space: pre; /* Preserve space character inside cursor */
+  min-width: 0.6em;
+  white-space: pre;
   animation: cursor-blink 1s step-end infinite;
   vertical-align: text-bottom;
 }
@@ -48,27 +48,24 @@
   opacity: 1;
 }
 
-/* Existing Input Container (Shared/Mobile) */
 .inputContainer {
-  display: block; /* Allows inline flow */
-  /* align-items: center; Removed */
-  /* gap: var(--spacing-sm); Removed */
+  display: block;
   width: 100%;
   padding-top: var(--spacing-sm);
   position: relative;
   z-index: var(--z-base);
-  line-height: var(--line-height-normal); /* Ensure consistent line height */
+  line-height: var(--line-height-normal);
 }
 
 /* ========================================
    Prompt Styling
    ======================================== */
 .prompt {
-  display: inline; /* Flow with text */
-  white-space: pre-wrap; /* Allow prompt to wrap if needed (unlikely) */
+  display: inline;
+  white-space: pre-wrap;
   font-size: var(--font-size-base);
   font-weight: 500;
-  margin-right: var(--spacing-sm); /* Replacement for gap */
+  margin-right: var(--spacing-sm);
 }
 
 .promptUser {
@@ -102,11 +99,10 @@
    Input Field
    ======================================== */
 .inputWrapper {
-  display: inline; /* Flow with prompt */
+  display: inline;
 }
 
 .input {
-  /* width: 100%; Removed */
   background: transparent;
   border: none;
   outline: none;
@@ -117,17 +113,21 @@
   letter-spacing: var(--letter-spacing);
   caret-color: var(--color-accent-green);
   padding: 0;
-  /* resize: none; Removed */
-  /* overflow: hidden; Removed */
   white-space: pre-wrap;
-  word-break: break-all; /* Ensure long words break */
-  /* field-sizing: content; Removed */
+  word-break: break-all;
 }
 
 .input:empty::before {
   content: attr(data-placeholder);
   color: var(--color-text-muted);
   opacity: 0.5;
+}
+
+.mobileInput {
+  display: inline-block;
+  min-width: 2px;
+  min-height: 1.2em;
+  padding-left: 1px;
 }
 
 /* ========================================
@@ -168,21 +168,15 @@
    Responsive Adjustments — Mobile
    ======================================== */
 @media (width <= 768px) {
-  .inputContainer {
-    gap: var(--spacing-xs);
-  }
-
   .prompt {
     font-size: var(--font-size-sm);
   }
 
   .input {
-    /* Prevent iOS zoom on input focus (requires >= 16px) */
     font-size: max(var(--font-size-sm), 16px);
   }
 
   .input:empty::before {
-    /* Placeholder inherits font-size from .input (16px for iOS fix) — reset to match terminal */
     font-size: var(--font-size-sm);
   }
 
@@ -230,32 +224,14 @@
    ======================================== */
 @media (width <= 480px) {
   .inputContainer {
-    /* flex-wrap: wrap; Removed to prevent line break */
-    /* gap: 2px; */
     padding-top: var(--spacing-xs);
   }
 
   .prompt {
-    /* width: 100%; Removed to allow inline prompt */
     font-size: var(--font-size-xs);
   }
 
-  /* Hide user@host on small phones — keep just path + symbol 
-     REMOVED: User wants full prompt visible
-  .promptUser,
-  .promptAt,
-  .promptHost,
-  .promptSeparator {
-    display: none;
-  }
-  */
-
-  .inputWrapper {
-    /* width: 100%; Removed */
-  }
-
   .input {
-    /* Must keep 16px floor — overriding the <=768px rule here would drop below 16px and trigger iOS zoom */
     font-size: max(var(--font-size-xs), 16px);
   }
 

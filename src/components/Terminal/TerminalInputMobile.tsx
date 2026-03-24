@@ -41,7 +41,8 @@ export const TerminalInputMobile: React.FC = () => {
   }, [input]);
 
   const handleInput = (e: React.FormEvent<HTMLSpanElement>) => {
-    const text = (e.target as HTMLElement).innerText;
+    const text = e.currentTarget.innerText.replace(/[\r\n]+/g, ' ');
+
     setInput(text);
     resetHistoryIndex();
     resetCompletion();
@@ -205,16 +206,18 @@ export const TerminalInputMobile: React.FC = () => {
       <span className={styles.inputWrapper}>
         <span
           ref={inputRef}
-          className={styles.input}
+          className={`${styles.input} ${styles.mobileInput}`}
           contentEditable
           onInput={handleInput}
           onKeyDown={handleKeyDown}
-          autoFocus={true}
+          autoFocus
           spellCheck={false}
           autoCorrect="off"
           autoCapitalize="off"
           role="textbox"
-          style={{ display: 'inline-block', outline: 'none', minHeight: '1.2em', minWidth: '2px', paddingLeft: '1px' }}
+          aria-label="Terminal input"
+          aria-multiline="false"
+          suppressContentEditableWarning
           data-placeholder={isLoading ? 'Processing...' : "Type 'help' for available commands..."}
         />
       </span>

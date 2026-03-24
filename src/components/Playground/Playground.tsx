@@ -11,6 +11,8 @@ import type {
 import { getDefaultWorkspace } from '../../utils/playgroundTemplates';
 import { loadPlaygroundWorkspace, savePlaygroundWorkspace } from '../../utils/playgroundStorage';
 import { usePlaygroundRunner } from '../../hooks/usePlaygroundRunner';
+import { useMediaQuery } from '../../hooks/useMediaQuery';
+import { BP } from '../../config/breakpoints';
 import '../../utils/monacoSetup';
 
 import styles from './Playground.module.css';
@@ -79,21 +81,13 @@ const TabItem: React.FC<TabItemProps> = ({ file, isActive, onSelect }) => (
 // ── Main Component ───────────────────────────────────────────────────────────
 
 export const Playground: React.FC = () => {
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useMediaQuery(`(max-width: ${BP.mobile}px)`);
   const [workspace, setWorkspace] = useState<PlaygroundWorkspace>(() => {
     const stored = loadPlaygroundWorkspace();
     return stored ?? getDefaultWorkspace('javascript');
   });
 
   const { outputs, isRunning, runCode, stopRun, clearOutputs } = usePlaygroundRunner();
-
-  // Detect mobile
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   const handleEditorMount = useCallback((editor: MonacoEditor.IStandaloneCodeEditor) => {
     editor.focus();
