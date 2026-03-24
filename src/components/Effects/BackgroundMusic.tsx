@@ -30,7 +30,11 @@ export const BackgroundMusic: FC = () => {
       await audio.play();
     } catch (error) {
       // Log non-autoplay errors for debugging
-      if (error instanceof Error && error.name !== 'NotAllowedError') {
+      if (
+        error instanceof Error &&
+        error.name !== 'NotAllowedError' &&
+        error.name !== 'AbortError'
+      ) {
         console.error('Error playing audio:', error);
       }
     }

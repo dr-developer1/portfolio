@@ -160,6 +160,7 @@
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
+  gap: var(--spacing-xs) var(--spacing-sm);
 }
 
 .flexRowGap {
@@ -227,12 +228,6 @@
   font-weight: bold;
 }
 
-.skillTitle {
-  color: var(--color-text-muted);
-  display: inline-block;
-  width: 120px;
-}
-
 .margin025 {
   margin: 0.25rem 0;
 }
@@ -246,4 +241,93 @@
   display: inline-block;
   width: 2rem;
   text-align: right;
+}
+
+/* ========================================
+   Responsive — Mobile
+   ======================================== */
+@media (width <= 768px) {
+  .commandGrid {
+    gap: 0.2rem 1rem;
+    margin-left: 0.25rem;
+  }
+
+  .infoGrid {
+    grid-template-columns: 80px 1fr;
+    gap: 0.35rem;
+  }
+
+  .flexRowGap {
+    gap: 1rem;
+  }
+
+  .flexColumn {
+    gap: 0.75rem;
+  }
+
+  .flexColumnLarge {
+    gap: 1rem;
+  }
+
+  .headerSection {
+    margin-bottom: 0.5rem;
+  }
+
+  .historyIndex {
+    margin-right: 0.5rem;
+    width: 1.5rem;
+  }
+}
+
+/* ========================================
+   Responsive — Small Phone
+   ======================================== */
+@media (width <= 480px) {
+  .commandGrid {
+    grid-template-columns: 1fr;
+    gap: 0.15rem;
+    margin-left: 0;
+  }
+
+  .infoGrid {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+
+  .flexRowGap {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .marginLeftSmall {
+    margin-left: 0.25rem;
+  }
+
+  .marginLeftMedium {
+    margin-left: 0.5rem;
+  }
+
+  .marginLeftLarge {
+    margin-left: 0.75rem;
+  }
+
+  .paddingLeftSmall {
+    padding-left: 0.25rem;
+  }
+
+  .paddingLeftMedium {
+    padding-left: 0.5rem;
+  }
+
+  .paddingLeftLarge {
+    padding-left: 0.75rem;
+  }
+
+  .fontSize11 {
+    font-size: 1em;
+  }
+
+  .fontSize105 {
+    font-size: 1em;
+  }
 }

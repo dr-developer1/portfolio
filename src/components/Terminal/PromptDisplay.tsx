@@ -7,7 +7,7 @@
 
 import React, { type ReactNode } from 'react';
 
-import styles from '../../styles/TerminalOutput.module.css';
+import styles from '../../styles/outputUtilities.module.css';
 
 export interface PromptDisplayProps {
   /** Username to display */

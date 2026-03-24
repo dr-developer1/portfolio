@@ -85,6 +85,7 @@
   gap: var(--spacing-sm);
   font-size: var(--font-size-lg);
   margin-top: var(--spacing-lg);
+  position: relative;
 }
 
 .inputPrompt {
@@ -104,6 +105,36 @@
   background-color: var(--color-accent-green);
   animation: blink 1s step-end infinite;
   vertical-align: middle;
+}
+
+/* Hidden input for mobile virtual keyboard support */
+.hiddenInput {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  padding: 0;
+  border: none;
+  font-size: 16px;
+  pointer-events: none;
+  caret-color: transparent;
+  color: transparent;
+}
+
+/* Desktop/Mobile visibility toggles */
+.desktopOnly {
+  display: inline;
+}
+
+.mobileOnly {
+  display: none;
+}
+
+/* Tap-to-start button — hidden on desktop, visible on mobile */
+.tapToStart {
+  display: none;
 }
 
 @keyframes blink {
@@ -217,6 +248,8 @@
    Boot Mode Variants
    ============================================================================ */
 
+/* stylelint-disable no-descending-specificity */
+
 /* Admin mode - red accent */
 .bootScreen[data-mode='admin'] .logo {
   color: var(--color-error);
@@ -226,12 +259,30 @@
   background-color: var(--color-error);
 }
 
+.bootScreen[data-mode='admin'] .tapToStart {
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+.bootScreen[data-mode='admin'] .tapToStart:active {
+  background-color: var(--color-error);
+}
+
 /* Dev mode - purple accent */
 .bootScreen[data-mode='dev'] .logo {
   color: var(--color-accent-purple);
 }
 
 .bootScreen[data-mode='dev'] .cursor {
+  background-color: var(--color-accent-purple);
+}
+
+.bootScreen[data-mode='dev'] .tapToStart {
+  border-color: var(--color-accent-purple);
+  color: var(--color-accent-purple);
+}
+
+.bootScreen[data-mode='dev'] .tapToStart:active {
   background-color: var(--color-accent-purple);
 }
 
@@ -246,9 +297,21 @@
   box-shadow: 0 0 10px var(--color-accent-green);
 }
 
+.bootScreen[data-mode='matrix'] .tapToStart {
+  border-color: var(--color-accent-green);
+  color: var(--color-accent-green);
+  text-shadow: 0 0 8px var(--color-accent-green);
+}
+
+.bootScreen[data-mode='matrix'] .tapToStart:active {
+  box-shadow: 0 0 16px var(--color-accent-green);
+}
+
 .bootScreen[data-mode='matrix'] .messageText {
   color: var(--color-accent-green);
 }
+
+/* stylelint-enable no-descending-specificity */
 
 /* ============================================================================
    Reduced Motion
@@ -270,13 +333,15 @@
    Responsive
    ============================================================================ */
 
-@media (width <= 600px) {
+@media (width <= 768px) {
   .bootScreen {
-    padding: var(--spacing-md);
+    padding: var(--spacing-lg);
+    padding-top: calc(var(--spacing-lg) + var(--safe-area-top));
+    padding-bottom: calc(var(--spacing-lg) + var(--safe-area-bottom));
   }
 
   .bootContainer {
-    min-height: 300px;
+    min-height: 350px;
   }
 
   .logo {
@@ -287,7 +352,130 @@
     font-size: var(--font-size-base);
   }
 
+  .promptHint {
+    font-size: var(--font-size-xs);
+  }
+
+  .inputLine {
+    font-size: var(--font-size-base);
+  }
+
+  .desktopOnly {
+    display: none;
+  }
+
+  .mobileOnly {
+    display: inline;
+  }
+
+  .tapToStart {
+    display: block;
+    margin: var(--spacing-md) auto;
+    padding: var(--spacing-md) var(--spacing-xl);
+    background: transparent;
+    border: 1px solid var(--color-accent-green);
+    color: var(--color-accent-green);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-base);
+    cursor: pointer;
+    border-radius: 4px;
+    transition:
+      background-color 0.2s,
+      box-shadow 0.2s;
+    min-height: var(--touch-target-min, 44px);
+    min-width: 200px;
+  }
+
+  .tapToStart:active {
+    background-color: var(--color-accent-green);
+    color: var(--color-bg-primary);
+    box-shadow: 0 0 12px var(--color-accent-green);
+  }
+
+  .promptContainer {
+    cursor: pointer;
+  }
+
   .message {
     font-size: var(--font-size-sm);
+  }
+}
+
+@media (width <= 480px) {
+  .bootScreen {
+    padding: var(--spacing-md);
+    padding-top: calc(var(--spacing-md) + var(--safe-area-top));
+    padding-bottom: calc(var(--spacing-md) + var(--safe-area-bottom));
+  }
+
+  .bootContainer {
+    min-height: 250px;
+  }
+
+  .logo {
+    font-size: var(--font-size-base);
+    letter-spacing: 0.03em;
+  }
+
+  .version {
+    font-size: var(--font-size-xs);
+  }
+
+  .promptText {
+    font-size: var(--font-size-sm);
+  }
+
+  .inputLine {
+    font-size: var(--font-size-sm);
+    margin-top: var(--spacing-md);
+  }
+
+  .cursor {
+    width: 8px;
+    height: 1.1em;
+  }
+
+  .message {
+    font-size: var(--font-size-xs);
+    line-height: 1.5;
+  }
+
+  .header {
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .tapToStart {
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    min-width: 160px;
+  }
+}
+
+/* Landscape phone */
+@media (width <= 768px) and (orientation: landscape) {
+  .bootScreen {
+    padding: var(--spacing-sm) var(--spacing-lg);
+  }
+
+  .header {
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .bootContainer {
+    min-height: 180px;
+  }
+
+  .promptText {
+    font-size: var(--font-size-sm);
+  }
+
+  .tapToStart {
+    margin: var(--spacing-xs) auto;
+    padding: var(--spacing-xs) var(--spacing-lg);
+  }
+
+  .inputLine {
+    font-size: var(--font-size-sm);
+    margin-top: var(--spacing-sm);
   }
 }

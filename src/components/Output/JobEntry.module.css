@@ -59,3 +59,50 @@
 .techItems {
   color: var(--color-accent-purple);
 }
+
+/* ========================================
+   Responsive — Mobile
+   ======================================== */
+@media (width <= 768px) {
+  .role {
+    font-size: 1em;
+  }
+
+  .date {
+    font-size: 0.8em;
+  }
+
+  .location {
+    font-size: 0.8em;
+  }
+
+  .descriptionList {
+    padding-left: 16px;
+  }
+
+  .techSection {
+    font-size: 0.8em;
+  }
+}
+
+/* ========================================
+   Responsive — Small Phone
+   ======================================== */
+@media (width <= 480px) {
+  .header {
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .role {
+    font-size: 0.95em;
+  }
+
+  .descriptionList {
+    padding-left: 12px;
+  }
+
+  .descriptionItem {
+    font-size: 0.9em;
+  }
+}

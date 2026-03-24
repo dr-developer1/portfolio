@@ -1,25 +1,71 @@
 /* ========================================
-   Input Container
+   Desktop Specific Styles
    ======================================== */
+.desktopContainer {
+  display: inline;
+  position: relative;
+  cursor: text;
+}
+
+.hiddenInput {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  border: 0;
+  white-space: nowrap;
+
+  /* iOS: font-size >= 16px prevents viewport zoom on focus */
+  font-size: 16px;
+}
+
+/* Force wrapping alignment */
+.inputDisplay {
+  display: inline;
+  overflow-wrap: break-word;
+  word-break: break-all;
+  color: var(--color-command);
+  line-height: var(--line-height-normal);
+}
+
+.cursorBlock {
+  display: inline-block;
+  background-color: var(--color-accent-green);
+  color: var(--color-background);
+  min-width: 0.6em;
+  white-space: pre;
+  animation: cursor-blink 1s step-end infinite;
+  vertical-align: text-bottom;
+}
+
+.cursorBlock.active {
+  animation: none;
+  opacity: 1;
+}
+
 .inputContainer {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
+  display: block;
   width: 100%;
   padding-top: var(--spacing-sm);
   position: relative;
   z-index: var(--z-base);
+  line-height: var(--line-height-normal);
 }
 
 /* ========================================
    Prompt Styling
    ======================================== */
 .prompt {
-  display: flex;
-  align-items: center;
-  white-space: nowrap;
+  display: inline;
+  white-space: pre-wrap;
   font-size: var(--font-size-base);
   font-weight: 500;
+  margin-right: var(--spacing-sm);
 }
 
 .promptUser {
@@ -53,15 +99,10 @@
    Input Field
    ======================================== */
 .inputWrapper {
-  flex: 1;
-  position: relative;
-  display: flex;
-  align-items: center;
-  min-width: 0;
+  display: inline;
 }
 
 .input {
-  width: 100%;
   background: transparent;
   border: none;
   outline: none;
@@ -70,13 +111,23 @@
   font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
   letter-spacing: var(--letter-spacing);
-  caret-color: transparent;
+  caret-color: var(--color-accent-green);
   padding: 0;
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 
-.input::placeholder {
+.input:empty::before {
+  content: attr(data-placeholder);
   color: var(--color-text-muted);
   opacity: 0.5;
+}
+
+.mobileInput {
+  display: inline-block;
+  min-width: 2px;
+  min-height: 1.2em;
+  padding-left: 1px;
 }
 
 /* ========================================
@@ -107,29 +158,93 @@
 }
 
 /* ========================================
-   Responsive Adjustments
+   Mobile Keyboard Hint
+   ======================================== */
+.mobileHint {
+  display: none;
+}
+
+/* ========================================
+   Responsive Adjustments — Mobile
    ======================================== */
 @media (width <= 768px) {
-  .inputContainer {
-    flex-wrap: wrap;
-    gap: var(--spacing-xs);
-  }
-
   .prompt {
     font-size: var(--font-size-sm);
   }
 
   .input {
+    font-size: max(var(--font-size-sm), 16px);
+  }
+
+  .input:empty::before {
     font-size: var(--font-size-sm);
+  }
+
+  .cursor {
+    width: 0.5em;
+    height: 1.1em;
+  }
+
+  .mobileHint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    margin-top: var(--spacing-sm);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    background: rgb(255 255 255 / 3%);
+    border: 1px dashed var(--color-text-muted);
+    border-radius: 4px;
+    animation: hint-pulse 2s ease-in-out infinite;
+    cursor: pointer;
+    min-height: var(--touch-target-min, 44px);
+  }
+
+  .mobileHintIcon {
+    font-size: var(--font-size-base);
+  }
+
+  @keyframes hint-pulse {
+    0%,
+    100% {
+      opacity: 0.6;
+    }
+
+    50% {
+      opacity: 1;
+    }
   }
 }
 
+/* ========================================
+   Responsive Adjustments — Small Phone
+   ======================================== */
 @media (width <= 480px) {
-  .prompt {
-    width: 100%;
+  .inputContainer {
+    padding-top: var(--spacing-xs);
   }
 
-  .inputWrapper {
-    width: 100%;
+  .prompt {
+    font-size: var(--font-size-xs);
+  }
+
+  .input {
+    font-size: max(var(--font-size-xs), 16px);
+  }
+
+  .input:empty::before {
+    font-size: var(--font-size-xs);
+  }
+}
+
+/* ========================================
+   Landscape Phone
+   ======================================== */
+@media (width <= 768px) and (orientation: landscape) {
+  .inputContainer {
+    padding-top: 2px;
   }
 }

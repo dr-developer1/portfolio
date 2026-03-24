@@ -9,6 +9,8 @@
   background: rgb(0 0 0 / 35%);
   padding: 0.75rem;
   backdrop-filter: blur(6px);
+  height: 100%;
+
 }
 
 .toolbar {
@@ -66,13 +68,16 @@
   border: 1px solid rgb(255 255 255 / 15%);
   border-radius: 6px;
   padding: 0.35rem 0.5rem;
+
+  /* iOS: explicit font-size ensures max(1rem,16px) override is reachable on mobile */
+  font-size: 0.85rem;
 }
 
 .main {
   display: grid;
   grid-template-columns: 220px 1fr;
   gap: 0.75rem;
-  min-height: 420px;
+  min-height: 0;
 }
 
 .sidebar {
@@ -141,7 +146,7 @@
 
 .editorWrapper {
   flex: 1;
-  min-height: 320px;
+  min-height: max(200px, 20vh);
   border-radius: 8px;
   overflow: hidden;
   border: 1px solid rgb(255 255 255 / 8%);
@@ -152,7 +157,7 @@
   border-radius: 8px;
   background: rgb(0 0 0 / 45%);
   padding: 0.5rem 0.75rem;
-  height: 220px;
+  height: clamp(80px, 20vh, 220px);
   overflow-y: auto;
   font-size: 0.85rem;
 }
@@ -196,4 +201,162 @@
   padding: 0.15rem 0.5rem;
   border-radius: 999px;
   background: rgb(255 255 255 / 10%);
+}
+
+/* ========================================
+   Responsive — Tablet
+   ======================================== */
+@media (width <= 1024px) {
+  .main {
+    grid-template-columns: 180px 1fr;
+  }
+
+  .editorWrapper {
+    min-height: max(120px, 18vh);
+  }
+
+  .console {
+    height: clamp(60px, 18vh, 180px);
+  }
+}
+
+/* ========================================
+   Responsive — Mobile
+   ======================================== */
+@media (width <= 768px) {
+  .container {
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .toolbarGroup {
+    justify-content: center;
+  }
+
+  .button {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
+    flex: 1;
+    text-align: center;
+  }
+
+  .select {
+    flex: 1;
+  }
+
+  /* Stack sidebar above editor on mobile */
+  .main {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    min-height: 0;
+    gap: 0.5rem;
+  }
+
+  .sidebar {
+    /* Horizontal file list on mobile */
+    padding: 0.35rem 0.5rem;
+  }
+
+  .sidebarTitle {
+    display: none;
+  }
+
+  .fileList {
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 0.35rem;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .fileItem {
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .editorPane {
+    min-height: 0;
+  }
+
+  .tabs {
+    display: none; /* Files shown in sidebar already */
+  }
+
+  .editorWrapper {
+    min-height: 200px;
+    flex: 1;
+  }
+
+  .console {
+    height: 150px;
+    font-size: 0.8rem;
+  }
+
+  .statusBar {
+    font-size: 0.7rem;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+}
+
+/* ========================================
+   Responsive — Small Phone
+   ======================================== */
+@media (width <= 480px) {
+  .container {
+    gap: 0.35rem;
+    padding: 0.35rem;
+    border: none;
+    border-radius: 0;
+  }
+
+  .button {
+    padding: 0.35rem 0.5rem;
+    font-size: 0.75rem;
+    border-radius: 4px;
+  }
+
+  .editorWrapper {
+    min-height: 160px;
+    border-radius: 4px;
+  }
+
+  .console {
+    height: 120px;
+    padding: 0.35rem 0.5rem;
+    font-size: 0.75rem;
+    border-radius: 4px;
+  }
+
+  .statusBar {
+    font-size: 0.65rem;
+  }
+
+  .sidebar {
+    border-radius: 4px;
+  }
+}
+
+/* ========================================
+   Landscape Phone
+   ======================================== */
+@media (width <= 768px) and (orientation: landscape) {
+  .main {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .editorWrapper {
+    min-height: 120px;
+  }
+
+  .console {
+    height: 80px;
+  }
 }

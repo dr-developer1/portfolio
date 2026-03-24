@@ -11,9 +11,12 @@ import type {
 import { getDefaultWorkspace } from '../../utils/playgroundTemplates';
 import { loadPlaygroundWorkspace, savePlaygroundWorkspace } from '../../utils/playgroundStorage';
 import { usePlaygroundRunner } from '../../hooks/usePlaygroundRunner';
+import { useMediaQuery } from '../../hooks/useMediaQuery';
+import { BP } from '../../config/breakpoints';
 import '../../utils/monacoSetup';
 
 import styles from './Playground.module.css';
+import { PlaygroundMobile } from './PlaygroundMobile';
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -78,6 +81,7 @@ const TabItem: React.FC<TabItemProps> = ({ file, isActive, onSelect }) => (
 // ── Main Component ───────────────────────────────────────────────────────────
 
 export const Playground: React.FC = () => {
+  const isMobile = useMediaQuery(`(max-width: ${BP.mobile}px)`);
   const [workspace, setWorkspace] = useState<PlaygroundWorkspace>(() => {
     const stored = loadPlaygroundWorkspace();
     return stored ?? getDefaultWorkspace('javascript');
@@ -137,6 +141,23 @@ export const Playground: React.FC = () => {
     setWorkspace(getDefaultWorkspace(workspace.activeLanguage));
     clearOutputs();
   }, [workspace.activeLanguage, clearOutputs]);
+
+  if (isMobile) {
+    return (
+      <PlaygroundMobile
+        workspace={workspace}
+        onFileSelect={handleFileSelect}
+        onCodeChange={updateActiveFile}
+        onLanguageChange={handleLanguageChange}
+        onRun={handleRun}
+        onStop={() => stopRun('stopped')}
+        onClear={clearOutputs}
+        onReset={handleReset}
+        isRunning={isRunning}
+        outputs={outputs}
+      />
+    );
+  }
 
   return (
     <div className={styles.container}>

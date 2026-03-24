@@ -8,6 +8,7 @@
 import { useLayoutEffect, useRef } from 'react';
 
 import { UI_CONSTANTS } from '../config';
+import { BP } from '../config/breakpoints';
 
 // Default color (dark theme's --color-prompt-host) used as fallback
 const DEFAULT_RAIN_COLOR = '#58a6ff';
@@ -67,7 +68,9 @@ export function useMatrixAnimation(enabled: boolean, theme: string): UseMatrixAn
     // Matrix characters
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()';
     const charArray = chars.split('');
-    const fontSize = UI_CONSTANTS.MATRIX_FONT_SIZE;
+    // Use smaller font on mobile for better density, standard size on desktop
+    const isMobile = width <= BP.mobile;
+    const fontSize = isMobile ? 14 : UI_CONSTANTS.MATRIX_FONT_SIZE;
     const columns = Math.ceil(width / fontSize);
 
     // Drops array - one per column
@@ -79,18 +82,22 @@ export function useMatrixAnimation(enabled: boolean, theme: string): UseMatrixAn
     // Use undefined to explicitly indicate no frame has been requested yet
     let animationId: number | undefined;
 
-    // Resize handler
+    // Resize handler — debounced to avoid thrashing canvas context on rapid resize
+    let resizeTimer: ReturnType<typeof setTimeout> | undefined;
     const handleResize = () => {
-      width = window.innerWidth;
-      height = window.innerHeight;
-      canvas.width = width;
-      canvas.height = height;
-      const newColumns = Math.ceil(width / fontSize);
-      if (newColumns > drops.length) {
-        for (let i = drops.length; i < newColumns; i++) {
-          drops.push(Math.floor(Math.random() * -100));
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+        const newColumns = Math.ceil(width / fontSize);
+        if (newColumns > drops.length) {
+          for (let i = drops.length; i < newColumns; i++) {
+            drops.push(Math.floor(Math.random() * -100));
+          }
         }
-      }
+      }, 100);
     };
 
     window.addEventListener('resize', handleResize);
@@ -125,6 +132,7 @@ export function useMatrixAnimation(enabled: boolean, theme: string): UseMatrixAn
     });
 
     return () => {
+      clearTimeout(resizeTimer);
       if (startFrameId !== undefined) cancelAnimationFrame(startFrameId);
       if (animationId !== undefined) cancelAnimationFrame(animationId);
       window.removeEventListener('resize', handleResize);

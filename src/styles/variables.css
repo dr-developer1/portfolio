@@ -93,4 +93,53 @@
   --z-overlay: 10;
   --z-modal: 100;
   --z-tooltip: 1000;
+
+  /* Safe area insets (for notched devices) */
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+
+  /* Touch target minimum (WCAG 2.5.8) */
+  --touch-target-min: 44px;
+}
+
+/* ========================================
+   Responsive Overrides — Tablet
+   ======================================== */
+@media (width <= 1024px) {
+  :root {
+    --spacing-lg: 1.25rem;
+    --spacing-xl: 1.5rem;
+    --spacing-2xl: 2rem;
+  }
+}
+
+/* ========================================
+   Responsive Overrides — Mobile
+   ======================================== */
+@media (width <= 768px) {
+  :root {
+    --font-size-base: 0.875rem;
+    --font-size-lg: 1rem;
+    --font-size-xl: 1.125rem;
+    --spacing-lg: 1rem;
+    --spacing-xl: 1.25rem;
+    --spacing-2xl: 1.5rem;
+  }
+}
+
+/* ========================================
+   Responsive Overrides — Small Phone
+   ======================================== */
+@media (width <= 480px) {
+  :root {
+    --font-size-base: 0.8125rem;
+    --font-size-sm: 0.8125rem;
+    --font-size-lg: 0.9375rem;
+    --font-size-xl: 1rem;
+    --spacing-md: 0.75rem;
+    --spacing-lg: 0.75rem;
+    --spacing-xl: 1rem;
+  }
 }

@@ -70,6 +70,48 @@ export function useSecretCode(): UseSecretCodeReturn {
   }, []);
 
   /**
+   * Reset the inactivity timeout and start a new one
+   */
+  const resetBufferTimeout = useCallback(() => {
+    if (timeoutRef.current !== undefined) {
+      clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = setTimeout(() => {
+      bufferRef.current = '';
+      setTypedText('');
+      setDetectedMode(null);
+    }, BUFFER_TIMEOUT);
+  }, []);
+
+  /**
+   * Feed a complete input value from an input element.
+   * Used on mobile where virtual keyboards don't reliably fire keydown events.
+   * Instead, we sync the buffer from the input's onChange value.
+   */
+  const feedInput = useCallback(
+    (value: string) => {
+      // Bound the value to max buffer length
+      const bounded = value.slice(-UI_CONSTANTS.SECRET_CODE_BUFFER_LENGTH);
+      bufferRef.current = bounded;
+      setTypedText(bounded);
+
+      // Check for secret codes
+      const mode = checkForSecretCode(bounded);
+      if (mode !== null) {
+        setDetectedMode(mode);
+      } else if (detectedMode !== null) {
+        setDetectedMode(null);
+      }
+
+      // Reset inactivity timeout
+      if (bounded.length > 0) {
+        resetBufferTimeout();
+      }
+    },
+    [checkForSecretCode, detectedMode, resetBufferTimeout]
+  );
+
+  /**
    * Handle keydown events to detect secret codes
    * Filters for printable ASCII characters without modifier keys
    */
@@ -93,18 +135,22 @@ export function useSecretCode(): UseSecretCodeReturn {
 
         // Set timeout to reset buffer after inactivity
         if (bufferRef.current.length > 0) {
-          timeoutRef.current = setTimeout(() => {
-            bufferRef.current = '';
-            setTypedText('');
-            setDetectedMode(null);
-          }, BUFFER_TIMEOUT);
+          resetBufferTimeout();
         }
 
         return;
       }
 
-      // Only track printable ASCII characters without modifiers
-      // Using ASCII range \x20-\x7E (space through tilde) to exclude dead keys and composed characters
+      // Ignore events from input/textarea elements to avoid double-processing (handled by onChange)
+      // This is a safety check in case stopPropagation is missed
+      if (
+        event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLTextAreaElement ||
+        event.target instanceof HTMLSelectElement
+      ) {
+        return;
+      }
+
       const isPrintableASCII = /^[\x20-\x7E]$/.test(event.key);
       if (!isPrintableASCII || event.ctrlKey || event.metaKey || event.altKey) {
         return;
@@ -129,13 +175,9 @@ export function useSecretCode(): UseSecretCodeReturn {
       }
 
       // Set timeout to reset buffer after inactivity
-      timeoutRef.current = setTimeout(() => {
-        bufferRef.current = ''; // Clear the actual buffer ref
-        setTypedText(''); // Clear the visual display
-        setDetectedMode(null); // Clear the detected mode state
-      }, BUFFER_TIMEOUT);
+      resetBufferTimeout();
     },
-    [checkForSecretCode, detectedMode]
+    [checkForSecretCode, detectedMode, resetBufferTimeout]
   );
 
   // Set up and clean up event listener
@@ -150,5 +192,5 @@ export function useSecretCode(): UseSecretCodeReturn {
     };
   }, [handleKeyDown]);
 
-  return { detectedMode, typedText, reset };
+  return { detectedMode, typedText, reset, feedInput };
 }

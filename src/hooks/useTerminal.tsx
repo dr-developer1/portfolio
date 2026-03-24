@@ -18,7 +18,7 @@ import { MATRIX_STORAGE_KEY, MUSIC_STORAGE_KEY } from './storageKeys';
 import { getStoredBoolean, setStoredBoolean } from '../utils/storageHelpers';
 import { renderDirectoryTree } from '../utils/treeRenderer';
 import { PromptDisplay } from '../components/Terminal/PromptDisplay';
-import styles from '../styles/TerminalOutput.module.css';
+import styles from '../styles/outputUtilities.module.css';
 
 const INITIAL_STATE: TerminalState = {
   history: [],
@@ -32,6 +32,7 @@ const INITIAL_STATE: TerminalState = {
   hasUserInteracted: false,
   bootMode: 'normal',
   isPlaygroundOpen: false,
+  input: '',
 };
 
 /**
@@ -523,10 +524,21 @@ export function useTerminal(): UseTerminalReturn {
     }));
   }, []);
 
+  /**
+   * Set the current input value
+   */
+  const setInput: TerminalActions['setInput'] = useCallback((value: string) => {
+    setState((prev) => ({
+      ...prev,
+      input: value,
+    }));
+  }, []);
+
   return {
     ...state,
     addOutput,
     executeCommand,
+    setInput,
     clearTerminal,
     navigateHistory,
     resetHistoryIndex,

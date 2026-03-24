@@ -3,11 +3,13 @@
  */
 
 .container {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--spacing-sm);
+  align-items: baseline;
   margin-bottom: 0.5rem;
 }
 
 .title {
   color: var(--color-text-muted);
-  display: inline-block;
-  width: 120px;
 }
