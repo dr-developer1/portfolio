@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { CommandShortcutList } from '../Output';
 import { useTerminalContext } from '../../hooks/TerminalContext';
 import styles from './TerminalOutput.module.css';
 
@@ -23,7 +24,7 @@ const ASCII_BANNER = String.raw`
 `;
 
 export const TerminalOutput: React.FC = () => {
-  const { history } = useTerminalContext();
+  const { history, visitorMode } = useTerminalContext();
   const bottomRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when new content is added
@@ -39,6 +40,19 @@ export const TerminalOutput: React.FC = () => {
           Tapez &apos;<span className={styles.highlight}>help</span>&apos; pour explorer mes projets
           et compétences
         </span>
+      </div>
+      <div className={styles.quickActions}>
+        <CommandShortcutList
+          title={visitorMode === 'recruiter' ? 'Recruiter quick start' : 'Quick start'}
+          compact
+          items={[
+            { label: 'Help', command: 'help' },
+            { label: 'Highlights', command: 'highlights' },
+            { label: 'Tour', command: 'tour' },
+            { label: 'Projects', command: 'top-projects' },
+            { label: 'Contact', command: 'contact' },
+          ]}
+        />
       </div>
       <div className={styles.line}>&nbsp;</div>
 

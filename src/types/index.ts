@@ -1,6 +1,42 @@
 import type { ReactNode } from 'react';
 
 import type { BootMode } from './boot';
+import type { PlaygroundPresetId } from './playground';
+
+export type CommandCategory =
+  | 'core'
+  | 'career'
+  | 'projects'
+  | 'playground'
+  | 'fun'
+  | 'system';
+
+export type VisitorMode = 'standard' | 'recruiter' | 'engineer' | 'founder' | 'client';
+
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+}
+
+export interface VisitorProgress {
+  visits: number;
+  totalCommands: number;
+  lastCommandAt: number | null;
+  discoveredCommands: string[];
+  hiddenCommands: string[];
+  achievements: string[];
+  unlockedVault: boolean;
+  adminUnlocked: boolean;
+  activePath: VisitorMode;
+}
+
+export interface GuidedPath {
+  id: VisitorMode;
+  label: string;
+  summary: string;
+  commands: string[];
+}
 
 /**
  * Represents the type of a terminal output line
@@ -34,8 +70,11 @@ export interface CommandContext {
   currentDirectory: string;
   user: string;
   symbol: string;
-  openPlayground?: () => void;
+  visitorMode: VisitorMode;
+  openPlayground?: (preset?: PlaygroundPresetId) => void;
   closePlayground?: () => void;
+  setVisitorMode?: (mode: VisitorMode) => void;
+  setBootMode?: (mode: BootMode) => void;
 }
 
 /**
@@ -45,7 +84,10 @@ export interface Command {
   name: string;
   description: string;
   usage: string;
+  category: CommandCategory;
   aliases?: string[];
+  hidden?: boolean;
+  featured?: boolean;
   execute: (
     args: string[],
     addOutput: OutputFunction,
@@ -85,8 +127,12 @@ export interface TerminalState {
   bootMode: BootMode;
   /** Whether the playground overlay is open */
   isPlaygroundOpen: boolean;
+  /** Active visitor mode for guided flows */
+  visitorMode: VisitorMode;
   /** Current input value in the terminal */
   input: string;
+  /** Requested playground preset */
+  playgroundPreset: PlaygroundPresetId;
 }
 
 /**
@@ -118,9 +164,11 @@ export interface TerminalActions {
   /** Set the boot mode (determines prompt style and permissions) */
   setBootMode: (mode: BootMode) => void;
   /** Open the coding playground overlay */
-  openPlayground: () => void;
+  openPlayground: (preset?: PlaygroundPresetId) => void;
   /** Close the coding playground overlay */
   closePlayground: () => void;
+  /** Set the active guided visitor mode */
+  setVisitorMode: (mode: VisitorMode) => void;
 }
 
 /**

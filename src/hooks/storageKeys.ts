@@ -13,3 +13,6 @@ export const MUSIC_STORAGE_KEY = STORAGE_KEYS.music;
 
 /** Storage key for playground workspace persistence */
 export const PLAYGROUND_STORAGE_KEY = STORAGE_KEYS.playground;
+
+/** Storage key for visitor progression and stats */
+export const PROGRESS_STORAGE_KEY = STORAGE_KEYS.progress;

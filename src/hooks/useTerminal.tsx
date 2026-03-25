@@ -18,6 +18,12 @@ import { MATRIX_STORAGE_KEY, MUSIC_STORAGE_KEY } from './storageKeys';
 import { getStoredBoolean, setStoredBoolean } from '../utils/storageHelpers';
 import { renderDirectoryTree } from '../utils/treeRenderer';
 import { PromptDisplay } from '../components/Terminal/PromptDisplay';
+import {
+  getVisitorProgress,
+  recordCommandExecution,
+  setActivePath,
+  trackVisit,
+} from '../utils/progressService';
 import styles from '../styles/outputUtilities.module.css';
 
 const INITIAL_STATE: TerminalState = {
@@ -32,7 +38,9 @@ const INITIAL_STATE: TerminalState = {
   hasUserInteracted: false,
   bootMode: 'normal',
   isPlaygroundOpen: false,
+  visitorMode: getVisitorProgress().activePath,
   input: '',
+  playgroundPreset: 'default',
 };
 
 /**
@@ -55,6 +63,7 @@ export function useTerminal(): UseTerminalReturn {
     if (isValidTheme(initialTheme)) {
       applyTheme(initialTheme);
     }
+    trackVisit();
   }, []); // Only on mount, updates handled eagerly by setters
 
   // Listen for theme and matrix change events from commands
@@ -124,10 +133,11 @@ export function useTerminal(): UseTerminalReturn {
   /**
    * Open the playground overlay
    */
-  const openPlayground: TerminalActions['openPlayground'] = useCallback(() => {
+  const openPlayground: TerminalActions['openPlayground'] = useCallback((preset = 'default') => {
     setState((prev) => ({
       ...prev,
       isPlaygroundOpen: true,
+      playgroundPreset: preset,
     }));
   }, []);
 
@@ -138,6 +148,27 @@ export function useTerminal(): UseTerminalReturn {
     setState((prev) => ({
       ...prev,
       isPlaygroundOpen: false,
+    }));
+  }, []);
+
+  /**
+   * Set the boot mode (determines prompt style and permissions)
+   */
+  const setBootMode: TerminalActions['setBootMode'] = useCallback((mode: BootMode) => {
+    setState((prev) => ({
+      ...prev,
+      bootMode: mode,
+    }));
+  }, []);
+
+  /**
+   * Set the active guided visitor mode
+   */
+  const setVisitorMode: TerminalActions['setVisitorMode'] = useCallback((mode) => {
+    setActivePath(mode);
+    setState((prev) => ({
+      ...prev,
+      visitorMode: mode,
     }));
   }, []);
 
@@ -183,11 +214,17 @@ export function useTerminal(): UseTerminalReturn {
         return;
       }
 
-      // Easter egg: non-admin users trying to use sudo
-      if (parsed.name === 'sudo' && state.bootMode !== 'admin') {
-        addOutput(<span className={styles.warning}>Nice try diddy</span>, 'warning');
-        return;
-      }
+      const trackInternalCommand = () => {
+        const { unlocked } = recordCommandExecution(parsed.name, false);
+        unlocked.forEach((achievement) => {
+          addOutput(
+            <span className={styles.success}>
+              Achievement unlocked: {achievement.title} ({achievement.description})
+            </span>,
+            'success'
+          );
+        });
+      };
 
       // Handle history command internally to access state
       if (parsed.name === 'history') {
@@ -199,6 +236,7 @@ export function useTerminal(): UseTerminalReturn {
         ));
 
         addOutput(<div>{historyOutput}</div>);
+        trackInternalCommand();
         return;
       }
 
@@ -207,6 +245,7 @@ export function useTerminal(): UseTerminalReturn {
         const { user } = getPromptConfig(state.bootMode);
         const absolutePath = resolvePath(state.currentDirectory, '.', user);
         addOutput(<span>{absolutePath}</span>);
+        trackInternalCommand();
         return;
       }
 
@@ -224,17 +263,20 @@ export function useTerminal(): UseTerminalReturn {
             </span>,
             'error'
           );
+          trackInternalCommand();
           return;
         }
 
         if (node.type === 'file') {
           addOutput(<span>{node.name}</span>);
+          trackInternalCommand();
           return;
         }
 
         // Directory - get children
         if (!node.children || node.children.size === 0) {
           // Empty directory
+          trackInternalCommand();
           return;
         }
 
@@ -258,6 +300,7 @@ export function useTerminal(): UseTerminalReturn {
             })}
           </div>
         );
+        trackInternalCommand();
         return;
       }
 
@@ -273,6 +316,7 @@ export function useTerminal(): UseTerminalReturn {
             <span className={styles.error}>cd: {targetArg}: No such file or directory</span>,
             'error'
           );
+          trackInternalCommand();
           return;
         }
 
@@ -281,10 +325,12 @@ export function useTerminal(): UseTerminalReturn {
             <span className={styles.error}>cd: {targetArg}: Not a directory</span>,
             'error'
           );
+          trackInternalCommand();
           return;
         }
 
         setState((prev) => ({ ...prev, currentDirectory: targetPath }));
+        trackInternalCommand();
         return;
       }
 
@@ -292,6 +338,7 @@ export function useTerminal(): UseTerminalReturn {
       if (parsed.name === 'cat') {
         if (!parsed.args[0]) {
           addOutput(<span className={styles.error}>Usage: cat [file]</span>, 'error');
+          trackInternalCommand();
           return;
         }
 
@@ -304,6 +351,7 @@ export function useTerminal(): UseTerminalReturn {
             <span className={styles.error}>cat: {parsed.args[0]}: No such file or directory</span>,
             'error'
           );
+          trackInternalCommand();
           return;
         }
 
@@ -312,10 +360,12 @@ export function useTerminal(): UseTerminalReturn {
             <span className={styles.error}>cat: {parsed.args[0]}: Is a directory</span>,
             'error'
           );
+          trackInternalCommand();
           return;
         }
 
         addOutput(<div className={styles.textPreWrap}>{node.content}</div>);
+        trackInternalCommand();
         return;
       }
 
@@ -330,6 +380,7 @@ export function useTerminal(): UseTerminalReturn {
             <span className={styles.error}>tree: {parsed.args[0] || '.'}: Not a directory</span>,
             'error'
           );
+          trackInternalCommand();
           return;
         }
 
@@ -349,6 +400,7 @@ export function useTerminal(): UseTerminalReturn {
             )}
           </div>
         );
+        trackInternalCommand();
         return;
       }
 
@@ -378,10 +430,23 @@ export function useTerminal(): UseTerminalReturn {
           currentDirectory: state.currentDirectory,
           user,
           symbol,
+          visitorMode: state.visitorMode,
           openPlayground,
           closePlayground,
+          setVisitorMode,
+          setBootMode,
         };
         await command.execute(parsed.args, addOutput, context);
+
+        const { unlocked } = recordCommandExecution(command.name, Boolean(command.hidden));
+        unlocked.forEach((achievement) => {
+          addOutput(
+            <span className={styles.success}>
+              Achievement unlocked: {achievement.title} ({achievement.description})
+            </span>,
+            'success'
+          );
+        });
       } catch (error) {
         addOutput(
           <span className={styles.error}>
@@ -398,8 +463,11 @@ export function useTerminal(): UseTerminalReturn {
       state.currentDirectory,
       state.commandHistory,
       state.bootMode,
+      state.visitorMode,
       openPlayground,
       closePlayground,
+      setVisitorMode,
+      setBootMode,
     ]
   );
 
@@ -515,16 +583,6 @@ export function useTerminal(): UseTerminalReturn {
   }, []);
 
   /**
-   * Set the boot mode (determines prompt style and permissions)
-   */
-  const setBootMode: TerminalActions['setBootMode'] = useCallback((mode: BootMode) => {
-    setState((prev) => ({
-      ...prev,
-      bootMode: mode,
-    }));
-  }, []);
-
-  /**
    * Set the current input value
    */
   const setInput: TerminalActions['setInput'] = useCallback((value: string) => {
@@ -550,5 +608,6 @@ export function useTerminal(): UseTerminalReturn {
     setBootMode,
     openPlayground,
     closePlayground,
+    setVisitorMode,
   };
 }

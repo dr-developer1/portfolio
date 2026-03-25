@@ -5,6 +5,7 @@
  */
 
 export type PlaygroundLanguage = 'javascript' | 'typescript' | 'python';
+export type PlaygroundPresetId = 'default' | 'demo' | 'algorithm' | 'debugging' | 'typing';
 
 export interface PlaygroundFile {
   id: string;
@@ -17,6 +18,7 @@ export interface PlaygroundWorkspace {
   files: PlaygroundFile[];
   activeFileId: string;
   activeLanguage: PlaygroundLanguage;
+  preset: PlaygroundPresetId;
 }
 
 export type PlaygroundOutputType = 'stdout' | 'stderr' | 'result' | 'status';

@@ -22,6 +22,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
     <div className={styles.container}>
       <div className={styles.header}>
         <span className={styles.name}>{project.name}</span>
+        {project.featured && <span className={styles.badge}>Featured</span>}
         {project.url && (
           <a href={project.url} target="_blank" rel="noopener noreferrer" className={styles.link}>
             Live Demo
@@ -34,6 +35,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
         )}
       </div>
       <div className={styles.description}>{project.description}</div>
+      {project.impact && <div className={styles.impact}>{project.impact}</div>}
       <div className={styles.technologies}>[{project.technologies.join(', ')}]</div>
     </div>
   );

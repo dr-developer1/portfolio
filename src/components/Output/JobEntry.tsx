@@ -28,6 +28,7 @@ export const JobEntry: React.FC<JobEntryProps> = ({ job }) => {
         <span className={styles.company}>@ {job.company}</span>
         <span className={styles.location}> | {job.location}</span>
       </div>
+      {job.impact && <div className={styles.impact}>{job.impact}</div>}
       <ul className={styles.descriptionList}>
         {job.description.map((desc, i) => (
           <li key={i} className={styles.descriptionItem}>

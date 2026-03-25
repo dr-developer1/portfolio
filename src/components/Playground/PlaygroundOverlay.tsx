@@ -1,4 +1,6 @@
 import React, { Suspense, useCallback, useEffect, useRef } from 'react';
+import type { PlaygroundPresetId } from '../../types/playground';
+import { ErrorBoundary } from '../Shared/ErrorBoundary';
 
 import styles from './PlaygroundOverlay.module.css';
 
@@ -9,9 +11,10 @@ const PlaygroundLazy = React.lazy(() =>
 interface PlaygroundOverlayProps {
   isOpen: boolean;
   onClose: () => void;
+  preset: PlaygroundPresetId;
 }
 
-export const PlaygroundOverlay: React.FC<PlaygroundOverlayProps> = ({ isOpen, onClose }) => {
+export const PlaygroundOverlay: React.FC<PlaygroundOverlayProps> = ({ isOpen, onClose, preset }) => {
   const panelRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const previousActiveRef = useRef<HTMLElement | null>(null);
@@ -86,13 +89,21 @@ export const PlaygroundOverlay: React.FC<PlaygroundOverlayProps> = ({ isOpen, on
           </button>
         </div>
         <div className={styles.body}>
-          <Suspense
+          <ErrorBoundary
             fallback={
-              <span style={{ color: 'var(--color-text-secondary)' }}>Loading playground…</span>
+              <span style={{ color: 'var(--color-error)' }}>
+                Playground failed to load. Close and try again.
+              </span>
             }
           >
-            <PlaygroundLazy />
-          </Suspense>
+            <Suspense
+              fallback={
+                <span style={{ color: 'var(--color-text-secondary)' }}>Loading playground…</span>
+              }
+            >
+              <PlaygroundLazy key={preset} initialPreset={preset} />
+            </Suspense>
+          </ErrorBoundary>
         </div>
       </div>
     </div>

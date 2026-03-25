@@ -72,6 +72,10 @@
   margin-top: var(--spacing-sm);
 }
 
+.quickActions {
+  margin-top: var(--spacing-sm);
+}
+
 .highlight {
   color: var(--color-accent-green);
   font-weight: 500;

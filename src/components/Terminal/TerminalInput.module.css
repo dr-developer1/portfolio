@@ -130,6 +130,12 @@
   padding-left: 1px;
 }
 
+.suggestion {
+  margin-top: 0.35rem;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
 /* ========================================
    Custom Cursor
    ======================================== */

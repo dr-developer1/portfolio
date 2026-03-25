@@ -6,9 +6,10 @@ import type {
   PlaygroundFile,
   PlaygroundLanguage,
   PlaygroundOutputType,
+  PlaygroundPresetId,
   PlaygroundWorkspace,
 } from '../../types/playground';
-import { getDefaultWorkspace } from '../../utils/playgroundTemplates';
+import { getDefaultWorkspace, getPlaygroundWorkspace } from '../../utils/playgroundTemplates';
 import { loadPlaygroundWorkspace, savePlaygroundWorkspace } from '../../utils/playgroundStorage';
 import { usePlaygroundRunner } from '../../hooks/usePlaygroundRunner';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
@@ -80,11 +81,20 @@ const TabItem: React.FC<TabItemProps> = ({ file, isActive, onSelect }) => (
 
 // ── Main Component ───────────────────────────────────────────────────────────
 
-export const Playground: React.FC = () => {
+interface PlaygroundProps {
+  initialPreset?: PlaygroundPresetId;
+}
+
+export const Playground: React.FC<PlaygroundProps> = ({ initialPreset = 'default' }) => {
   const isMobile = useMediaQuery(`(max-width: ${BP.mobile}px)`);
   const [workspace, setWorkspace] = useState<PlaygroundWorkspace>(() => {
+    // Explicit presets should always win over restored state.
+    if (initialPreset !== 'default') {
+      return getPlaygroundWorkspace(initialPreset);
+    }
+
     const stored = loadPlaygroundWorkspace();
-    return stored ?? getDefaultWorkspace('javascript');
+    return stored ?? getPlaygroundWorkspace(initialPreset);
   });
 
   const { outputs, isRunning, runCode, stopRun, clearOutputs } = usePlaygroundRunner();
@@ -146,6 +156,7 @@ export const Playground: React.FC = () => {
     return (
       <PlaygroundMobile
         workspace={workspace}
+        preset={workspace.preset}
         onFileSelect={handleFileSelect}
         onCodeChange={updateActiveFile}
         onLanguageChange={handleLanguageChange}
@@ -191,6 +202,7 @@ export const Playground: React.FC = () => {
           </button>
         </div>
         <div className={styles.toolbarGroup}>
+          <span className={styles.badge}>Preset: {workspace.preset}</span>
           <label className={styles.consoleLabel} htmlFor="playground-language-select">
             Language
           </label>
@@ -256,6 +268,10 @@ export const Playground: React.FC = () => {
       </div>
 
       <section className={styles.console} aria-label="Console output">
+        <div className={styles.consoleHelp}>
+          Use the preset as a starter, then run, stop, and iterate. The runtime is intentionally
+          lightweight and sandboxed.
+        </div>
         {outputs.length === 0 ? (
           <div className={styles.consoleLine}>
             <span className={styles.consoleLabel}>Console</span>

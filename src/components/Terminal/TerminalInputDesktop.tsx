@@ -3,6 +3,7 @@ import { useTerminalContext } from '../../hooks/TerminalContext';
 import { getPromptConfig } from '../../hooks/useTerminal';
 import { SYSTEM_CONFIG } from '../../config';
 import { useTabCompletion } from '../../hooks/useTabCompletion';
+import { getCompletions } from '../../utils/completionService';
 import { PromptDisplay } from './PromptDisplay';
 import styles from './TerminalInput.module.css';
 import outputStyles from '../../styles/outputUtilities.module.css';
@@ -31,6 +32,9 @@ export const TerminalInputDesktop: React.FC = () => {
 
   const { handleTabKey, resetCompletion } = useTabCompletion();
   const { user, symbol } = getPromptConfig(bootMode);
+  const suggestion = !isLoading
+    ? getCompletions(input, currentDirectory, user)?.matches[0] ?? null
+    : null;
 
   // Sync cursor position when input changes externally (history, completion)
   useEffect(() => {
@@ -253,36 +257,37 @@ export const TerminalInputDesktop: React.FC = () => {
   };
 
   return (
-    <div className={styles.desktopContainer} onClick={() => inputRef.current?.focus()}>
-      <span className={styles.prompt}>
-        <span className={styles.promptUser}>{user}</span>
-        <span className={styles.promptAt}>@</span>
-        <span className={styles.promptHost}>{SYSTEM_CONFIG.hostname}</span>
-        <span className={styles.promptSeparator}>:</span>
-        <span className={styles.promptPath}>{currentDirectory}</span>
-        <span className={styles.promptSymbol}>{symbol}</span>
-      </span>
-      
-      {/* Hidden input to capture keystrokes */}
-      <input
-        ref={inputRef}
-        type="text"
-        className={styles.hiddenInput}
-        value={input}
-        onChange={handleInputChange}
-        onSelect={handleSelect}
-        onKeyDown={handleKeyDown}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-        autoFocus={true}
-        spellCheck={false}
-        autoComplete="off"
-      />
+    <div>
+      <div className={styles.desktopContainer} onClick={() => inputRef.current?.focus()}>
+        <span className={styles.prompt}>
+          <span className={styles.promptUser}>{user}</span>
+          <span className={styles.promptAt}>@</span>
+          <span className={styles.promptHost}>{SYSTEM_CONFIG.hostname}</span>
+          <span className={styles.promptSeparator}>:</span>
+          <span className={styles.promptPath}>{currentDirectory}</span>
+          <span className={styles.promptSymbol}>{symbol}</span>
+        </span>
 
-      {/* Visual Display */}
-      <span className={styles.inputDisplay}>
-        {renderInputDisplay()}
-      </span>
+        <input
+          ref={inputRef}
+          type="text"
+          className={styles.hiddenInput}
+          value={input}
+          onChange={handleInputChange}
+          onSelect={handleSelect}
+          onKeyDown={handleKeyDown}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          autoFocus={true}
+          spellCheck={false}
+          autoComplete="off"
+        />
+
+        <span className={styles.inputDisplay}>{renderInputDisplay()}</span>
+      </div>
+      {suggestion && suggestion !== input && (
+        <div className={styles.suggestion}>Press Tab to autocomplete: {suggestion}</div>
+      )}
     </div>
   );
 };
