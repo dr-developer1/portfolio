@@ -159,8 +159,10 @@
   background: var(--color-bg-primary);
   position: relative;
   overflow-y: auto;
+  overflow-x: hidden;
   min-height: 0;
   scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 /* Optional subtle gradient overlay */
@@ -225,6 +227,7 @@
 
   .container {
     padding: var(--spacing-md);
+    padding-bottom: calc(var(--spacing-md) + 20vh); /* Extra padding for keyboard */
   }
 
   .titleBar {
@@ -309,6 +312,7 @@
 @media (width <= 768px) and (orientation: landscape) {
   .container {
     padding: var(--spacing-xs) var(--spacing-md);
+    padding-bottom: calc(var(--spacing-xs) + 30vh); /* Extra padding for keyboard in landscape */
   }
 
   .titleBar {

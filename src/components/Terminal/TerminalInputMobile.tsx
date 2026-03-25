@@ -188,6 +188,18 @@ export const TerminalInputMobile: React.FC = () => {
     inputRef.current?.focus();
   }, [isPlaygroundOpen]);
 
+  // Scroll input into view when focused to ensure it's visible above the keyboard
+  const handleFocus = useCallback(() => {
+    // Use a short delay to allow the keyboard to start opening
+    setTimeout(() => {
+      inputRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+        inline: 'nearest'
+      });
+    }, 300);
+  }, []);
+
   useEffect(() => {
     if (!isLoading && shouldRefocusRef.current && !isPlaygroundOpen) {
       shouldRefocusRef.current = false;
@@ -214,6 +226,7 @@ export const TerminalInputMobile: React.FC = () => {
           contentEditable
           onInput={handleInput}
           onKeyDown={handleKeyDown}
+          onFocus={handleFocus}
           autoFocus
           spellCheck={false}
           autoCorrect="off"

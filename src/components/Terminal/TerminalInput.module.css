@@ -52,9 +52,11 @@
   display: block;
   width: 100%;
   padding-top: var(--spacing-sm);
+  padding-bottom: var(--spacing-md);
   position: relative;
   z-index: var(--z-base);
   line-height: var(--line-height-normal);
+  scroll-margin-bottom: 50vh; /* Ensure space when keyboard opens */
 }
 
 /* ========================================
@@ -189,6 +191,11 @@
   .cursor {
     width: 0.5em;
     height: 1.1em;
+  }
+
+  .inputContainer {
+    padding-bottom: var(--spacing-lg);
+    scroll-margin-bottom: 40vh; /* More space for mobile keyboards */
   }
 
   .mobileHint {
