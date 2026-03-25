@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import Editor from '@monaco-editor/react';
 import type { editor as MonacoEditor } from 'monaco-editor';
-import type { PlaygroundWorkspace, PlaygroundFile } from '../../types/playground';
+import type { PlaygroundWorkspace, PlaygroundFile, PlaygroundPresetId } from '../../types/playground';
 import styles from './PlaygroundMobile.module.css';
 
 interface PlaygroundMobileProps {
   workspace: PlaygroundWorkspace;
+  preset: PlaygroundPresetId;
   onFileSelect: (file: PlaygroundFile) => void;
   onCodeChange: (content: string) => void;
   onLanguageChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
@@ -19,6 +20,7 @@ interface PlaygroundMobileProps {
 
 export const PlaygroundMobile: React.FC<PlaygroundMobileProps> = ({
   workspace,
+  preset,
   onFileSelect,
   onCodeChange,
   onLanguageChange,
@@ -60,7 +62,10 @@ export const PlaygroundMobile: React.FC<PlaygroundMobileProps> = ({
     <div className={styles.container}>
       {/* Top Bar: Actions */}
       <div className={styles.topBar}>
-        <div className={styles.statusText}>{activeFile.name}</div>
+        <div>
+          <div className={styles.statusText}>{activeFile.name}</div>
+          <div className={styles.presetText}>Preset: {preset}</div>
+        </div>
         <div className={styles.actions}>
           <button
             className={styles.runButton}
@@ -161,6 +166,10 @@ export const PlaygroundMobile: React.FC<PlaygroundMobileProps> = ({
               <button onClick={onStop} disabled={!isRunning}>
                 Stop
               </button>
+            </div>
+            <div className={styles.consoleHelp}>
+              Lightweight sandbox for demos and short challenges. Reload a preset anytime from the
+              Files tab.
             </div>
             <div className={styles.consoleOutput}>
               {outputs.map((out) => (

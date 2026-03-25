@@ -190,6 +190,17 @@
   color: var(--color-accent-blue);
 }
 
+.presetText {
+  color: var(--color-text-muted);
+  font-size: 11px;
+}
+
+.consoleHelp {
+  color: var(--color-text-muted);
+  font-size: 11px;
+  padding: 0 8px 8px;
+}
+
 .emptyLog {
   color: var(--color-text-muted);
   font-style: italic;

@@ -3,6 +3,7 @@ import { useTerminalContext } from '../../hooks/TerminalContext';
 import { getPromptConfig } from '../../hooks/useTerminal';
 import { SYSTEM_CONFIG } from '../../config';
 import { useTabCompletion } from '../../hooks/useTabCompletion';
+import { getCompletions } from '../../utils/completionService';
 import { PromptDisplay } from './PromptDisplay';
 import styles from './TerminalInput.module.css';
 import outputStyles from '../../styles/outputUtilities.module.css';
@@ -27,6 +28,9 @@ export const TerminalInputMobile: React.FC = () => {
 
   const { handleTabKey, resetCompletion } = useTabCompletion();
   const { user, symbol } = getPromptConfig(bootMode);
+  const suggestion = !isLoading
+    ? getCompletions(input, currentDirectory, user)?.matches[0] ?? null
+    : null;
 
   useEffect(() => {
     if (inputRef.current && inputRef.current.innerText !== input) {
@@ -221,6 +225,9 @@ export const TerminalInputMobile: React.FC = () => {
           data-placeholder={isLoading ? 'Processing...' : "Type 'help' for available commands..."}
         />
       </span>
+      {suggestion && suggestion !== input && (
+        <div className={styles.suggestion}>Tap Tab on supported keyboards to autocomplete: {suggestion}</div>
+      )}
     </div>
   );
 };

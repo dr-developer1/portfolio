@@ -9,6 +9,7 @@
 .header {
   display: flex;
   align-items: baseline;
+  flex-wrap: wrap;
   gap: 0.5rem;
 }
 
@@ -27,9 +28,22 @@
   margin: 0.25rem 0;
 }
 
+.impact {
+  color: var(--color-accent-cyan);
+  margin-bottom: 0.35rem;
+}
+
 .technologies {
   color: var(--color-text-muted);
   font-size: 0.9em;
+}
+
+.badge {
+  font-size: 0.75rem;
+  color: var(--color-accent-green);
+  border: 1px solid rgb(255 255 255 / 15%);
+  border-radius: 999px;
+  padding: 0.1rem 0.45rem;
 }
 
 /* ========================================

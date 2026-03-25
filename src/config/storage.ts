@@ -14,4 +14,7 @@ export const STORAGE_KEYS = {
 
   /** Playground workspace persistence */
   playground: 'portfolio_playground_workspace',
+
+  /** Visitor progression, achievements, and usage stats */
+  progress: 'portfolio_visitor_progress',
 } as const;

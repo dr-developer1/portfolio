@@ -1,116 +1,191 @@
 import React from 'react';
-import type { Command, CommandContext, OutputFunction } from '../types';
-import { getAllCommands, registerCommands } from '../utils/commandRegistry';
-import { content } from './content';
-import { AVAILABLE_THEMES, isValidTheme, getDefaultTheme } from '../utils/themeService';
+
+import { CommandShortcutList, EducationEntry, JobEntry, ProjectCard, SkillSection } from '../components/Output';
 import { SYSTEM_CONFIG } from '../config';
-import { MATRIX_STORAGE_KEY, MUSIC_STORAGE_KEY } from '../hooks/storageKeys';
+import { MUSIC_STORAGE_KEY, MATRIX_STORAGE_KEY } from '../hooks/storageKeys';
+import type { Command, CommandCategory, VisitorMode } from '../types';
+import { clearRegistry, getAllCommands, registerCommands } from '../utils/commandRegistry';
+import {
+  findContent,
+  getAvailabilityPoints,
+  getGuidedPath,
+  getGuidedPaths,
+  getHighlights,
+  getInterviewPrompts,
+  getLegacyStory,
+  getOpenAINotes,
+  getRecommendations,
+  getTopProjects,
+  getWhyMePoints,
+  grepVirtualTarget,
+  renderBulletList,
+  resolveOpenTarget,
+} from '../utils/portfolioInsights';
+import { getVisitorProgress, unlockAdmin, unlockVault, ACHIEVEMENTS } from '../utils/progressService';
 import { getStoredBoolean } from '../utils/storageHelpers';
-import { SkillSection, JobEntry, EducationEntry, ProjectCard } from '../components/Output';
+import { AVAILABLE_THEMES, getDefaultTheme, isValidTheme } from '../utils/themeService';
 import styles from '../styles/outputUtilities.module.css';
+import { content } from './content';
+import { RECRUITER_TOUR } from './guides';
 
-/**
- * Help command - displays all available commands
- */
-const helpCommand: Command = {
-  name: 'help',
-  description: 'Display all available commands',
-  usage: 'help [command]',
-  aliases: ['?', 'commands'],
-  execute: (args: string[], addOutput: OutputFunction) => {
-    if (args.length > 0) {
-      // Show help for specific command
-      const commandName = args[0].toLowerCase();
-      const commands = getAllCommands();
-      const command = commands.find(
-        (cmd) => cmd.name === commandName || cmd.aliases?.includes(commandName)
-      );
+const CATEGORY_LABELS: Record<CommandCategory, string> = {
+  core: 'Core',
+  career: 'Career',
+  projects: 'Projects',
+  playground: 'Playground',
+  fun: 'Fun',
+  system: 'System',
+};
 
-      if (command) {
-        addOutput(
-          <div className={styles.marginTopMedium}>
-            <div className={`${styles.accentCyan} ${styles.bold}`}>{command.name}</div>
-            <div className={`${styles.marginLeftLarge} ${styles.marginTopSmall}`}>
-              <div className={styles.textSecondary}>{command.description}</div>
-              <div className={styles.marginTopSmall}>
-                <span className={styles.textMuted}>Usage: </span>
-                <span className={styles.accentGreen}>{command.usage}</span>
-              </div>
-              {command.aliases && command.aliases.length > 0 && (
-                <div className={styles.marginTopSmall}>
-                  <span className={styles.textMuted}>Aliases: </span>
-                  <span className={styles.accentPurple}>{command.aliases.join(', ')}</span>
-                </div>
-              )}
+function renderCommandGroups(commands: Command[]) {
+  const visible = commands.filter((command) => !command.hidden);
+  const grouped = visible.reduce<Record<CommandCategory, Command[]>>(
+    (acc, command) => {
+      acc[command.category].push(command);
+      return acc;
+    },
+    {
+      core: [],
+      career: [],
+      projects: [],
+      playground: [],
+      fun: [],
+      system: [],
+    }
+  );
+
+  return (
+    <div className={styles.flexColumn}>
+      {Object.entries(grouped).map(([category, items]) =>
+        items.length === 0 ? null : (
+          <div key={category}>
+            <div className={styles.headerSection}>{CATEGORY_LABELS[category as CommandCategory]}</div>
+            <div className={styles.commandGrid}>
+              {items
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .map((cmd) => (
+                  <React.Fragment key={cmd.name}>
+                    <span className={styles.accentGreen}>{cmd.name}</span>
+                    <span className={styles.textSecondary}>{cmd.description}</span>
+                  </React.Fragment>
+                ))}
             </div>
           </div>
-        );
-      } else {
-        addOutput(<span className={styles.error}>Unknown command: {commandName}</span>, 'error');
+        )
+      )}
+    </div>
+  );
+}
+
+function renderCommandDetails(command: Command) {
+  return (
+    <div className={styles.panel}>
+      <div className={styles.panelTitle}>
+        {command.name} <span className={styles.tag}>{CATEGORY_LABELS[command.category]}</span>
+      </div>
+      <div className={styles.textSecondary}>{command.description}</div>
+      <div className={styles.marginTopMedium}>
+        <span className={styles.textMuted}>Usage: </span>
+        <span className={styles.accentGreen}>{command.usage}</span>
+      </div>
+      {command.aliases && command.aliases.length > 0 && (
+        <div className={styles.marginTopSmall}>
+          <span className={styles.textMuted}>Aliases: </span>
+          <span className={styles.accentPurple}>{command.aliases.join(', ')}</span>
+        </div>
+      )}
+      {command.hidden && (
+        <div className={styles.marginTopSmall}>
+          <span className={styles.accentYellow}>Hidden command</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function renderPathButtons(mode: VisitorMode) {
+  const path = getGuidedPath(mode);
+  return (
+    <CommandShortcutList
+      title={`${path.label} path`}
+      items={path.commands.map((command) => ({
+        label: command,
+        command,
+      }))}
+    />
+  );
+}
+
+const helpCommand: Command = {
+  name: 'help',
+  description: 'Display available commands and recommended paths',
+  usage: 'help [command]',
+  aliases: ['?', 'commands'],
+  category: 'core',
+  featured: true,
+  execute: (args, addOutput) => {
+    const commands = getAllCommands();
+
+    if (args.length > 0) {
+      const query = args[0].toLowerCase();
+      const command = commands.find(
+        (item) => item.name === query || item.aliases?.includes(query)
+      );
+
+      if (!command) {
+        addOutput(<span className={styles.error}>Unknown command: {query}</span>, 'error');
+        return;
       }
+
+      addOutput(renderCommandDetails(command));
       return;
     }
 
-    // Show all commands
-    const commands = getAllCommands();
-
     addOutput(
-      <div>
-        <div className={styles.headerSection}>Available Commands:</div>
-        <div className={styles.commandGrid}>
-          {commands
-            .sort((a, b) => a.name.localeCompare(b.name))
-            .map((cmd) => (
-              <React.Fragment key={cmd.name}>
-                <span className={styles.accentGreen}>{cmd.name}</span>
-                <span className={styles.textSecondary}>{cmd.description}</span>
-              </React.Fragment>
-            ))}
-        </div>
-        <div className={`${styles.textMuted} ${styles.textSmall} ${styles.marginTopLarge}`}>
-          Type '<span className={styles.accentGreen}>help [command]</span>' for more info on a
-          specific command.
+      <div className={styles.flexColumn}>
+        <CommandShortcutList
+          title="Best commands to start with"
+          items={[
+            { label: 'Highlights', command: 'highlights' },
+            { label: 'Tour', command: 'tour' },
+            { label: 'Top Projects', command: 'top-projects' },
+            { label: 'Contact', command: 'contact' },
+          ]}
+        />
+        {renderCommandGroups(commands)}
+        <div className={styles.textMuted}>
+          Type <span className={styles.accentGreen}>help [command]</span> for details. Hidden
+          commands are discoverable but intentionally not listed here.
         </div>
       </div>
     );
   },
 };
 
-/**
- * Clear command - clears the terminal screen
- */
 const clearCommand: Command = {
   name: 'clear',
   description: 'Clear the terminal screen',
   usage: 'clear',
   aliases: ['cls', 'reset'],
-  execute: () => {
-    // The actual clearing is handled by the terminal component
-  },
+  category: 'core',
+  execute: () => {},
 };
 
-/**
- * Echo command - prints text to the terminal
- */
 const echoCommand: Command = {
   name: 'echo',
   description: 'Display a message',
   usage: 'echo [message]',
-  execute: (args: string[], addOutput: OutputFunction) => {
-    const message = args.join(' ');
-    addOutput(<span>{message || ''}</span>);
-  },
+  category: 'system',
+  execute: (args, addOutput) => addOutput(<span>{args.join(' ')}</span>),
 };
 
-/**
- * About command - displays profile info
- */
 const aboutCommand: Command = {
   name: 'about',
-  description: 'Display user information',
+  description: 'Display a concise profile summary',
   usage: 'about',
   aliases: ['bio'],
-  execute: (_args: string[], addOutput: OutputFunction) => {
+  category: 'career',
+  execute: (_args, addOutput) => {
     addOutput(
       <div>
         <div className={`${styles.accentCyan} ${styles.bold} ${styles.fontSize11}`}>
@@ -119,9 +194,9 @@ const aboutCommand: Command = {
         <div className={`${styles.accentPurple} ${styles.marginBottomMedium}`}>
           {content.bio.tagline}
         </div>
-        <div className={`${styles.textPrimary} ${styles.lineHeight}`}>
-          {content.bio.description.map((line, i) => (
-            <div key={i}>{line}</div>
+        <div className={styles.textPrimary}>
+          {content.bio.description.map((line) => (
+            <div key={line}>{line}</div>
           ))}
         </div>
       </div>
@@ -129,15 +204,13 @@ const aboutCommand: Command = {
   },
 };
 
-/**
- * Skills command - displays technical skills
- */
 const skillsCommand: Command = {
   name: 'skills',
   description: 'Display technical skills',
   usage: 'skills',
   aliases: ['stack', 'tech'],
-  execute: (_args: string[], addOutput: OutputFunction) => {
+  category: 'career',
+  execute: (_args, addOutput) => {
     addOutput(
       <div>
         <SkillSection title="Languages" items={content.skills.languages} color="orange" />
@@ -149,456 +222,888 @@ const skillsCommand: Command = {
   },
 };
 
-/**
- * Experience command - displays job history
- */
 const experienceCommand: Command = {
   name: 'experience',
   description: 'Display professional experience',
   usage: 'experience',
   aliases: ['exp', 'work', 'jobs'],
-  execute: (_args: string[], addOutput: OutputFunction) => {
+  category: 'career',
+  featured: true,
+  execute: (_args, addOutput) => {
     addOutput(
       <div className={styles.flexColumnLarge}>
-        {content.experience.map((job, index) => (
-          <JobEntry key={index} job={job} />
+        {content.experience.map((job) => (
+          <JobEntry key={`${job.company}-${job.date}`} job={job} />
         ))}
       </div>
     );
   },
 };
 
-/**
- * Education command - displays education history
- */
 const educationCommand: Command = {
   name: 'education',
   description: 'Display educational background',
   usage: 'education',
   aliases: ['edu'],
-  execute: (_args: string[], addOutput: OutputFunction) => {
+  category: 'career',
+  execute: (_args, addOutput) => {
     addOutput(
       <div className={styles.flexColumn}>
-        {content.education.map((edu, index) => (
-          <EducationEntry key={index} education={edu} />
+        {content.education.map((education) => (
+          <EducationEntry key={`${education.school}-${education.date}`} education={education} />
         ))}
       </div>
     );
   },
 };
 
-/**
- * Projects command - displays projects
- */
 const projectsCommand: Command = {
   name: 'projects',
   description: 'Display featured projects',
   usage: 'projects',
   aliases: ['proj', 'portfolio'],
-  execute: (_args: string[], addOutput: OutputFunction) => {
+  category: 'projects',
+  featured: true,
+  execute: (_args, addOutput) => {
     addOutput(
       <div className={styles.flexColumn}>
-        {content.projects.map((project, index) => (
-          <ProjectCard key={index} project={project} />
+        {content.projects.map((project) => (
+          <ProjectCard key={project.name} project={project} />
         ))}
       </div>
     );
   },
 };
 
-/**
- * Contact command - displays social links
- */
+const topProjectsCommand: Command = {
+  name: 'top-projects',
+  description: 'Show the strongest recruiter-facing projects first',
+  usage: 'top-projects',
+  category: 'projects',
+  featured: true,
+  execute: (_args, addOutput) => {
+    addOutput(
+      <div className={styles.flexColumn}>
+        {getTopProjects().map((project) => (
+          <ProjectCard key={project.name} project={project} />
+        ))}
+      </div>
+    );
+  },
+};
+
 const contactCommand: Command = {
   name: 'contact',
   description: 'Display contact information',
   usage: 'contact',
   aliases: ['socials', 'email'],
-  execute: (_args: string[], addOutput: OutputFunction) => {
+  category: 'career',
+  featured: true,
+  execute: (_args, addOutput) => {
     addOutput(
-      <div className={styles.infoGrid}>
-        {content.socials.map((link) => (
-          <React.Fragment key={link.platform}>
-            <span className={styles.accentPurple}>{link.platform}:</span>
-            <a
-              href={link.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.textLink}
-            >
-              {link.username}
-            </a>
-          </React.Fragment>
+      <div className={styles.flexColumn}>
+        <div className={styles.infoGrid}>
+          {content.socials.map((link) => (
+            <React.Fragment key={link.platform}>
+              <span className={styles.accentPurple}>{link.platform}:</span>
+              <a href={link.url} target="_blank" rel="noopener noreferrer" className={styles.textLink}>
+                {link.username}
+              </a>
+            </React.Fragment>
+          ))}
+        </div>
+        <div className={styles.textSecondary}>
+          Best path: review <span className={styles.accentGreen}>highlights</span>, skim{' '}
+          <span className={styles.accentGreen}>top-projects</span>, then reach out.
+        </div>
+      </div>
+    );
+  },
+};
+
+const whoamiCommand: Command = {
+  name: 'whoami',
+  description: 'Display current user',
+  usage: 'whoami',
+  category: 'core',
+  execute: (_args, addOutput, context) => {
+    addOutput(<span className={styles.accentGreen}>{context?.user ?? SYSTEM_CONFIG.defaultUser}</span>);
+  },
+};
+
+const dateCommand: Command = {
+  name: 'date',
+  description: 'Display current date and time',
+  usage: 'date',
+  category: 'system',
+  execute: (_args, addOutput) => {
+    addOutput(
+      <span>
+        {new Date().toLocaleString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          timeZoneName: 'short',
+        })}
+      </span>
+    );
+  },
+};
+
+const historyCommand: Command = {
+  name: 'history',
+  description: 'Show command history',
+  usage: 'history',
+  category: 'core',
+  execute: () => {},
+};
+
+const lsCommand: Command = {
+  name: 'ls',
+  description: 'List directory contents',
+  usage: 'ls [directory]',
+  category: 'core',
+  execute: () => {},
+};
+
+const cdCommand: Command = {
+  name: 'cd',
+  description: 'Change the shell working directory',
+  usage: 'cd [directory]',
+  category: 'core',
+  execute: () => {},
+};
+
+const pwdCommand: Command = {
+  name: 'pwd',
+  description: 'Print current working directory',
+  usage: 'pwd',
+  category: 'core',
+  execute: () => {},
+};
+
+const catCommand: Command = {
+  name: 'cat',
+  description: 'Display a file from the virtual filesystem',
+  usage: 'cat [file]',
+  category: 'core',
+  execute: () => {},
+};
+
+const treeCommand: Command = {
+  name: 'tree',
+  description: 'Display directory structure',
+  usage: 'tree [directory]',
+  category: 'core',
+  execute: () => {},
+};
+
+const highlightsCommand: Command = {
+  name: 'highlights',
+  description: 'Summarize the strongest proof points quickly',
+  usage: 'highlights',
+  category: 'career',
+  featured: true,
+  execute: (_args, addOutput) => {
+    addOutput(
+      <div className={styles.flexColumn}>
+        <div className={styles.headerSection}>Highlights</div>
+        {renderBulletList(getHighlights())}
+      </div>
+    );
+  },
+};
+
+const timelineCommand: Command = {
+  name: 'timeline',
+  description: 'Show a concise career and education timeline',
+  usage: 'timeline',
+  category: 'career',
+  execute: (_args, addOutput) => {
+    addOutput(
+      <div className={styles.flexColumn}>
+        <div className={styles.headerSection}>Career Timeline</div>
+        {content.experience.map((job) => (
+          <div key={`${job.company}-${job.date}`} className={styles.flexBaseline}>
+            <span className={styles.accentGreen}>{job.date}</span>
+            <span className={styles.textSecondary}>
+              {job.role} @ {job.company}
+            </span>
+          </div>
+        ))}
+        <div className={styles.headerSection}>Education</div>
+        {content.education.map((education) => (
+          <div key={`${education.school}-${education.date}`} className={styles.flexBaseline}>
+            <span className={styles.accentGreen}>{education.date}</span>
+            <span className={styles.textSecondary}>
+              {education.degree} · {education.school}
+            </span>
+          </div>
         ))}
       </div>
     );
   },
 };
 
-/**
- * Whoami command - shows current user
- */
-const whoamiCommand: Command = {
-  name: 'whoami',
-  description: 'Display current user',
-  usage: 'whoami',
-  execute: (_args: string[], addOutput: OutputFunction, context) => {
-    const username = context?.user || SYSTEM_CONFIG.defaultUser;
-    addOutput(<span className={styles.accentGreen}>{username}</span>);
+const whyMeCommand: Command = {
+  name: 'why-me',
+  description: 'Explain the strongest hiring case in a few lines',
+  usage: 'why-me',
+  category: 'career',
+  execute: (_args, addOutput) => {
+    addOutput(
+      <div className={styles.flexColumn}>
+        <div className={styles.headerSection}>Why Me</div>
+        {renderBulletList(getWhyMePoints(), styles.accentPurple)}
+      </div>
+    );
   },
 };
 
-/**
- * Date command - shows current date and time
- */
-const dateCommand: Command = {
-  name: 'date',
-  description: 'Display current date and time',
-  usage: 'date',
-  execute: (_args: string[], addOutput: OutputFunction) => {
-    const now = new Date();
-    const formatted = now.toLocaleString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      timeZoneName: 'short',
-    });
-    addOutput(<span>{formatted}</span>);
+const availabilityCommand: Command = {
+  name: 'availability',
+  description: 'Show practical hiring information',
+  usage: 'availability',
+  category: 'career',
+  execute: (_args, addOutput) => {
+    addOutput(
+      <div className={styles.flexColumn}>
+        <div className={styles.headerSection}>Availability</div>
+        {renderBulletList(getAvailabilityPoints(), styles.accentBlue)}
+      </div>
+    );
   },
 };
 
-/**
- * History command - shows command history
- */
-const historyCommand: Command = {
-  name: 'history',
-  description: 'Show command history',
-  usage: 'history',
-  execute: () => {
-    // This command is intercepted by useTerminal hook to access sensitive state
-    // This execute function is a fallback/placeholder
+const tourCommand: Command = {
+  name: 'tour',
+  description: 'Start a recruiter-friendly guided path',
+  usage: 'tour',
+  category: 'career',
+  featured: true,
+  execute: (_args, addOutput, context) => {
+    context?.setVisitorMode?.('recruiter');
+    addOutput(
+      <CommandShortcutList
+        title="Recruiter tour"
+        items={RECRUITER_TOUR.map((command) => ({ label: command, command }))}
+      />
+    );
   },
 };
 
-/**
- * LS command - list directory contents
- */
-const lsCommand: Command = {
-  name: 'ls',
-  description: 'List directory contents',
-  usage: 'ls [directory]',
-  execute: () => {
-    // Intercepted by useTerminal
+const modeCommand: Command = {
+  name: 'mode',
+  description: 'Switch the guided experience path',
+  usage: 'mode [standard | recruiter | engineer | founder | client]',
+  category: 'system',
+  execute: (args, addOutput, context) => {
+    if (args.length === 0) {
+      addOutput(
+        <div className={styles.flexColumn}>
+          <div className={styles.headerSection}>Choose Your Path</div>
+          {getGuidedPaths().map((path) => (
+            <div key={path.id} className={styles.marginBottomSmall}>
+              <span className={styles.accentGreen}>{path.label}</span>
+              <span className={styles.separator}> — </span>
+              <span className={styles.textSecondary}>{path.summary}</span>
+            </div>
+          ))}
+          <CommandShortcutList
+            title="Switch path"
+            items={getGuidedPaths()
+              .filter((path) => path.id !== 'standard')
+              .map((path) => ({ label: path.label, command: `mode ${path.id}` }))}
+          />
+        </div>
+      );
+      return;
+    }
+
+    const nextMode = args[0].toLowerCase() as VisitorMode;
+    const allowedModes: VisitorMode[] = ['standard', 'recruiter', 'engineer', 'founder', 'client'];
+
+    if (!allowedModes.includes(nextMode)) {
+      addOutput(<span className={styles.error}>Unknown mode: {nextMode}</span>, 'error');
+      return;
+    }
+
+    context?.setVisitorMode?.(nextMode);
+    addOutput(
+      <div className={styles.flexColumn}>
+        <span className={styles.success}>Path switched to {nextMode}.</span>
+        {renderPathButtons(nextMode)}
+      </div>,
+      'success'
+    );
   },
 };
 
-/**
- * CD command - change directory
- */
-const cdCommand: Command = {
-  name: 'cd',
-  description: 'Change the shell working directory',
-  usage: 'cd [directory]',
-  execute: () => {
-    // Intercepted by useTerminal
+const startCommand: Command = {
+  name: 'start',
+  description: 'Alias for guided path selection',
+  usage: 'start [mode]',
+  category: 'core',
+  execute: (args, addOutput, context) => modeCommand.execute(args, addOutput, context),
+};
+
+const recommendCommand: Command = {
+  name: 'recommend',
+  description: 'Suggest the next best commands based on the current path',
+  usage: 'recommend',
+  aliases: ['next'],
+  category: 'core',
+  execute: (_args, addOutput, context) => {
+    const mode = context?.visitorMode ?? 'standard';
+    addOutput(
+      <CommandShortcutList
+        title={`Recommended next steps for ${mode}`}
+        items={getRecommendations(mode).map((command) => ({ label: command, command }))}
+      />
+    );
   },
 };
 
-/**
- * PWD command - print working directory
- */
-const pwdCommand: Command = {
-  name: 'pwd',
-  description: 'Print name of current/working directory',
-  usage: 'pwd',
-  execute: () => {
-    // Intercepted by useTerminal
+const chooseYourPathCommand: Command = {
+  name: 'choose-your-path',
+  description: 'Open guided paths tailored to your visitor type',
+  usage: 'choose-your-path',
+  category: 'career',
+  hidden: true,
+  execute: (_args, addOutput, context) => modeCommand.execute([], addOutput, context),
+};
+
+const diagnoseCommand: Command = {
+  name: 'diagnose',
+  description: 'Route visitors to the most relevant commands',
+  usage: 'diagnose me',
+  category: 'career',
+  hidden: true,
+  execute: (_args, addOutput) => {
+    addOutput(
+      <CommandShortcutList
+        title="What are you here for?"
+        items={[
+          { label: 'Hiring overview', command: 'mode recruiter' },
+          { label: 'Technical depth', command: 'mode engineer' },
+          { label: 'Product delivery', command: 'mode founder' },
+          { label: 'Client-friendly overview', command: 'mode client' },
+        ]}
+      />
+    );
   },
 };
 
-/**
- * Cat command - concatenate and display files
- */
-const catCommand: Command = {
-  name: 'cat',
-  description: 'Concatenate files and print on the standard output',
-  usage: 'cat [file]',
-  execute: () => {
-    // Intercepted by useTerminal
-  },
-};
-
-/**
- * Tree command - list contents of directories in a tree-like format
- */
-const treeCommand: Command = {
-  name: 'tree',
-  description: 'List contents of directories in a tree-like format',
-  usage: 'tree [directory]',
-  execute: () => {
-    // Intercepted by useTerminal
-  },
-};
-
-/**
- * Theme command - manage terminal themes
- */
 const themeCommand: Command = {
   name: 'theme',
-  description: 'Manage terminal themes (list, set, reset)',
+  description: 'Manage terminal themes',
   usage: 'theme [list | reset | <name>]',
-  execute: (args: string[], addOutput: OutputFunction) => {
-    // If no args, show current usage
+  category: 'system',
+  execute: (args, addOutput) => {
     if (args.length === 0) {
       addOutput(
         <div>
           <div>Usage: theme [list | reset | &lt;name&gt;]</div>
-          <br />
-          <div>Available themes:</div>
-          <div className={styles.paddingLeftMedium}>
-            {AVAILABLE_THEMES.map((t) => (
-              <span key={t} className={`${styles.textSecondary} ${styles.marginRight1}`}>
-                {t}
-              </span>
-            ))}
-          </div>
+          <div className={styles.marginTopMedium}>Available themes: {AVAILABLE_THEMES.join(', ')}</div>
         </div>
       );
       return;
     }
 
-    const subCommand = args[0].toLowerCase();
-
-    // List themes
-    if (subCommand === 'list') {
+    const value = args[0].toLowerCase();
+    if (value === 'list') {
       addOutput(
-        <div>
-          <div>Available themes:</div>
-          <ul className={`${styles.listNone} ${styles.paddingLeftLarge} ${styles.marginTopMedium}`}>
-            {AVAILABLE_THEMES.map((t) => (
-              <li key={t} className={styles.marginBottomSmall}>
-                <span className={styles.accentGreen}>•</span> {t}
-              </li>
-            ))}
-          </ul>
+        <div className={styles.flexColumn}>
+          {AVAILABLE_THEMES.map((theme) => (
+            <div key={theme}>
+              <span className={styles.accentGreen}>•</span> {theme}
+            </div>
+          ))}
         </div>
       );
       return;
     }
 
-    // Reset theme
-    if (subCommand === 'reset') {
+    if (value === 'reset') {
       const defaultTheme = getDefaultTheme();
-      // Dispatch event to let useTerminal handle persistence and state update
-      // This keeps the theme change flow consistent with the 'set theme' branch
       window.dispatchEvent(new CustomEvent('theme-change', { detail: { theme: defaultTheme } }));
-      addOutput(
-        <span className={styles.success}>Theme reset to default ({defaultTheme})</span>,
-        'success'
-      );
+      addOutput(<span className={styles.success}>Theme reset to {defaultTheme}</span>, 'success');
       return;
     }
 
-    // Set theme
-    if (isValidTheme(subCommand)) {
-      window.dispatchEvent(new CustomEvent('theme-change', { detail: { theme: subCommand } }));
-      addOutput(<span className={styles.success}>Theme switched to: {subCommand}</span>, 'success');
-    } else {
+    if (!isValidTheme(value)) {
       addOutput(
         <span className={styles.error}>
-          Error: Invalid theme '{subCommand}'. Type 'theme list' to see available options.
+          Invalid theme '{value}'. Type 'theme list' to see valid options.
         </span>,
         'error'
       );
-    }
-  },
-  autocomplete: (partial: string) => {
-    const subCommands = ['list', 'reset', ...AVAILABLE_THEMES];
-    return subCommands.filter((cmd) => cmd.startsWith(partial.toLowerCase()));
-  },
-};
-
-/**
- * Resume command - download CV
- */
-const resumeCommand: Command = {
-  name: 'resume',
-  description: 'Download my resume/CV',
-  usage: 'resume',
-  aliases: ['cv', 'download-cv'],
-  execute: (_args: string[], addOutput: OutputFunction) => {
-    addOutput(
-      <div>
-        <span className={styles.success}>Initiating download...</span>
-        <br />
-        <span className={styles.textSecondary}>
-          If download doesn't start automatically,{' '}
-          <a
-            href="/resume.pdf"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.textLink}
-          >
-            click here
-          </a>
-          .
-        </span>
-      </div>,
-      'success'
-    );
-
-    // Trigger download
-    const link = document.createElement('a');
-    link.href = '/resume.pdf';
-    link.download = 'Ahmad_Ibrahim_Resume.pdf';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  },
-};
-
-/**
- * Playground command - launches the coding playground
- */
-const playgroundCommand: Command = {
-  name: 'playground',
-  description: 'Launch the interactive coding playground',
-  usage: 'playground',
-  aliases: ['code', 'editor'],
-  execute: (_args: string[], addOutput: OutputFunction, context?: CommandContext) => {
-    if (context?.openPlayground) {
-      context.openPlayground();
-      addOutput(<span className={styles.textSecondary}>Opening playground…</span>, 'info');
       return;
     }
 
-    addOutput(<span className={styles.error}>Playground failed to open.</span>, 'error');
+    window.dispatchEvent(new CustomEvent('theme-change', { detail: { theme: value } }));
+    addOutput(<span className={styles.success}>Theme switched to {value}</span>, 'success');
+  },
+  autocomplete: (partial) => ['list', 'reset', ...AVAILABLE_THEMES].filter((item) =>
+    item.startsWith(partial.toLowerCase())
+  ),
+};
+
+const resumeCommand: Command = {
+  name: 'resume',
+  description: 'Download or open the resume',
+  usage: 'resume',
+  aliases: ['cv', 'download-cv'],
+  category: 'career',
+  featured: true,
+  execute: (_args, addOutput) => {
+    addOutput(
+      <div>
+        <span className={styles.success}>Opening resume…</span>
+        <div className={styles.textSecondary}>
+          If it does not open automatically, use{' '}
+          <a href="/resume.pdf" target="_blank" rel="noopener noreferrer" className={styles.textLink}>
+            this direct link
+          </a>
+          .
+        </div>
+      </div>,
+      'success'
+    );
+    window.open('/resume.pdf', '_blank', 'noopener,noreferrer');
   },
 };
 
-/**
- * Effect command - control visual effects
- */
+const playgroundCommand: Command = {
+  name: 'playground',
+  description: 'Open the coding playground or a prepared challenge',
+  usage: 'playground [--demo | --challenge <algorithm|debugging|typing>]',
+  aliases: ['code', 'editor'],
+  category: 'playground',
+  featured: true,
+  execute: (args, addOutput, context) => {
+    let preset: 'default' | 'demo' | 'algorithm' | 'debugging' | 'typing' = 'default';
+
+    if (args[0] === '--demo') {
+      preset = 'demo';
+    } else if (args[0] === '--challenge') {
+      const challenge = (args[1] ?? '').toLowerCase();
+      if (challenge === 'algorithm' || challenge === 'debugging' || challenge === 'typing') {
+        preset = challenge;
+      } else {
+        addOutput(
+          <span className={styles.error}>
+            Unknown challenge. Use algorithm, debugging, or typing.
+          </span>,
+          'error'
+        );
+        return;
+      }
+    }
+
+    context?.openPlayground?.(preset);
+    addOutput(
+      <span className={styles.textSecondary}>
+        Opening playground {preset === 'default' ? 'workspace' : `preset: ${preset}`}…
+      </span>,
+      'info'
+    );
+  },
+};
+
 const effectCommand: Command = {
   name: 'effect',
   description: 'Control visual effects',
   usage: 'effect matrix [on | off | toggle]',
-  execute: (args: string[], addOutput: OutputFunction) => {
+  category: 'fun',
+  execute: (args, addOutput) => {
     if (args.length < 2 || args[0].toLowerCase() !== 'matrix') {
-      addOutput(
-        <div>
-          <div>Usage: effect matrix [on | off | toggle]</div>
-          <br />
-          <div>Controls the background rain effect.</div>
-        </div>
-      );
+      addOutput(<span>Usage: effect matrix [on | off | toggle]</span>);
       return;
     }
 
     const action = args[1].toLowerCase();
+    const current = getStoredBoolean(MATRIX_STORAGE_KEY, true);
+    const next = action === 'toggle' ? !current : action === 'on';
 
-    // We use custom events to communicate with React state
-    // since commands run outside the component context
-
-    if (action === 'on') {
-      window.dispatchEvent(new CustomEvent('matrix-toggle', { detail: { enabled: true } }));
-      addOutput(<span className={styles.success}>Matrix effect enabled.</span>, 'success');
-    } else if (action === 'off') {
-      window.dispatchEvent(new CustomEvent('matrix-toggle', { detail: { enabled: false } }));
-      addOutput(<span className={styles.textSecondary}>Matrix effect disabled.</span>, 'info');
-    } else if (action === 'toggle') {
-      // Toggle based on persisted preference in localStorage
-      const current = getStoredBoolean(MATRIX_STORAGE_KEY, true);
-      const newState = !current;
-
-      window.dispatchEvent(new CustomEvent('matrix-toggle', { detail: { enabled: newState } }));
-
-      addOutput(
-        <span className={newState ? styles.success : styles.textSecondary}>
-          Matrix effect {newState ? 'enabled' : 'disabled'}.
-        </span>,
-        newState ? 'success' : 'info'
-      );
-    } else {
-      addOutput(
-        <span className={styles.error}>Invalid action. Use 'on', 'off', or 'toggle'.</span>,
-        'error'
-      );
+    if (!['on', 'off', 'toggle'].includes(action)) {
+      addOutput(<span className={styles.error}>Invalid action. Use on, off, or toggle.</span>, 'error');
+      return;
     }
+
+    window.dispatchEvent(new CustomEvent('matrix-toggle', { detail: { enabled: next } }));
+    addOutput(
+      <span className={next ? styles.success : styles.textSecondary}>
+        Matrix effect {next ? 'enabled' : 'disabled'}.
+      </span>,
+      next ? 'success' : 'info'
+    );
   },
-  autocomplete: (partial: string) => {
-    // Basic autocomplete for 'matrix'
-    if ('matrix'.startsWith(partial.toLowerCase())) {
-      return ['matrix'];
-    }
-    return [];
-  },
+  autocomplete: (partial) => ['matrix'].filter((item) => item.startsWith(partial.toLowerCase())),
 };
 
-/**
- * Music command - control background music
- */
 const musicCommand: Command = {
   name: 'music',
   description: 'Control background music',
   usage: 'music [on | off | toggle]',
   aliases: ['audio', 'sound'],
-  execute: (args: string[], addOutput: OutputFunction) => {
+  category: 'fun',
+  execute: (args, addOutput) => {
     if (args.length === 0) {
-      addOutput(
-        <div>
-          <div>Usage: music [on | off | toggle]</div>
-          <br />
-          <div>Controls the background music playback.</div>
-          <div className={`${styles.marginTopMedium} ${styles.textSecondary}`}>
-            Note: Music requires user interaction to start due to browser policies.
-          </div>
-        </div>
-      );
+      addOutput(<span>Usage: music [on | off | toggle]</span>);
       return;
     }
 
     const action = args[0].toLowerCase();
+    const current = getStoredBoolean(MUSIC_STORAGE_KEY, true);
+    const next = action === 'toggle' ? !current : action === 'on';
 
-    if (action === 'on') {
-      window.dispatchEvent(new CustomEvent('music-toggle', { detail: { enabled: true } }));
-      addOutput(<span className={styles.success}>♪ Background music enabled.</span>, 'success');
-    } else if (action === 'off') {
-      window.dispatchEvent(new CustomEvent('music-toggle', { detail: { enabled: false } }));
-      addOutput(<span className={styles.textSecondary}>♪ Background music disabled.</span>, 'info');
-    } else if (action === 'toggle') {
-      // Toggle based on persisted preference in localStorage
-      const current = getStoredBoolean(MUSIC_STORAGE_KEY, true);
-      const newState = !current;
-
-      window.dispatchEvent(new CustomEvent('music-toggle', { detail: { enabled: newState } }));
-
-      addOutput(
-        <span className={newState ? styles.success : styles.textSecondary}>
-          ♪ Background music {newState ? 'enabled' : 'disabled'}.
-        </span>,
-        newState ? 'success' : 'info'
-      );
-    } else {
-      addOutput(
-        <span className={styles.error}>Invalid action. Use 'on', 'off', or 'toggle'.</span>,
-        'error'
-      );
+    if (!['on', 'off', 'toggle'].includes(action)) {
+      addOutput(<span className={styles.error}>Invalid action. Use on, off, or toggle.</span>, 'error');
+      return;
     }
+
+    window.dispatchEvent(new CustomEvent('music-toggle', { detail: { enabled: next } }));
+    addOutput(
+      <span className={next ? styles.success : styles.textSecondary}>
+        Background music {next ? 'enabled' : 'disabled'}.
+      </span>,
+      next ? 'success' : 'info'
+    );
   },
-  autocomplete: (partial: string) => {
-    const subCommands = ['on', 'off', 'toggle'];
-    return subCommands.filter((cmd) => cmd.startsWith(partial.toLowerCase()));
+  autocomplete: (partial) => ['on', 'off', 'toggle'].filter((item) =>
+    item.startsWith(partial.toLowerCase())
+  ),
+};
+
+const findCommand: Command = {
+  name: 'find',
+  description: 'Search across portfolio content',
+  usage: 'find <keyword>',
+  category: 'core',
+  execute: (args, addOutput) => {
+    const query = args.join(' ').trim();
+    if (!query) {
+      addOutput(<span className={styles.error}>Usage: find &lt;keyword&gt;</span>, 'error');
+      return;
+    }
+
+    const results = findContent(query);
+    if (results.length === 0) {
+      addOutput(<span className={styles.warning}>No matches found for "{query}".</span>, 'warning');
+      return;
+    }
+
+    addOutput(
+      <div className={styles.flexColumn}>
+        {results.map((result) => (
+          <div key={`${result.section}-${result.title}`} className={styles.panel}>
+            <div className={styles.flexBaseline}>
+              <span className={styles.tag}>{result.section}</span>
+              <span className={styles.accentGreen}>{result.title}</span>
+            </div>
+            <div className={styles.textSecondary}>{result.snippet}</div>
+            {result.command && (
+              <div className={styles.textMuted}>Suggested command: {result.command}</div>
+            )}
+          </div>
+        ))}
+      </div>
+    );
   },
 };
 
-/**
- * All basic commands
- */
+const grepCommand: Command = {
+  name: 'grep',
+  description: 'Search within a virtual file or content section',
+  usage: 'grep <term> <file|projects|experience|skills|contact>',
+  category: 'core',
+  execute: (args, addOutput) => {
+    if (args.length < 2) {
+      addOutput(<span className={styles.error}>Usage: grep &lt;term&gt; &lt;target&gt;</span>, 'error');
+      return;
+    }
+
+    const [term, target] = args;
+    const lines = grepVirtualTarget(term, target);
+
+    if (lines.length === 0) {
+      addOutput(<span className={styles.warning}>No matches found.</span>, 'warning');
+      return;
+    }
+
+    addOutput(
+      <div className={styles.textPreWrap}>
+        {lines.map((line) => (
+          <div key={line}>{line}</div>
+        ))}
+      </div>
+    );
+  },
+};
+
+const openCommand: Command = {
+  name: 'open',
+  description: 'Open a known project, social link, or resume',
+  usage: 'open <project|github|linkedin|resume>',
+  category: 'projects',
+  execute: (args, addOutput) => {
+    const query = args.join(' ').trim();
+    if (!query) {
+      addOutput(<span className={styles.error}>Usage: open &lt;target&gt;</span>, 'error');
+      return;
+    }
+
+    const target = resolveOpenTarget(query);
+    if (!target) {
+      addOutput(<span className={styles.error}>No openable target found for "{query}".</span>, 'error');
+      return;
+    }
+
+    window.open(target.url, '_blank', 'noopener,noreferrer');
+    addOutput(<span className={styles.success}>Opening {target.label}…</span>, 'success');
+  },
+};
+
+const statsCommand: Command = {
+  name: 'stats',
+  description: 'Show local visitor stats and discovery progress',
+  usage: 'stats',
+  category: 'system',
+  execute: (_args, addOutput) => {
+    const progress = getVisitorProgress();
+    addOutput(
+      <div className={styles.flexColumn}>
+        <div className={styles.headerSection}>Local Stats</div>
+        <div className={styles.flexBaseline}>
+          <span className={styles.accentGreen}>Visits</span>
+          <span className={styles.textSecondary}>{progress.visits}</span>
+        </div>
+        <div className={styles.flexBaseline}>
+          <span className={styles.accentGreen}>Commands Run</span>
+          <span className={styles.textSecondary}>{progress.totalCommands}</span>
+        </div>
+        <div className={styles.flexBaseline}>
+          <span className={styles.accentGreen}>Commands Discovered</span>
+          <span className={styles.textSecondary}>{progress.discoveredCommands.length}</span>
+        </div>
+        <div className={styles.flexBaseline}>
+          <span className={styles.accentGreen}>Hidden Commands Found</span>
+          <span className={styles.textSecondary}>{progress.hiddenCommands.length}</span>
+        </div>
+        <div className={styles.headerSection}>Achievements</div>
+        {progress.achievements.length === 0 ? (
+          <span className={styles.textMuted}>None unlocked yet.</span>
+        ) : (
+          progress.achievements.map((achievementId) => {
+            const achievement = ACHIEVEMENTS.find((item) => item.id === achievementId);
+            return (
+              <div key={achievementId} className={styles.textSecondary}>
+                {achievement?.title ?? achievementId}
+              </div>
+            );
+          })
+        )}
+      </div>
+    );
+  },
+};
+
+const interviewCommand: Command = {
+  name: 'interview',
+  description: 'Curated technical discussion prompts',
+  usage: 'interview',
+  category: 'fun',
+  hidden: true,
+  execute: (_args, addOutput) => {
+    addOutput(
+      <div className={styles.flexColumn}>
+        <div className={styles.headerSection}>Interview Prompts</div>
+        {renderBulletList(getInterviewPrompts(), styles.accentPurple)}
+      </div>
+    );
+  },
+};
+
+const legacyCommand: Command = {
+  name: 'legacy',
+  description: 'Migration and modernization mindset',
+  usage: 'legacy',
+  category: 'fun',
+  hidden: true,
+  execute: (_args, addOutput) => {
+    addOutput(
+      <div className={styles.flexColumn}>
+        <div className={styles.headerSection}>Legacy Mode</div>
+        {renderBulletList(getLegacyStory(), styles.accentYellow)}
+      </div>
+    );
+  },
+};
+
+const incidentCommand: Command = {
+  name: 'incident',
+  description: 'A troubleshooting and production-debugging mindset',
+  usage: 'incident',
+  category: 'fun',
+  hidden: true,
+  execute: (_args, addOutput) => {
+    addOutput(
+      <div className={styles.flexColumn}>
+        <div className={styles.headerSection}>Incident Response</div>
+        {renderBulletList(
+          [
+            'Reproduce the issue or narrow the uncertainty quickly.',
+            'Reduce blast radius first, then fix root cause.',
+            'Add the missing guardrail so the same class of bug is less likely to recur.',
+          ],
+          styles.accentOrange
+        )}
+      </div>
+    );
+  },
+};
+
+const openAICommand: Command = {
+  name: 'openai',
+  description: 'How AI fits into real engineering work',
+  usage: 'openai',
+  category: 'fun',
+  hidden: true,
+  execute: (_args, addOutput) => {
+    addOutput(
+      <div className={styles.flexColumn}>
+        <div className={styles.headerSection}>AI In Practice</div>
+        {renderBulletList(getOpenAINotes(), styles.accentCyan)}
+      </div>
+    );
+  },
+};
+
+const coffeeCommand: Command = {
+  name: 'coffee',
+  description: 'A small terminal easter egg',
+  usage: 'coffee',
+  category: 'fun',
+  hidden: true,
+  execute: (_args, addOutput) => {
+    addOutput(
+      <div className={styles.textPreWrap}>
+        {String.raw`  ( (
+   ) )
+........
+|      |]
+\      /
+ \`----'
+
+Fuel loaded. Continue shipping.`}
+      </div>
+    );
+  },
+};
+
+const sudoCommand: Command = {
+  name: 'sudo',
+  description: 'Attempt to elevate your session',
+  usage: 'sudo [unlock | su]',
+  category: 'fun',
+  hidden: true,
+  execute: (args, addOutput, context) => {
+    unlockAdmin();
+    context?.setBootMode?.('admin');
+
+    if (args[0] === 'unlock' || args[0] === 'su') {
+      unlockVault();
+      addOutput(
+        <div className={styles.flexColumn}>
+          <span className={styles.success}>Privileges elevated. Vault access granted.</span>
+          <CommandShortcutList
+            title="Unlocked commands"
+            items={[
+              { label: 'Vault', command: 'vault' },
+              { label: 'Interview', command: 'interview' },
+              { label: 'Legacy', command: 'legacy' },
+            ]}
+          />
+        </div>,
+        'success'
+      );
+      return;
+    }
+
+    addOutput(
+      <div className={styles.flexColumn}>
+        <span className={styles.success}>Temporary admin shell enabled for this session.</span>
+        <span className={styles.textSecondary}>Try sudo unlock if you want the hidden vault.</span>
+      </div>,
+      'success'
+    );
+  },
+};
+
+const vaultCommand: Command = {
+  name: 'vault',
+  description: 'Reveal the hidden command vault',
+  usage: 'vault',
+  category: 'fun',
+  hidden: true,
+  execute: (_args, addOutput) => {
+    const progress = getVisitorProgress();
+    const eligible =
+      progress.unlockedVault || progress.adminUnlocked || progress.discoveredCommands.length >= 6;
+
+    if (!eligible) {
+      addOutput(
+        <span className={styles.warning}>
+          Vault locked. Explore more commands or try elevating your session.
+        </span>,
+        'warning'
+      );
+      return;
+    }
+
+    unlockVault();
+    addOutput(
+      <CommandShortcutList
+        title="Vault commands"
+        items={[
+          { label: 'Interview', command: 'interview' },
+          { label: 'Legacy', command: 'legacy' },
+          { label: 'Incident', command: 'incident' },
+          { label: 'OpenAI', command: 'openai' },
+          { label: 'Coffee', command: 'coffee' },
+        ]}
+      />
+    );
+  },
+};
+
+const eastereggCommand: Command = {
+  name: 'easteregg',
+  description: 'Inspect your hidden discoveries',
+  usage: 'easteregg',
+  category: 'fun',
+  hidden: true,
+  execute: (_args, addOutput) => {
+    const progress = getVisitorProgress();
+    addOutput(
+      <div className={styles.flexColumn}>
+        <div className={styles.headerSection}>Discovery Log</div>
+        <div className={styles.textSecondary}>
+          Hidden commands found: {progress.hiddenCommands.join(', ') || 'none yet'}
+        </div>
+        <div className={styles.textSecondary}>
+          Vault status: {progress.unlockedVault ? 'unlocked' : 'locked'}
+        </div>
+      </div>
+    );
+  },
+};
+
 export const basicCommands: Command[] = [
   helpCommand,
   clearCommand,
@@ -616,22 +1121,42 @@ export const basicCommands: Command[] = [
   experienceCommand,
   educationCommand,
   projectsCommand,
+  topProjectsCommand,
   contactCommand,
+  highlightsCommand,
+  timelineCommand,
+  whyMeCommand,
+  availabilityCommand,
+  tourCommand,
+  modeCommand,
+  startCommand,
+  recommendCommand,
+  chooseYourPathCommand,
+  diagnoseCommand,
   themeCommand,
   resumeCommand,
   playgroundCommand,
   effectCommand,
   musicCommand,
+  findCommand,
+  grepCommand,
+  openCommand,
+  statsCommand,
+  interviewCommand,
+  legacyCommand,
+  incidentCommand,
+  openAICommand,
+  coffeeCommand,
+  sudoCommand,
+  vaultCommand,
+  eastereggCommand,
 ];
 
-/**
- * Initialize all commands in the registry
- */
 export function initializeCommands(): void {
+  clearRegistry();
   registerCommands(basicCommands);
 }
 
-// Export individual commands for testing
 export {
   helpCommand,
   clearCommand,
@@ -643,5 +1168,4 @@ export {
   experienceCommand,
   educationCommand,
   projectsCommand,
-  contactCommand,
 };

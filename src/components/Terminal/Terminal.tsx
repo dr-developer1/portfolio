@@ -13,7 +13,7 @@ import { TerminalInput } from './TerminalInput';
 import { TerminalOutput } from './TerminalOutput';
 
 export const Terminal: React.FC = () => {
-  const { bootMode, isPlaygroundOpen, closePlayground } = useTerminalContext();
+  const { bootMode, isPlaygroundOpen, closePlayground, playgroundPreset } = useTerminalContext();
   const { user } = getPromptConfig(bootMode);
 
   return (
@@ -56,7 +56,11 @@ export const Terminal: React.FC = () => {
           <TerminalInput />
         </div>
       </div>
-      <PlaygroundOverlay isOpen={isPlaygroundOpen} onClose={closePlayground} />
+      <PlaygroundOverlay
+        isOpen={isPlaygroundOpen}
+        onClose={closePlayground}
+        preset={playgroundPreset}
+      />
     </>
   );
 };

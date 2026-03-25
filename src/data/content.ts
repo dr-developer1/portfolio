@@ -11,6 +11,9 @@ export interface ExperienceItem {
   location: string;
   description: string[];
   technologies?: string[];
+  shortLabel?: string;
+  impact?: string;
+  featured?: boolean;
 }
 
 export interface EducationItem {
@@ -24,6 +27,9 @@ export interface ProjectItem {
   name: string;
   description: string;
   technologies: string[];
+  shortLabel?: string;
+  impact?: string;
+  featured?: boolean;
   url?: string;
   repo?: string;
 }
@@ -120,6 +126,9 @@ export const content: PortfolioContent = {
       role: 'Ingénieur Développeur Web Full Stack',
       company: 'SILICO',
       location: 'Lyon, France',
+      shortLabel: 'Migration & product engineering',
+      impact: 'Drove multiple legacy-to-modern migrations and shipped offline-first and AI-assisted workflows.',
+      featured: true,
       description: [
         "Conception d’une application desktop cross-platform (Electron) pour le suivi médical avec système de mise à jour automatique; architecture 'Offline First' utilisant IndexedDB pour le stockage local, synchronisation bidirectionnelle automatique et gestion du téléchargement/envoi des formulaires et rapports médicaux.",
         "Refonte complète d'une application web de gestion des congés payés pour la CICPR (secteur transport/logistique), servant d'interface entre entreprises adhérentes et association. Migration de technologies legacy vers Vue3/TypeScript/NestJS, incluant des algorithmes de calcul de droits pour horaires irréguliers et cotisations.",
@@ -144,6 +153,8 @@ export const content: PortfolioContent = {
       role: 'Développeur Web Full Stack (Alternance)',
       company: 'SILICO',
       location: 'Lyon, France',
+      shortLabel: 'Backend performance & migration',
+      impact: 'Built high-volume APIs and supported a strategic PHP-to-Node migration.',
       description: [
         "Développement d'APIs RESTful performantes pour la gestion volumétrique de documents.",
         "Mise en place d'un serveur de contenu SAP personnalisé pour fluidifier les flux de données.",
@@ -155,6 +166,7 @@ export const content: PortfolioContent = {
       role: 'Développeur Web Full Stack (Alternance)',
       company: 'HSK Digital',
       location: 'Crécy-sur-Serre, France',
+      shortLabel: 'SaaS product delivery',
       description: [
         "Intégration d'un configurateur de vente de services complexe pour le client TGS France.",
         "Optimisation de la solution SaaS 'SmartDataForLead' via Laravel et Vue.js.",
@@ -166,6 +178,7 @@ export const content: PortfolioContent = {
       role: 'Développeur Web Full Stack',
       company: 'Brain Solutions',
       location: 'Beyrouth, Liban',
+      shortLabel: 'Commerce & operations tooling',
       description: [
         'Développement et maintenance de plateformes e-commerce avec gestion de catalogues et paiements sécurisés.',
         "Conception d'un tableau de bord financier pour le monitoring temps réel des revenus et dépenses.",
@@ -200,30 +213,40 @@ export const content: PortfolioContent = {
       description:
         'Plateforme e-commerce sécurisée avec authentification JWT/OAuth2, chiffrement SSL/TLS et paiements Stripe.',
       technologies: ['Angular', 'Spring Boot', 'Stripe', 'OAuth2'],
+      shortLabel: 'Secure commerce platform',
+      impact: 'Showcases full-stack architecture, authentication, and payment integration.',
+      featured: true,
     },
     {
       name: 'Système de Gestion Clinique',
       description:
         'Application web performante pour la gestion centralisée des dossiers patients et rendez-vous médicaux.',
       technologies: ['NestJS', 'ReactJS'],
+      shortLabel: 'Healthcare workflow app',
+      impact: 'Highlights domain-heavy product work and operational reliability.',
+      featured: true,
     },
     {
       name: 'YouLike : Plateforme Recrutement',
       description:
         "Réseau professionnel type 'Tinder' facilitant le matching intelligent entre étudiants et recruteurs.",
       technologies: ['ReactJS', 'TypeScript'],
+      shortLabel: 'Matching product',
     },
     {
       name: 'StopNShop App Mobile',
       description:
         "Application mobile e-commerce complète : navigation catalogue, panier dynamique et historique d'achats.",
       technologies: ['React Native'],
+      shortLabel: 'Mobile commerce app',
     },
     {
       name: 'Vote Décentralisé (DApp)',
       description:
         'Implémentation de Smart Contracts sur Ethereum pour garantir un système de vote infalsifiable.',
       technologies: ['Solidity', 'Blockchain'],
+      shortLabel: 'Blockchain proof-of-concept',
+      impact: 'Demonstrates curiosity for trust, security, and decentralized systems.',
     },
   ],
 };

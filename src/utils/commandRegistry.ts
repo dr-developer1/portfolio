@@ -16,12 +16,21 @@ const aliasMap: Map<string, string> = new Map();
  * @param command - The command to register
  */
 export function registerCommand(command: Command): void {
-  registry.set(command.name.toLowerCase(), command);
+  const normalizedName = command.name.toLowerCase();
+  if (registry.has(normalizedName) || aliasMap.has(normalizedName)) {
+    throw new Error(`Duplicate command registration detected for '${command.name}'.`);
+  }
+
+  registry.set(normalizedName, command);
 
   // Register aliases
   if (command.aliases) {
     for (const alias of command.aliases) {
-      aliasMap.set(alias.toLowerCase(), command.name.toLowerCase());
+      const normalizedAlias = alias.toLowerCase();
+      if (registry.has(normalizedAlias) || aliasMap.has(normalizedAlias)) {
+        throw new Error(`Duplicate command alias detected for '${alias}'.`);
+      }
+      aliasMap.set(normalizedAlias, normalizedName);
     }
   }
 }

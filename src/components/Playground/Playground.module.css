@@ -189,6 +189,12 @@
   color: var(--color-text-secondary);
 }
 
+.consoleHelp {
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  margin-bottom: 0.5rem;
+}
+
 .statusBar {
   display: flex;
   justify-content: space-between;

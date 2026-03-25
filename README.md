@@ -1,73 +1,94 @@
-# React + TypeScript + Vite
+# Portfolio OS
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Interactive terminal-style portfolio built with React, TypeScript, and Vite. The site is fully client-side and combines a terminal shell, hidden modes, a lightweight coding playground, and recruiter-friendly guided navigation.
 
-Currently, two official plugins are available:
+## Highlights
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Recruiter-first terminal UX with guided commands like `tour`, `highlights`, `top-projects`, and `why-me`
+- Virtual filesystem commands: `ls`, `cd`, `cat`, `pwd`, `tree`
+- Search and navigation commands: `find`, `grep`, `open`, `recommend`
+- Hidden depth: `sudo`, `vault`, `interview`, `legacy`, `incident`, `openai`, `coffee`
+- Persistent themes, Matrix/music toggles, local achievements, and visitor stats
+- Monaco-based playground with demo and challenge presets
 
-## React Compiler
+## Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React 19
+- TypeScript
+- Vite
+- Monaco Editor
+- CSS Modules
+- Web Workers for playground execution
 
-## Expanding the ESLint configuration
+## Local Development
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+This project expects Node to be managed with `nvm`.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+```bash
+source ~/.nvm/nvm.sh
+nvm use
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Scripts
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x';
-import reactDom from 'eslint-plugin-react-dom';
+```bash
+npm run dev
+npm run build
+npm run lint
+npm run lint:css
+npm run test:unit
+npm run test:e2e
+```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+## Core Commands
+
+- `help`: grouped command overview
+- `highlights`: strongest recruiter-facing wins
+- `tour`: guided recruiter path
+- `mode recruiter|engineer|founder|client`: switch visitor path
+- `projects` / `top-projects`: portfolio project views
+- `playground --demo` / `playground --challenge debugging`
+- `find <keyword>` / `grep <term> <target>`
+- `stats`: local usage and discovery progress
+
+## Architecture Notes
+
+- `src/hooks/useTerminal.tsx`: terminal state, command execution, virtual shell behavior
+- `src/data/commands.tsx`: typed command registry and grouped command surface
+- `src/utils/fileSystem.ts`: in-memory filesystem generated from portfolio content
+- `src/utils/portfolioInsights.tsx`: highlights, guided paths, search, and open-target helpers
+- `src/components/Playground/*`: playground UI and mobile variant
+
+## Testing
+
+Unit tests cover parser, completion, command registry behavior, filesystem basics, and secret-code detection.
+
+Playwright smoke coverage is scaffolded for the boot flow and guided experience.
+
+## CI
+
+GitHub Actions runs:
+
+- ESLint
+- Stylelint
+- Unit tests
+- Production build
+
+The workflow reads the Node version from `.nvmrc`.
+
+## Deployment
+
+The app is static and can be deployed to:
+
+- GitHub Pages
+- Vercel
+- Netlify
+- Cloudflare Pages
+
+Build output is generated with:
+
+```bash
+npm run build
 ```

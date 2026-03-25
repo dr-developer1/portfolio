@@ -99,27 +99,36 @@ async function runJavaScript(code: string, id: string): Promise<void> {
   const proxy = createConsoleProxy(id, originalConsole);
   const activeTimeouts = new Set<number>();
   const activeIntervals = new Set<number>();
+  type WorkerTimerHandler = TimerHandler;
 
-  const trackedSetTimeout: typeof self.setTimeout = (handler, timeout, ...args) => {
-    const timerId = self.setTimeout(handler, timeout, ...args);
+  const trackedSetTimeout = (
+    handler: WorkerTimerHandler,
+    timeout?: number,
+    ...args: unknown[]
+  ): number => {
+    const timerId = Number(self.setTimeout(handler, timeout, ...(args as [])));
     activeTimeouts.add(timerId);
     return timerId;
   };
 
-  const trackedSetInterval: typeof self.setInterval = (handler, timeout, ...args) => {
-    const timerId = self.setInterval(handler, timeout, ...args);
+  const trackedSetInterval = (
+    handler: WorkerTimerHandler,
+    timeout?: number,
+    ...args: unknown[]
+  ): number => {
+    const timerId = Number(self.setInterval(handler, timeout, ...(args as [])));
     activeIntervals.add(timerId);
     return timerId;
   };
 
-  const trackedClearTimeout: typeof self.clearTimeout = (timerId) => {
+  const trackedClearTimeout = (timerId?: number): void => {
     if (typeof timerId === 'number') {
       activeTimeouts.delete(timerId);
     }
     self.clearTimeout(timerId);
   };
 
-  const trackedClearInterval: typeof self.clearInterval = (timerId) => {
+  const trackedClearInterval = (timerId?: number): void => {
     if (typeof timerId === 'number') {
       activeIntervals.delete(timerId);
     }

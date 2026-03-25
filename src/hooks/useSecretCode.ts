@@ -28,6 +28,18 @@ const BUFFER_TIMEOUT = 2000;
  */
 const SORTED_SECRET_CODES = Object.entries(SECRET_CODES).sort((a, b) => b[0].length - a[0].length);
 
+export function detectSecretMode(buffer: string): BootMode | null {
+  const lowerBuffer = buffer.toLowerCase();
+
+  for (const [code, mode] of SORTED_SECRET_CODES) {
+    if (lowerBuffer.endsWith(code)) {
+      return mode;
+    }
+  }
+
+  return null;
+}
+
 /**
  * Hook to detect secret codes typed by the user
  *
@@ -57,16 +69,7 @@ export function useSecretCode(): UseSecretCodeReturn {
    * Uses pre-sorted codes (longest first) to avoid prefix collisions
    */
   const checkForSecretCode = useCallback((buffer: string): BootMode | null => {
-    const lowerBuffer = buffer.toLowerCase();
-
-    // Use pre-sorted codes (computed once at module level)
-    for (const [code, mode] of SORTED_SECRET_CODES) {
-      if (lowerBuffer.endsWith(code)) {
-        return mode;
-      }
-    }
-
-    return null;
+    return detectSecretMode(buffer);
   }, []);
 
   /**

@@ -27,6 +27,11 @@
   margin-bottom: 0.5rem;
 }
 
+.impact {
+  color: var(--color-accent-cyan);
+  margin-bottom: 0.5rem;
+}
+
 .company {
   color: var(--color-accent-cyan);
 }
