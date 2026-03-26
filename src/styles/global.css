@@ -92,8 +92,7 @@ body {
       calc(var(--spacing-sm) + var(--safe-area-bottom))
       calc(var(--spacing-sm) + var(--safe-area-left));
     align-items: flex-start; /* Allow content to flow naturally */
-    overflow-y: auto; /* Enable vertical scrolling */
-    overflow-x: hidden; /* Prevent horizontal scrolling */
+    overflow: auto hidden; /* Enable vertical scrolling, prevent horizontal */
   }
 
   #root {

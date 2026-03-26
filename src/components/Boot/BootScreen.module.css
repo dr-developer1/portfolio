@@ -21,8 +21,7 @@
   color: var(--color-text-primary);
   z-index: 1000;
   padding: var(--spacing-xl);
-  overflow-y: auto; /* Allow scrolling */
-  overflow-x: hidden;
+  overflow: auto hidden; /* Allow vertical scrolling only */
   -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
