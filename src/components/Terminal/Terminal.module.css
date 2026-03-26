@@ -158,7 +158,8 @@
   padding: var(--spacing-lg);
   background: var(--color-bg-primary);
   position: relative;
-  overflow: auto hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   min-height: 0;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */

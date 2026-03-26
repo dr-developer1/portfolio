@@ -63,10 +63,8 @@
   font-size: var(--font-size-sm);
   line-height: 1.2;
   text-shadow: var(--text-glow-cyan);
-  display: block;
+  display: inline-block;
   overflow-x: auto;
-  width: 100%;
-  max-width: 100%;
   transform-origin: left top;
   font-feature-settings: 'liga' 0, 'calt' 0;
   -webkit-font-feature-settings: 'liga' 0, 'calt' 0;
