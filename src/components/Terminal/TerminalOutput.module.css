@@ -64,7 +64,9 @@
   line-height: 1.2;
   text-shadow: var(--text-glow-cyan);
   display: block;
-  overflow-x: hidden;
+  overflow-x: auto;
+  width: 100%;
+  max-width: 100%;
 }
 
 .welcomeText {
