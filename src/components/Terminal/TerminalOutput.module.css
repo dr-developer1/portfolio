@@ -63,11 +63,13 @@
   font-size: var(--font-size-sm);
   line-height: 1.2;
   text-shadow: var(--text-glow-cyan);
-  display: inline-block;
+  display: block;
   overflow-x: auto;
   transform-origin: left top;
   font-feature-settings: 'liga' 0, 'calt' 0;
   -webkit-font-feature-settings: 'liga' 0, 'calt' 0;
+  width: fit-content;
+  min-width: 100%;
 }
 
 .welcomeText {
