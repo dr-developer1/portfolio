@@ -21,7 +21,8 @@
   color: var(--color-text-primary);
   z-index: 1000;
   padding: var(--spacing-xl);
-  overflow: hidden;
+  overflow: auto hidden; /* Allow vertical scrolling only */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 .bootContainer {
