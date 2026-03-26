@@ -67,6 +67,9 @@
   overflow-x: auto;
   width: 100%;
   max-width: 100%;
+  transform-origin: left top;
+  font-feature-settings: 'liga' 0, 'calt' 0;
+  -webkit-font-feature-settings: 'liga' 0, 'calt' 0;
 }
 
 .welcomeText {
@@ -166,8 +169,10 @@
   }
 
   .banner {
-    font-size: 6px;
-    line-height: 1.15;
+    font-size: 10px;
+    line-height: 1.2;
+    transform: scale(0.6);
+    margin-bottom: calc(var(--spacing-md) * -0.4);
   }
 
   .section {
@@ -180,9 +185,10 @@
    ======================================== */
 @media (width <= 480px) {
   .banner {
-    font-size: 5px;
-    line-height: 1.1;
-    margin-bottom: var(--spacing-sm);
+    font-size: 10px;
+    line-height: 1.2;
+    transform: scale(0.5);
+    margin-bottom: calc(var(--spacing-md) * -0.5);
   }
 
   .line {
@@ -200,7 +206,9 @@
    ======================================== */
 @media (width <= 360px) {
   .banner {
-    font-size: 4px;
+    font-size: 10px;
+    transform: scale(0.4);
+    margin-bottom: calc(var(--spacing-md) * -0.6);
   }
 }
 
@@ -209,8 +217,9 @@
    ======================================== */
 @media (width <= 768px) and (orientation: landscape) {
   .banner {
-    font-size: 5px;
-    margin-bottom: var(--spacing-xs);
+    font-size: 10px;
+    transform: scale(0.5);
+    margin-bottom: calc(var(--spacing-xs) * -0.5);
   }
 
   .output {
