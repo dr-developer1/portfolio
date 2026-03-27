@@ -227,6 +227,7 @@
 
   .container {
     padding: var(--spacing-md);
+    padding-bottom: 20vh; /* Extra space for virtual keyboard */
   }
 
   .titleBar {
@@ -311,6 +312,7 @@
 @media (width <= 768px) and (orientation: landscape) {
   .container {
     padding: var(--spacing-xs) var(--spacing-md);
+    padding-bottom: 30vh; /* More space for keyboard in landscape */
   }
 
   .titleBar {

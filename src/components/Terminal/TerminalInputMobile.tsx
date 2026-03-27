@@ -185,14 +185,34 @@ export const TerminalInputMobile: React.FC = () => {
       inputRef.current?.blur();
       return;
     }
-    inputRef.current?.focus();
+    if (inputRef.current) {
+      inputRef.current.focus();
+      // Scroll into view after a delay to ensure keyboard is visible
+      setTimeout(() => {
+        inputRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'nearest',
+        });
+      }, 300);
+    }
   }, [isPlaygroundOpen]);
 
   useEffect(() => {
     if (!isLoading && shouldRefocusRef.current && !isPlaygroundOpen) {
       shouldRefocusRef.current = false;
       requestAnimationFrame(() => {
-        inputRef.current?.focus();
+        if (inputRef.current) {
+          inputRef.current.focus();
+          // Scroll into view after keyboard appears
+          setTimeout(() => {
+            inputRef.current?.scrollIntoView({
+              behavior: 'smooth',
+              block: 'center',
+              inline: 'nearest',
+            });
+          }, 300);
+        }
       });
     }
   }, [isLoading, isPlaygroundOpen]);
