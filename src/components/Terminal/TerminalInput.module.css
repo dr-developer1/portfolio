@@ -102,6 +102,11 @@
   display: inline;
 }
 
+.mobileInlineInput {
+  display: inline;
+  position: relative;
+}
+
 .input {
   background: transparent;
   border: none;
@@ -123,11 +128,20 @@
   opacity: 0.5;
 }
 
+.inputPlaceholder {
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
 .mobileInput {
   display: inline-block;
   min-width: 2px;
   min-height: 1.2em;
   padding-left: 1px;
+}
+
+.mobileHiddenInput {
+  position: absolute;
 }
 
 .suggestion {

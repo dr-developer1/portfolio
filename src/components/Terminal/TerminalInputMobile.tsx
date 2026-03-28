@@ -1,14 +1,26 @@
-import React, { useRef, useCallback, useEffect } from 'react';
+import React, { useRef, useCallback, useEffect, useState } from 'react';
 import { useTerminalContext } from '../../hooks/TerminalContext';
+import { useEnsureFocusedElementVisible } from '../../hooks/useEnsureFocusedElementVisible';
 import { getPromptConfig } from '../../hooks/useTerminal';
 import { SYSTEM_CONFIG } from '../../config';
+import { UI_CONSTANTS } from '../../config/constants';
 import { useTabCompletion } from '../../hooks/useTabCompletion';
 import { getCompletions } from '../../utils/completionService';
 import { PromptDisplay } from './PromptDisplay';
 import styles from './TerminalInput.module.css';
 import outputStyles from '../../styles/outputUtilities.module.css';
 
-export const TerminalInputMobile: React.FC = () => {
+interface TerminalInputMobileProps {
+  keyboardInsetPx?: number;
+  isKeyboardOpen?: boolean;
+  isViewportSettled?: boolean;
+}
+
+export const TerminalInputMobile: React.FC<TerminalInputMobileProps> = ({
+  keyboardInsetPx = 0,
+  isKeyboardOpen = false,
+  isViewportSettled = true,
+}) => {
   const {
     executeCommand,
     addOutput,
@@ -23,8 +35,9 @@ export const TerminalInputMobile: React.FC = () => {
     setInput,
   } = useTerminalContext();
 
-  const inputRef = useRef<HTMLSpanElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const shouldRefocusRef = useRef(false);
+  const [isInputFocused, setIsInputFocused] = useState(false);
 
   const { handleTabKey, resetCompletion } = useTabCompletion();
   const { user, symbol } = getPromptConfig(bootMode);
@@ -32,22 +45,45 @@ export const TerminalInputMobile: React.FC = () => {
     ? getCompletions(input, currentDirectory, user)?.matches[0] ?? null
     : null;
 
-  useEffect(() => {
-    if (inputRef.current && inputRef.current.innerText !== input) {
-      inputRef.current.innerText = input;
-      const range = document.createRange();
-      const sel = window.getSelection();
-      range.selectNodeContents(inputRef.current);
-      range.collapse(false);
-      sel?.removeAllRanges();
-      sel?.addRange(range);
+  const { scheduleEnsureVisible, cancelScheduledEnsureVisible } =
+    useEnsureFocusedElementVisible<HTMLInputElement>({
+      elementRef: inputRef,
+      enabled: !isPlaygroundOpen,
+      isKeyboardOpen,
+      isViewportSettled,
+    });
+
+  const moveCaretToEnd = useCallback(() => {
+    const element = inputRef.current;
+    if (!element) {
+      return;
     }
-  }, [input]);
 
-  const handleInput = (e: React.FormEvent<HTMLSpanElement>) => {
-    const text = e.currentTarget.innerText.replace(/[\r\n]+/g, ' ');
+    const cursorPos = element.value.length;
+    element.setSelectionRange(cursorPos, cursorPos);
+  }, []);
 
-    setInput(text);
+  const scheduleVisibilitySync = useCallback(() => {
+    // When keyboard is already open, viewport resize has usually happened.
+    const delayMs =
+      isKeyboardOpen || keyboardInsetPx > 0
+        ? UI_CONSTANTS.MOBILE_KEYBOARD.VIEWPORT_SETTLE_DELAY_MS
+        : UI_CONSTANTS.MOBILE_KEYBOARD.FOCUS_SCROLL_DELAY_MS;
+
+    scheduleEnsureVisible(delayMs);
+  }, [isKeyboardOpen, keyboardInsetPx, scheduleEnsureVisible]);
+
+  const focusInput = useCallback(() => {
+    if (isPlaygroundOpen) {
+      return;
+    }
+
+    inputRef.current?.focus({ preventScroll: true });
+    scheduleVisibilitySync();
+  }, [isPlaygroundOpen, scheduleVisibilitySync]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInput(e.target.value);
     resetHistoryIndex();
     resetCompletion();
   };
@@ -63,7 +99,9 @@ export const TerminalInputMobile: React.FC = () => {
       clearTerminal();
       setInput('');
       resetCompletion();
-      requestAnimationFrame(() => inputRef.current?.focus());
+      requestAnimationFrame(() => {
+        focusInput();
+      });
       return;
     }
 
@@ -92,11 +130,12 @@ export const TerminalInputMobile: React.FC = () => {
     user,
     symbol,
     currentDirectory,
+    focusInput,
     resetCompletion,
     setInput,
   ]);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLSpanElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Tab') {
       e.preventDefault();
       if (isLoading) return;
@@ -104,6 +143,9 @@ export const TerminalInputMobile: React.FC = () => {
       const newInput = handleTabKey(input, currentDirectory, user);
       if (newInput !== null) {
         setInput(newInput);
+        requestAnimationFrame(() => {
+          moveCaretToEnd();
+        });
       }
       return;
     }
@@ -123,6 +165,9 @@ export const TerminalInputMobile: React.FC = () => {
         const olderCommand = navigateHistory(1);
         if (olderCommand !== null) {
           setInput(olderCommand);
+          requestAnimationFrame(() => {
+            moveCaretToEnd();
+          });
         }
         break;
       }
@@ -132,6 +177,9 @@ export const TerminalInputMobile: React.FC = () => {
         const newerCommand = navigateHistory(-1);
         if (newerCommand !== null) {
           setInput(newerCommand);
+          requestAnimationFrame(() => {
+            moveCaretToEnd();
+          });
         }
         break;
       }
@@ -182,23 +230,37 @@ export const TerminalInputMobile: React.FC = () => {
 
   useEffect(() => {
     if (isPlaygroundOpen) {
+      cancelScheduledEnsureVisible();
       inputRef.current?.blur();
       return;
     }
-    inputRef.current?.focus();
-  }, [isPlaygroundOpen]);
+
+    focusInput();
+  }, [cancelScheduledEnsureVisible, focusInput, isPlaygroundOpen]);
 
   useEffect(() => {
     if (!isLoading && shouldRefocusRef.current && !isPlaygroundOpen) {
       shouldRefocusRef.current = false;
       requestAnimationFrame(() => {
-        inputRef.current?.focus();
+        focusInput();
       });
     }
-  }, [isLoading, isPlaygroundOpen]);
+  }, [focusInput, isLoading, isPlaygroundOpen]);
+
+  useEffect(() => {
+    return () => {
+      cancelScheduledEnsureVisible();
+    };
+  }, [cancelScheduledEnsureVisible]);
+
+  const placeholder = isLoading ? 'Processing...' : "Type 'help' for available commands...";
 
   return (
-    <div className={styles.inputContainer} onClick={() => inputRef.current?.focus()}>
+    <div
+      className={styles.inputContainer}
+      onClick={focusInput}
+      data-testid="terminal-input-mobile"
+    >
       <span className={styles.prompt}>
         <span className={styles.promptUser}>{user}</span>
         <span className={styles.promptAt}>@</span>
@@ -207,24 +269,43 @@ export const TerminalInputMobile: React.FC = () => {
         <span className={styles.promptPath}>{currentDirectory}</span>
         <span className={styles.promptSymbol}>{symbol}</span>
       </span>
-      <span className={styles.inputWrapper}>
-        <span
+
+      <span className={styles.mobileInlineInput}>
+        <input
           ref={inputRef}
-          className={`${styles.input} ${styles.mobileInput}`}
-          contentEditable
-          onInput={handleInput}
+          type="text"
+          className={`${styles.hiddenInput} ${styles.mobileHiddenInput}`}
+          value={input}
+          onChange={handleInputChange}
           onKeyDown={handleKeyDown}
+          onFocus={() => {
+            setIsInputFocused(true);
+            scheduleVisibilitySync();
+          }}
+          onBlur={() => {
+            setIsInputFocused(false);
+            cancelScheduledEnsureVisible();
+          }}
           autoFocus
           spellCheck={false}
-          autoCorrect="off"
           autoCapitalize="off"
-          role="textbox"
+          autoCorrect="off"
+          autoComplete="off"
+          enterKeyHint="send"
           aria-label="Terminal input"
-          aria-multiline="false"
-          suppressContentEditableWarning
-          data-placeholder={isLoading ? 'Processing...' : "Type 'help' for available commands..."}
+          data-testid="terminal-input-native"
         />
+
+        <span className={styles.inputDisplay} aria-hidden="true" data-testid="terminal-input-display">
+          {input ? (
+            input
+          ) : (
+            <span className={styles.inputPlaceholder}>{placeholder}</span>
+          )}
+          {isInputFocused && <span className={styles.cursorBlock}>&nbsp;</span>}
+        </span>
       </span>
+
       {suggestion && suggestion !== input && (
         <div className={styles.suggestion}>Tap Tab on supported keyboards to autocomplete: {suggestion}</div>
       )}
