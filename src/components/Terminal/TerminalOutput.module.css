@@ -57,14 +57,31 @@
   margin-bottom: var(--spacing-md);
 }
 
+.bannerScroll {
+  overflow: auto hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
 .banner {
+  font-family: var(--font-mono-banner);
+  font-weight: 400;
+  font-style: normal;
+  font-synthesis: none;
+  font-kerning: none;
+  font-variant-ligatures: none;
+  font-feature-settings: 'liga' 0, 'calt' 0;
   color: var(--color-accent-cyan);
   white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
   font-size: var(--font-size-sm);
   line-height: 1.2;
   text-shadow: var(--text-glow-cyan);
   display: block;
-  overflow-x: hidden;
+  width: max-content;
+  min-width: 100%;
+  margin: 0;
+  tab-size: 2;
 }
 
 .welcomeText {
