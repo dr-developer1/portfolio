@@ -1,3 +1,13 @@
+@font-face {
+  font-family: 'JetBrains Mono Banner';
+  src:
+    url('/fonts/JetBrainsMonoBanner-Regular.woff2') format('woff2'),
+    url('/fonts/JetBrainsMonoBanner-Regular.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+}
+
 :root {
   /* Modern color palette - GitHub inspired dark theme */
   --color-bg-primary: #0d1117;
@@ -53,6 +63,7 @@
 
   /* Typography */
   --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  --font-mono-banner: 'JetBrains Mono Banner';
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-base: 0.9375rem;
