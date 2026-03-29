@@ -27,6 +27,12 @@ export function getStoredTheme(): ThemeName {
     if (stored && isValidTheme(stored)) {
       return stored;
     }
+    if (
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-color-scheme: light)').matches
+    ) {
+      return 'light';
+    }
   } catch (e) {
     console.warn('Failed to access localStorage for theme', e);
   }

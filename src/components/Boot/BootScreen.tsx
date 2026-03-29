@@ -22,7 +22,7 @@ import { StartPrompt } from './StartPrompt';
  * Full-screen boot sequence component
  */
 export const BootScreen: React.FC<BootScreenProps> = ({ onBootComplete, onModeDetected }) => {
-  const { state, startBoot, messages } = useBootSequence();
+  const { state, startBoot, skipBoot, messages } = useBootSequence();
   const { detectedMode, typedText, reset: resetSecretCode, feedInput } = useSecretCode();
   const hasStartedRef = useRef(false);
 
@@ -92,6 +92,7 @@ export const BootScreen: React.FC<BootScreenProps> = ({ onBootComplete, onModeDe
             typedText={typedText}
             onStart={() => handleStart(detectedMode ?? 'normal')}
             onInputChange={feedInput}
+            onSkip={skipBoot}
           />
         )}
 

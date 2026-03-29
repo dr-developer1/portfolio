@@ -6,19 +6,14 @@ import styles from './TerminalOutput.module.css';
 const ASCII_BANNER = String.raw`
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
-║  ▓█████▄  ██▀███     ▓█████▄ ▓█████ ██▒   █▓▓█████  ██▓     ▒█████   ██▓███  ▓█████  ██▀███  
-║  ▒██▀ ██▌▓██ ▒ ██▒   ▒██▀ ██▌▓█   ▀▓██░   █▒▓█   ▀ ▓██▒    ▒██▒  ██▒▓██░  ██▒▓█   ▀ ▓██ ▒ ██▒
-║  ░██   █▌▓██ ░▄█ ▒   ░██   █▌▒███   ▓██  █▒░▒███   ▒██░    ▒██░  ██▒▓██░ ██▓▒▒███   ▓██ ░▄█ ▒
-║  ░▓█▄   ▌▒██▀▀█▄     ░▓█▄   ▌▒▓█  ▄  ▒██ █░░▒▓█  ▄ ▒██░    ▒██   ██░▒██▄█▓▒ ▒▒▓█  ▄ ▒██▀▀█▄  
-║  ░▒████▓ ░██▓ ▒██▒   ░▒████▓ ░▒████▒  ▒▀█░  ░▒████▒░██████▒░ ████▓▒░▒██▒ ░  ░░▒████▒░██▓ ▒██▒
-║  ▒▒▓  ▒ ░ ▒▓ ░▒▓░    ▒▒▓  ▒ ░░ ▒░ ░  ░ ▐░  ░░ ▒░ ░░ ▒░▓  ░░ ▒░▒░▒░ ▒▓▒░ ░  ░░░ ▒░ ░░ ▒▓ ░▒▓░
-║  ░ ▒  ▒   ░▒ ░ ▒░    ░ ▒  ▒  ░ ░  ░  ░ ░░   ░ ░  ░░ ░ ▒  ░  ░ ▒ ▒░ ░▒ ░      ░ ░  ░  ░▒ ░ ▒░
-║  ░ ░  ░   ░░   ░     ░ ░  ░    ░       ░░     ░     ░ ░   ░ ░ ░ ▒  ░░          ░     ░░   ░ 
-║    ░       ░           ░       ░  ░     ░     ░  ░    ░  ░    ░ ░              ░  ░   ░     
-║  ░                   ░                 ░                                                    
+║   ███   █   █  █   █   ███   ████        █████  ████   ████    ███   █   █  █████  █   █
+║  █   █  █   █  ██ ██  █   █  █   █         █    █   █  █   █  █   █  █   █    █    ██ ██
+║  █████  █████  █ █ █  █████  █   █         █    ████   ████   █████  █████    █    █ █ █
+║  █   █  █   █  █   █  █   █  █   █         █    █   █  █ █    █   █  █   █    █    █   █
+║  █   █  █   █  █   █  █   █  ████        █████  ████   █  ██  █   █  █   █  █████  █   █
 ║                                                           ║
-║               AHMAD IBRAHIM • FRANCE                      ║
-║               Ingénieur Développeur Full-Stack            ║
+║               AHMAD IBRAHIM • LYON, FRANCE                ║
+║               Full Stack Software Engineer                ║
 ║                                                           ║
 ╚═══════════════════════════════════════════════════════════╝
 `;
@@ -73,8 +68,8 @@ export const TerminalOutput: React.FC = () => {
       ) : null}
       <div className={styles.line}>
         <span className={styles.muted}>
-          Tapez &apos;<span className={styles.highlight}>help</span>&apos; pour explorer mes projets
-          et compétences
+          Type <span className={styles.highlight}>help</span> to explore projects, skills, and
+          experience
         </span>
       </div>
       <div className={styles.quickActions}>
@@ -87,6 +82,34 @@ export const TerminalOutput: React.FC = () => {
             { label: 'Tour', command: 'tour' },
             { label: 'Projects', command: 'top-projects' },
             { label: 'Contact', command: 'contact' },
+          ]}
+        />
+      </div>
+      <div className={styles.quickActions}>
+        <CommandShortcutList
+          title="Who are you? Choose your path"
+          compact
+          items={[
+            {
+              label: 'Recruiter',
+              command: 'mode recruiter',
+              description: 'Fast overview, experience, contact',
+            },
+            {
+              label: 'Engineer',
+              command: 'mode engineer',
+              description: 'Architecture, playground, deep dives',
+            },
+            {
+              label: 'Founder',
+              command: 'mode founder',
+              description: 'Product delivery, ownership, speed',
+            },
+            {
+              label: 'Client',
+              command: 'mode client',
+              description: 'Outcomes, stack, communication',
+            },
           ]}
         />
       </div>

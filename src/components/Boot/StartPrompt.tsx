@@ -19,6 +19,7 @@ export const StartPrompt: React.FC<StartPromptProps> = ({
   typedText = '',
   onStart,
   onInputChange,
+  onSkip,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -82,6 +83,11 @@ export const StartPrompt: React.FC<StartPromptProps> = ({
         className={styles.tapToStart}
         onClick={(e) => {
           e.stopPropagation();
+          if (onSkip) {
+            onSkip();
+            return;
+          }
+
           onStart?.();
         }}
         aria-label="Tap to start system"

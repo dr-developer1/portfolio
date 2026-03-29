@@ -4,6 +4,7 @@ import { getPromptConfig } from '../../hooks/useTerminal';
 import { SYSTEM_CONFIG } from '../../config';
 import { useTabCompletion } from '../../hooks/useTabCompletion';
 import { getCompletions } from '../../utils/completionService';
+import { playCommandFire, playKeyClick } from '../../utils/soundService';
 import { PromptDisplay } from './PromptDisplay';
 import styles from './TerminalInput.module.css';
 import outputStyles from '../../styles/outputUtilities.module.css';
@@ -18,6 +19,7 @@ export const TerminalInputDesktop: React.FC = () => {
     currentDirectory,
     isLoading,
     bootMode,
+    musicEnabled,
     isPlaygroundOpen,
     input,
     setInput,
@@ -48,6 +50,9 @@ export const TerminalInputDesktop: React.FC = () => {
     setCursorPos(e.target.selectionStart || newValue.length);
     resetHistoryIndex();
     resetCompletion();
+    if (musicEnabled) {
+      playKeyClick();
+    }
   };
 
   const handleSelect = (e: React.SyntheticEvent<HTMLInputElement>) => {
@@ -82,6 +87,9 @@ export const TerminalInputDesktop: React.FC = () => {
         'command'
       );
     } else {
+      if (musicEnabled) {
+        playCommandFire();
+      }
       executeCommand(trimmedInput);
       shouldRefocusRef.current = true;
     }
@@ -96,6 +104,7 @@ export const TerminalInputDesktop: React.FC = () => {
     clearTerminal,
     user,
     symbol,
+    musicEnabled,
     currentDirectory,
     resetCompletion,
     setInput,

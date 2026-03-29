@@ -7,8 +7,6 @@ import { TerminalProvider } from './hooks/TerminalProvider';
 import { useTerminalContext } from './hooks/TerminalContext';
 import type { BootMode } from './types/boot';
 
-import './App.css';
-
 /**
  * Inner component that has access to TerminalContext
  */

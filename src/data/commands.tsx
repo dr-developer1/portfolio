@@ -292,6 +292,76 @@ const topProjectsCommand: Command = {
   },
 };
 
+const githubCommand: Command = {
+  name: 'github',
+  description: 'View live GitHub stats and recent public activity',
+  usage: 'github',
+  category: 'projects',
+  execute: async (_args, addOutput) => {
+    addOutput(<span className={styles.textSecondary}>Fetching GitHub data…</span>);
+
+    try {
+      const [userRes, reposRes] = await Promise.all([
+        fetch('https://api.github.com/users/dr-developer1'),
+        fetch('https://api.github.com/users/dr-developer1/repos?sort=pushed&per_page=5'),
+      ]);
+
+      if (!userRes.ok || !reposRes.ok) {
+        throw new Error('API error');
+      }
+
+      const user = (await userRes.json()) as {
+        followers: number;
+        public_repos: number;
+        bio: string;
+      };
+
+      const repos = (await reposRes.json()) as Array<{
+        name: string;
+        language: string | null;
+        stargazers_count: number;
+        html_url: string;
+      }>;
+
+      addOutput(
+        <div className={styles.flexColumn}>
+          <div className={styles.headerSection}>GitHub · dr-developer1</div>
+          <div className={styles.infoGrid}>
+            <span className={styles.textMuted}>Followers</span>
+            <span>{user.followers}</span>
+            <span className={styles.textMuted}>Public repos</span>
+            <span>{user.public_repos}</span>
+          </div>
+          {user.bio && <div className={styles.textSecondary}>{user.bio}</div>}
+          <div className={styles.headerSection}>Recent repos</div>
+          {repos.map((repo) => (
+            <div key={repo.name} className={styles.flexBaseline}>
+              <a
+                href={repo.html_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.textLink}
+              >
+                {repo.name}
+              </a>
+              <span className={styles.textMuted}>
+                {repo.language ?? 'unknown'} · ⭐ {repo.stargazers_count}
+              </span>
+            </div>
+          ))}
+        </div>
+      );
+    } catch {
+      addOutput(
+        <span className={styles.error}>
+          Could not fetch GitHub data. You may be rate-limited. Try again in a minute.
+        </span>,
+        'error'
+      );
+    }
+  },
+};
+
 const contactCommand: Command = {
   name: 'contact',
   description: 'Display contact information',
@@ -317,6 +387,27 @@ const contactCommand: Command = {
           <span className={styles.accentGreen}>top-projects</span>, then reach out.
         </div>
       </div>
+    );
+  },
+};
+
+const contactMeCommand: Command = {
+  name: 'contact-me',
+  description: 'Open email client to reach out directly',
+  usage: 'contact-me',
+  aliases: ['hire-me', 'reach-out'],
+  category: 'career',
+  execute: (_args, addOutput) => {
+    const subject = encodeURIComponent('Opportunity - via Portfolio');
+    const body = encodeURIComponent(
+      'Hi Ahmad,\n\nI came across your portfolio and would love to connect.\n\n'
+    );
+
+    window.location.href = `mailto:aibrahim0@outlook.com?subject=${subject}&body=${body}`;
+
+    addOutput(
+      <span className={styles.success}>Opening your email client… Subject and intro pre-filled.</span>,
+      'success'
     );
   },
 };
@@ -707,10 +798,18 @@ const playgroundCommand: Command = {
 
     context?.openPlayground?.(preset);
     addOutput(
-      <span className={styles.textSecondary}>
-        Opening playground {preset === 'default' ? 'workspace' : `preset: ${preset}`}…
-      </span>,
-      'info'
+      <div className={styles.panel}>
+        <div className={styles.panelTitle}>Coding Playground</div>
+        <div className={styles.textSecondary}>
+          Fully client-side sandbox powered by{' '}
+          <span className={styles.accentGreen}>Monaco Editor</span>,{' '}
+          <span className={styles.accentCyan}>esbuild-wasm</span> (JS/TS), and{' '}
+          <span className={styles.accentPurple}>Pyodide</span> (Python). No server. No backend.
+        </div>
+        <div className={styles.textMuted}>
+          Opening {preset === 'default' ? 'workspace' : `preset: ${preset}`}…
+        </div>
+      </div>
     );
   },
 };
@@ -778,6 +877,159 @@ const musicCommand: Command = {
   autocomplete: (partial) => ['on', 'off', 'toggle'].filter((item) =>
     item.startsWith(partial.toLowerCase())
   ),
+};
+
+const neofetchCommand: Command = {
+  name: 'neofetch',
+  description: 'Display system info in neofetch style',
+  usage: 'neofetch',
+  category: 'fun',
+  execute: (_args, addOutput) => {
+    const theme = document.documentElement.getAttribute('data-theme') ?? 'dark';
+
+    addOutput(
+      <div className={styles.flexRowGap}>
+        <pre className={styles.accentCyan} style={{ lineHeight: 1.4, fontSize: '0.8rem' }}>
+          {String.raw`     _       _
+    / \ / _\ |__  _ __ ___
+   / _ \ \ \| '_ \| '_ \\ \\
+  / ___ \_\ \ | | | | | | | |
+ /_/   \__/_| |_|_| |_| |_|`}
+        </pre>
+        <div className={styles.flexColumn} style={{ gap: '0.25rem' }}>
+          <div>
+            <span className={styles.accentGreen}>OS</span>       Portfolio OS v3.0.0
+          </div>
+          <div>
+            <span className={styles.accentGreen}>Host</span>     Ahmad Ibrahim
+          </div>
+          <div>
+            <span className={styles.accentGreen}>Shell</span>    Terminal (React + TypeScript)
+          </div>
+          <div>
+            <span className={styles.accentGreen}>Theme</span>    {theme}
+          </div>
+          <div>
+            <span className={styles.accentGreen}>Location</span> Lyon, France
+          </div>
+          <div>
+            <span className={styles.accentGreen}>Stack</span>    NestJS · Vue.js · React · PostgreSQL
+          </div>
+          <div>
+            <span className={styles.accentGreen}>Contact</span>  aibrahim0@outlook.com
+          </div>
+        </div>
+      </div>
+    );
+  },
+};
+
+const weatherCommand: Command = {
+  name: 'weather',
+  description: 'Show current weather at your location',
+  usage: 'weather',
+  category: 'fun',
+  execute: async (_args, addOutput) => {
+    if (!('geolocation' in navigator)) {
+      addOutput(
+        <span className={styles.error}>Geolocation is not supported in this browser.</span>,
+        'error'
+      );
+      return;
+    }
+
+    addOutput(<span className={styles.textSecondary}>Getting your location…</span>);
+
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords }) => {
+        try {
+          const res = await fetch(`https://wttr.in/${coords.latitude},${coords.longitude}?format=j1`);
+          if (!res.ok) {
+            throw new Error('Weather API error');
+          }
+
+          const data = (await res.json()) as {
+            current_condition: Array<{
+              weatherDesc: Array<{ value: string }>;
+              temp_C: string;
+              FeelsLikeC: string;
+              humidity: string;
+              windspeedKmph: string;
+            }>;
+            nearest_area: Array<{
+              areaName: Array<{ value: string }>;
+              country: Array<{ value: string }>;
+            }>;
+          };
+
+          const current = data.current_condition[0];
+          const area = data.nearest_area[0];
+          const city = area.areaName[0].value;
+          const country = area.country[0].value;
+
+          addOutput(
+            <div className={styles.flexColumn}>
+              <div className={styles.headerSection}>
+                Weather · {city}, {country}
+              </div>
+              <div className={styles.infoGrid}>
+                <span className={styles.textMuted}>Condition</span>
+                <span className={styles.accentCyan}>{current.weatherDesc[0].value}</span>
+                <span className={styles.textMuted}>Temperature</span>
+                <span>
+                  {current.temp_C}°C (feels like {current.FeelsLikeC}°C)
+                </span>
+                <span className={styles.textMuted}>Humidity</span>
+                <span>{current.humidity}%</span>
+                <span className={styles.textMuted}>Wind</span>
+                <span>{current.windspeedKmph} km/h</span>
+              </div>
+            </div>
+          );
+        } catch {
+          addOutput(<span className={styles.error}>Could not fetch weather data.</span>, 'error');
+        }
+      },
+      () => {
+        addOutput(
+          <span className={styles.error}>
+            Location access denied. Allow location permission and try again.
+          </span>,
+          'error'
+        );
+      }
+    );
+  },
+};
+
+const bannerCommand: Command = {
+  name: 'banner',
+  description: 'Generate large ASCII text using the terminal font',
+  usage: 'banner <text>',
+  category: 'fun',
+  hidden: true,
+  execute: (args, addOutput) => {
+    if (!args.length) {
+      addOutput(<span className={styles.error}>Usage: banner &lt;text&gt;</span>, 'error');
+      return;
+    }
+
+    const text = args.join(' ').toUpperCase();
+    addOutput(
+      <pre
+        style={{
+          fontFamily: 'var(--font-mono-banner)',
+          color: 'var(--color-accent-cyan)',
+          fontSize: '1.5rem',
+          lineHeight: 1.2,
+          letterSpacing: '0.05em',
+          textShadow: 'var(--text-glow-cyan)',
+        }}
+      >
+        {text}
+      </pre>
+    );
+  },
 };
 
 const findCommand: Command = {
@@ -1122,7 +1374,9 @@ export const basicCommands: Command[] = [
   educationCommand,
   projectsCommand,
   topProjectsCommand,
+  githubCommand,
   contactCommand,
+  contactMeCommand,
   highlightsCommand,
   timelineCommand,
   whyMeCommand,
@@ -1136,12 +1390,15 @@ export const basicCommands: Command[] = [
   themeCommand,
   resumeCommand,
   playgroundCommand,
+  neofetchCommand,
   effectCommand,
   musicCommand,
+  weatherCommand,
   findCommand,
   grepCommand,
   openCommand,
   statsCommand,
+  bannerCommand,
   interviewCommand,
   legacyCommand,
   incidentCommand,
@@ -1168,4 +1425,9 @@ export {
   experienceCommand,
   educationCommand,
   projectsCommand,
+  neofetchCommand,
+  githubCommand,
+  weatherCommand,
+  contactMeCommand,
+  bannerCommand,
 };
