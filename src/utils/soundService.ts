@@ -5,6 +5,9 @@ const AudioContextConstructor =
     : null;
 
 let ctx: AudioContext | null = null;
+let lastKeyClickAt = 0;
+
+const KEY_CLICK_THROTTLE_MS = 35;
 
 function getCtx(): AudioContext | null {
   if (!AudioContextConstructor) return null;
@@ -17,6 +20,12 @@ function getCtx(): AudioContext | null {
 
 export function playKeyClick(): void {
   try {
+    const now = performance.now();
+    if (now - lastKeyClickAt < KEY_CLICK_THROTTLE_MS) {
+      return;
+    }
+    lastKeyClickAt = now;
+
     const c = getCtx();
     if (!c) return;
 

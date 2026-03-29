@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { useTerminalContext } from '../../hooks/TerminalContext';
 import { getPromptConfig } from '../../hooks/useTerminal';
 import { SYSTEM_CONFIG } from '../../config';
@@ -34,9 +34,13 @@ export const TerminalInputDesktop: React.FC = () => {
 
   const { handleTabKey, resetCompletion } = useTabCompletion();
   const { user, symbol } = getPromptConfig(bootMode);
-  const suggestion = !isLoading
-    ? getCompletions(input, currentDirectory, user)?.matches[0] ?? null
-    : null;
+  const suggestion = useMemo(() => {
+    if (isLoading) {
+      return null;
+    }
+
+    return getCompletions(input, currentDirectory, user)?.matches[0] ?? null;
+  }, [isLoading, input, currentDirectory, user]);
 
   // Sync cursor position when input changes externally (history, completion)
   useEffect(() => {

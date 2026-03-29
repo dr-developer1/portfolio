@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useEffect, useState } from 'react';
+import React, { useRef, useCallback, useEffect, useState, useMemo } from 'react';
 import { useTerminalContext } from '../../hooks/TerminalContext';
 import { useEnsureFocusedElementVisible } from '../../hooks/useEnsureFocusedElementVisible';
 import { getPromptConfig } from '../../hooks/useTerminal';
@@ -43,9 +43,13 @@ export const TerminalInputMobile: React.FC<TerminalInputMobileProps> = ({
 
   const { handleTabKey, resetCompletion } = useTabCompletion();
   const { user, symbol } = getPromptConfig(bootMode);
-  const suggestion = !isLoading
-    ? getCompletions(input, currentDirectory, user)?.matches[0] ?? null
-    : null;
+  const suggestion = useMemo(() => {
+    if (isLoading) {
+      return null;
+    }
+
+    return getCompletions(input, currentDirectory, user)?.matches[0] ?? null;
+  }, [isLoading, input, currentDirectory, user]);
 
   const { scheduleEnsureVisible, cancelScheduledEnsureVisible } =
     useEnsureFocusedElementVisible<HTMLInputElement>({

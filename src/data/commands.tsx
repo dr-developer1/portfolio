@@ -37,6 +37,22 @@ const CATEGORY_LABELS: Record<CommandCategory, string> = {
   system: 'System',
 };
 
+function formatDuration(ms: number): string {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  const parts: string[] = [];
+  if (days > 0) parts.push(`${days}d`);
+  if (hours > 0) parts.push(`${hours}h`);
+  if (minutes > 0) parts.push(`${minutes}m`);
+  if (seconds > 0 || parts.length === 0) parts.push(`${seconds}s`);
+
+  return parts.join(' ');
+}
+
 function renderCommandGroups(commands: Command[]) {
   const visible = commands.filter((command) => !command.hidden);
   const grouped = visible.reduce<Record<CommandCategory, Command[]>>(
@@ -414,12 +430,38 @@ const contactMeCommand: Command = {
 
 const whoamiCommand: Command = {
   name: 'whoami',
-  description: 'Display current user',
-  usage: 'whoami',
+  description: 'Display current user and session identity card',
+  usage: 'whoami [--raw]',
   category: 'core',
-  execute: (_args, addOutput, context) => {
-    addOutput(<span className={styles.accentGreen}>{context?.user ?? SYSTEM_CONFIG.defaultUser}</span>);
+  execute: (args, addOutput, context) => {
+    const user = context?.user ?? SYSTEM_CONFIG.defaultUser;
+
+    if (args[0] === '--raw') {
+      addOutput(<span className={styles.accentGreen}>{user}</span>);
+      return;
+    }
+
+    addOutput(
+      <div className={styles.panel}>
+        <div className={styles.panelTitle}>Identity</div>
+        <div className={styles.infoGrid}>
+          <span className={styles.textMuted}>User</span>
+          <span className={styles.accentGreen}>{user}</span>
+          <span className={styles.textMuted}>Role</span>
+          <span>Full Stack Software Engineer</span>
+          <span className={styles.textMuted}>Location</span>
+          <span>Lyon, France</span>
+          <span className={styles.textMuted}>Current path</span>
+          <span className={styles.accentCyan}>{context?.visitorMode ?? 'standard'}</span>
+          <span className={styles.textMuted}>Shell</span>
+          <span>
+            {user}@{SYSTEM_CONFIG.hostname}
+          </span>
+        </div>
+      </div>
+    );
   },
+  autocomplete: (partial) => ['--raw'].filter((item) => item.startsWith(partial.toLowerCase())),
 };
 
 const dateCommand: Command = {
@@ -442,6 +484,93 @@ const dateCommand: Command = {
         })}
       </span>
     );
+  },
+};
+
+const shareCommand: Command = {
+  name: 'share',
+  description: 'Generate a shareable link (optionally auto-run a command)',
+  usage: 'share [command]',
+  category: 'core',
+  execute: async (args, addOutput) => {
+    const commandToShare = args.join(' ').trim();
+    const baseUrl = `${window.location.origin}${window.location.pathname}`;
+    const shareUrl = commandToShare ? `${baseUrl}?run=${encodeURIComponent(commandToShare)}` : baseUrl;
+
+    let copied = false;
+    if (navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        copied = true;
+      } catch {
+        copied = false;
+      }
+    }
+
+    addOutput(
+      <div className={styles.flexColumn}>
+        <span className={copied ? styles.success : styles.textSecondary}>
+          {copied ? 'Share link copied to clipboard.' : 'Share link generated.'}
+        </span>
+        <a href={shareUrl} target="_blank" rel="noopener noreferrer" className={styles.textLink}>
+          {shareUrl}
+        </a>
+        <span className={styles.textMuted}>
+          {commandToShare
+            ? `This link auto-runs "${commandToShare}" once on page load.`
+            : 'Pass a command to create a deep link, for example: share tour'}
+        </span>
+      </div>,
+      copied ? 'success' : 'info'
+    );
+  },
+};
+
+const uptimeCommand: Command = {
+  name: 'uptime',
+  description: 'Show how long this terminal session has been running',
+  usage: 'uptime',
+  category: 'system',
+  execute: (_args, addOutput, context) => {
+    const start = context?.sessionStartedAt ?? Date.now();
+    const elapsed = Date.now() - start;
+
+    addOutput(
+      <div className={styles.flexColumn}>
+        <div className={styles.flexBaseline}>
+          <span className={styles.accentGreen}>Session uptime</span>
+          <span className={styles.textSecondary}>{formatDuration(elapsed)}</span>
+        </div>
+        <div className={styles.textMuted}>Started at {new Date(start).toLocaleTimeString()}</div>
+      </div>
+    );
+  },
+};
+
+const pingCommand: Command = {
+  name: 'ping',
+  description: 'Measure response latency to the current host',
+  usage: 'ping',
+  category: 'system',
+  execute: async (_args, addOutput) => {
+    addOutput(<span className={styles.textSecondary}>Pinging host…</span>);
+
+    const startedAt = performance.now();
+
+    try {
+      await fetch(`${window.location.origin}/`, {
+        method: 'HEAD',
+        cache: 'no-store',
+      });
+      const elapsed = Math.max(1, Math.round(performance.now() - startedAt));
+      addOutput(<span className={styles.success}>pong {elapsed}ms</span>, 'success');
+    } catch {
+      const elapsed = Math.max(1, Math.round(performance.now() - startedAt));
+      addOutput(
+        <span className={styles.warning}>Host did not respond cleanly (approx. {elapsed}ms).</span>,
+        'warning'
+      );
+    }
   },
 };
 
@@ -577,12 +706,31 @@ const tourCommand: Command = {
   category: 'career',
   featured: true,
   execute: (_args, addOutput, context) => {
+    const progress = getVisitorProgress();
+    const completed = RECRUITER_TOUR.filter((command) =>
+      progress.discoveredCommands.includes(command)
+    ).length;
+    const nextStep = RECRUITER_TOUR.find((command) => !progress.discoveredCommands.includes(command));
+
     context?.setVisitorMode?.('recruiter');
     addOutput(
-      <CommandShortcutList
-        title="Recruiter tour"
-        items={RECRUITER_TOUR.map((command) => ({ label: command, command }))}
-      />
+      <div className={styles.flexColumn}>
+        <CommandShortcutList
+          title="Recruiter tour"
+          items={RECRUITER_TOUR.map((command) => ({ label: command, command }))}
+        />
+        <span className={styles.textMuted}>
+          Progress: {completed}/{RECRUITER_TOUR.length}
+          {nextStep ? (
+            <>
+              {' '}
+              • Next recommended: <span className={styles.accentGreen}>{nextStep}</span>
+            </>
+          ) : (
+            ' • Tour complete. Try recommend for personalized next steps.'
+          )}
+        </span>
+      </div>
     );
   },
 };
@@ -1362,6 +1510,7 @@ export const basicCommands: Command[] = [
   echoCommand,
   whoamiCommand,
   dateCommand,
+  shareCommand,
   historyCommand,
   pwdCommand,
   lsCommand,
@@ -1388,6 +1537,8 @@ export const basicCommands: Command[] = [
   chooseYourPathCommand,
   diagnoseCommand,
   themeCommand,
+  uptimeCommand,
+  pingCommand,
   resumeCommand,
   playgroundCommand,
   neofetchCommand,

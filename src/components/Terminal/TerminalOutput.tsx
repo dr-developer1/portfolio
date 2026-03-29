@@ -1,16 +1,26 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { CommandShortcutList } from '../Output';
 import { useTerminalContext } from '../../hooks/TerminalContext';
+import { RECRUITER_TOUR } from '../../data/guides';
+import { getVisitorProgress } from '../../utils/progressService';
 import styles from './TerminalOutput.module.css';
 
 const ASCII_BANNER = String.raw`
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
-║   ███   █   █  █   █   ███   ████        █████  ████   ████    ███   █   █  █████  █   █
-║  █   █  █   █  ██ ██  █   █  █   █         █    █   █  █   █  █   █  █   █    █    ██ ██
-║  █████  █████  █ █ █  █████  █   █         █    ████   ████   █████  █████    █    █ █ █
-║  █   █  █   █  █   █  █   █  █   █         █    █   █  █ █    █   █  █   █    █    █   █
-║  █   █  █   █  █   █  █   █  ████        █████  ████   █  ██  █   █  █   █  █████  █   █
+║  ██████╗ ██╗  ██╗███╗   ███╗ █████╗ ██████╗              ║
+║  ██╔══██╗██║  ██║████╗ ████║██╔══██╗██╔══██╗             ║
+║  ███████║███████║██╔████╔██║███████║██║  ██║             ║
+║  ██╔══██║██╔══██║██║╚██╔╝██║██╔══██║██║  ██║             ║
+║  ██║  ██║██║  ██║██║ ╚═╝ ██║██║  ██║██████╔╝             ║
+║  ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝  ╚═╝╚═════╝              ║
+║                                                           ║
+║  ██╗██████╗ ██████╗  █████╗ ██╗  ██╗██╗███╗   ███╗       ║
+║  ██║██╔══██╗██╔══██╗██╔══██╗██║  ██║██║████╗ ████║       ║
+║  ██║██████╔╝██████╔╝███████║███████║██║██╔████╔██║       ║
+║  ██║██╔══██╗██╔══██╗██╔══██║██╔══██║██║██║╚██╔╝██║       ║
+║  ██║██████╔╝██║  ██║██║  ██║██║  ██║██║██║ ╚═╝ ██║       ║
+║  ╚═╝╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚═╝     ╚═╝       ║
 ║                                                           ║
 ║               AHMAD IBRAHIM • LYON, FRANCE                ║
 ║               Full Stack Software Engineer                ║
@@ -24,6 +34,14 @@ export const TerminalOutput: React.FC = () => {
   const { history, visitorMode } = useTerminalContext();
   const bottomRef = useRef<HTMLDivElement>(null);
   const [isBannerFontReady, setIsBannerFontReady] = useState(false);
+  const progress = getVisitorProgress();
+  const isReturningVisitor = progress.visits > 1;
+  const recruiterTourProgress = RECRUITER_TOUR.filter((command) =>
+    progress.discoveredCommands.includes(command)
+  ).length;
+  const recruiterTourNext = RECRUITER_TOUR.find(
+    (command) => !progress.discoveredCommands.includes(command)
+  );
 
   // Auto-scroll to bottom when new content is added
   useEffect(() => {
@@ -61,17 +79,32 @@ export const TerminalOutput: React.FC = () => {
 
   return (
     <div className={styles.output}>
-      {isBannerFontReady ? (
-        <div className={styles.bannerScroll}>
-          <pre className={styles.banner}>{ASCII_BANNER}</pre>
-        </div>
-      ) : null}
+      <div className={styles.bannerScroll}>
+        <pre
+          className={styles.banner}
+          style={
+            isBannerFontReady
+              ? undefined
+              : { fontFamily: 'monospace', opacity: 0.75, filter: 'blur(0.2px)' }
+          }
+        >
+          {ASCII_BANNER}
+        </pre>
+      </div>
       <div className={styles.line}>
         <span className={styles.muted}>
           Type <span className={styles.highlight}>help</span> to explore projects, skills, and
           experience
         </span>
       </div>
+      {isReturningVisitor && (
+        <div className={styles.line}>
+          <span className={`${styles.muted} ${styles.returningHint}`}>
+            Welcome back. Try <span className={styles.highlight}>recommend</span> for personalized
+            next steps.
+          </span>
+        </div>
+      )}
       <div className={styles.quickActions}>
         <CommandShortcutList
           title={visitorMode === 'recruiter' ? 'Recruiter quick start' : 'Quick start'}
@@ -113,6 +146,21 @@ export const TerminalOutput: React.FC = () => {
           ]}
         />
       </div>
+      {visitorMode === 'recruiter' && (
+        <div className={styles.line}>
+          <span className={`${styles.muted} ${styles.tourHint}`}>
+            Recruiter tour progress: {recruiterTourProgress}/{RECRUITER_TOUR.length}
+            {recruiterTourNext ? (
+              <>
+                {' '}
+                • Next: <span className={styles.highlight}>{recruiterTourNext}</span>
+              </>
+            ) : (
+              ' • Tour completed.'
+            )}
+          </span>
+        </div>
+      )}
       <div className={styles.line}>&nbsp;</div>
 
       {/* Command history */}

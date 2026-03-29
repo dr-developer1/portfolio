@@ -122,6 +122,37 @@
   }
 }
 
+@keyframes glitch-flicker {
+  0%,
+  91%,
+  100% {
+    transform: translate(0);
+    text-shadow: none;
+    opacity: 1;
+  }
+
+  92% {
+    transform: translate(-0.5px, 0.4px);
+    text-shadow:
+      1px 0 0 rgb(0 229 255 / 35%),
+      -1px 0 0 rgb(255 70 145 / 30%);
+  }
+
+  93% {
+    transform: translate(0.6px, -0.3px);
+    text-shadow:
+      -1px 0 0 rgb(0 229 255 / 30%),
+      1px 0 0 rgb(255 70 145 / 30%);
+    opacity: 0.92;
+  }
+
+  94% {
+    transform: translate(0);
+    text-shadow: none;
+    opacity: 1;
+  }
+}
+
 /* ========================================
    Loading Animations
    ======================================== */
@@ -241,4 +272,8 @@
 
 .animate-glow-pulse {
   animation: glow-pulse 3s ease-in-out infinite;
+}
+
+.animate-glitch {
+  animation: glitch-flicker 7s steps(2, end) infinite;
 }

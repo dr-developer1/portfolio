@@ -11,6 +11,11 @@
   border: 1px solid var(--color-border-default);
   box-shadow: var(--shadow-xl), var(--shadow-glow);
   overflow: hidden;
+  position: relative;
+}
+
+.windowWillChange {
+  will-change: transform, filter;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -143,6 +148,10 @@
   letter-spacing: var(--letter-spacing);
 }
 
+.windowTitleGlitch {
+  animation: glitch-flicker 9s steps(2, end) infinite;
+}
+
 .windowActions {
   width: 52px; /* Balance the controls on the left */
   display: flex;
@@ -199,6 +208,10 @@
   -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
+.scanlineBeamContainer {
+  position: relative;
+}
+
 .keyboardOpen {
   --keyboard-focus-buffer: var(--keyboard-inset);
 }
@@ -232,6 +245,31 @@
   pointer-events: none;
   z-index: var(--z-overlay);
   opacity: 0.5;
+}
+
+.scanlineBeam {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: calc(var(--z-overlay) + 1);
+}
+
+.scanlineBeam::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 18%;
+  background: linear-gradient(
+    180deg,
+    rgb(88 166 255 / 0%) 0%,
+    rgb(88 166 255 / 14%) 50%,
+    rgb(88 166 255 / 0%) 100%
+  );
+  opacity: 0.45;
+  transform: translateY(-140%);
+  animation: scanline 7s linear infinite;
 }
 
 .overlay {
@@ -286,6 +324,10 @@
 
   /* Reduce CRT effects on mobile for performance */
   .scanline {
+    display: none;
+  }
+
+  .scanlineBeam {
     display: none;
   }
 
@@ -347,6 +389,13 @@
 
   .overlay {
     display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .windowTitleGlitch,
+  .scanlineBeam::before {
+    animation: none;
   }
 }
 
