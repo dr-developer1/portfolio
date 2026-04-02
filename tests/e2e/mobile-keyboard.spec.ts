@@ -22,34 +22,38 @@ const bootToTerminal = async (page: Page) => {
 
 const focusTerminalInput = async (page: Page) => {
   await page.getByTestId('terminal-input-mobile').click();
-  await expect.poll(
-    async () =>
-      page.evaluate(() => {
-        const input = document.querySelector('input[aria-label="Terminal input"]');
-        return document.activeElement === input;
-      }),
-    { timeout: 3000 }
-  ).toBe(true);
+  await expect
+    .poll(
+      async () =>
+        page.evaluate(() => {
+          const input = document.querySelector('input[aria-label="Terminal input"]');
+          return document.activeElement === input;
+        }),
+      { timeout: 3000 }
+    )
+    .toBe(true);
 };
 
 const assertInputDisplayInViewport = async (page: Page) => {
-  await expect.poll(
-    async () =>
-      page.evaluate(() => {
-        const el = document.querySelector('[data-testid="terminal-input-display"]');
-        if (!el) {
-          return false;
-        }
+  await expect
+    .poll(
+      async () =>
+        page.evaluate(() => {
+          const el = document.querySelector('[data-testid="terminal-input-display"]');
+          if (!el) {
+            return false;
+          }
 
-        const rect = el.getBoundingClientRect();
-        const viewport = window.visualViewport;
-        const viewportTop = viewport?.offsetTop ?? 0;
-        const viewportBottom = viewportTop + (viewport?.height ?? window.innerHeight);
+          const rect = el.getBoundingClientRect();
+          const viewport = window.visualViewport;
+          const viewportTop = viewport?.offsetTop ?? 0;
+          const viewportBottom = viewportTop + (viewport?.height ?? window.innerHeight);
 
-        return rect.top >= viewportTop && rect.bottom <= viewportBottom;
-      }),
-    { timeout: 5000 }
-  ).toBe(true);
+          return rect.top >= viewportTop && rect.bottom <= viewportBottom;
+        }),
+      { timeout: 5000 }
+    )
+    .toBe(true);
 };
 
 const runCommand = async (page: Page, command: string) => {
@@ -58,7 +62,10 @@ const runCommand = async (page: Page, command: string) => {
 };
 
 test('mobile input stays visible after focus and command refocus cycles', async ({ page }) => {
-  test.skip(!test.info().project.name.includes('mobile'), 'Mobile keyboard behavior is mobile-only');
+  test.skip(
+    !test.info().project.name.includes('mobile'),
+    'Mobile keyboard behavior is mobile-only'
+  );
 
   await bootToTerminal(page);
   await focusTerminalInput(page);
@@ -72,7 +79,10 @@ test('mobile input stays visible after focus and command refocus cycles', async 
 });
 
 test('mobile input remains visible with long terminal history', async ({ page }) => {
-  test.skip(!test.info().project.name.includes('mobile'), 'Mobile keyboard behavior is mobile-only');
+  test.skip(
+    !test.info().project.name.includes('mobile'),
+    'Mobile keyboard behavior is mobile-only'
+  );
 
   await bootToTerminal(page);
   await focusTerminalInput(page);

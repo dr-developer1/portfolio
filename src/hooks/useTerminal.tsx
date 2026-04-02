@@ -63,7 +63,9 @@ export function useTerminal(): UseTerminalReturn {
 
   const emitAchievementEvents = useCallback((unlocked: Achievement[]) => {
     unlocked.forEach((achievement) => {
-      window.dispatchEvent(new CustomEvent<Achievement>('achievement-unlocked', { detail: achievement }));
+      window.dispatchEvent(
+        new CustomEvent<Achievement>('achievement-unlocked', { detail: achievement })
+      );
     });
   }, []);
 

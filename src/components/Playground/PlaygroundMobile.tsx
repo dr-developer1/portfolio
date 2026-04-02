@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import Editor from '@monaco-editor/react';
 import type { editor as MonacoEditor } from 'monaco-editor';
-import type { PlaygroundWorkspace, PlaygroundFile, PlaygroundPresetId } from '../../types/playground';
+import type {
+  PlaygroundWorkspace,
+  PlaygroundFile,
+  PlaygroundPresetId,
+} from '../../types/playground';
 import styles from './PlaygroundMobile.module.css';
 
 interface PlaygroundMobileProps {
@@ -84,10 +88,17 @@ export const PlaygroundMobile: React.FC<PlaygroundMobileProps> = ({
       <div className={styles.content}>
         {activeTab === 'files' && (
           <div className={styles.fileList}>
-            <div style={{ padding: '0 1rem 1rem 1rem', borderBottom: '1px solid var(--color-border)' }}>
-              <label 
-                htmlFor="mobile-lang-select" 
-                style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--color-text-muted)' }}
+            <div
+              style={{ padding: '0 1rem 1rem 1rem', borderBottom: '1px solid var(--color-border)' }}
+            >
+              <label
+                htmlFor="mobile-lang-select"
+                style={{
+                  display: 'block',
+                  marginBottom: '0.5rem',
+                  fontSize: '0.85rem',
+                  color: 'var(--color-text-muted)',
+                }}
               >
                 Language
               </label>
@@ -103,7 +114,7 @@ export const PlaygroundMobile: React.FC<PlaygroundMobileProps> = ({
                   background: 'var(--color-bg-secondary)',
                   border: '1px solid var(--color-border)',
                   borderRadius: '4px',
-                  outline: 'none'
+                  outline: 'none',
                 }}
               >
                 <option value="javascript">JavaScript</option>

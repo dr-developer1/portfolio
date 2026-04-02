@@ -27,7 +27,7 @@ export const TerminalInputDesktop: React.FC = () => {
 
   const inputRef = useRef<HTMLInputElement>(null);
   const shouldRefocusRef = useRef(false);
-  
+
   // Track cursor position for the custom block cursor
   const [cursorPos, setCursorPos] = useState(0);
   const [isFocused, setIsFocused] = useState(true);
@@ -227,7 +227,7 @@ export const TerminalInputDesktop: React.FC = () => {
     const handleGlobalClick = (e: MouseEvent) => {
       // Don't steal focus if Playground is open
       if (isPlaygroundOpen) return;
-      
+
       // Don't steal focus if user is selecting text
       if (window.getSelection()?.toString()) return;
 
@@ -247,9 +247,7 @@ export const TerminalInputDesktop: React.FC = () => {
     // If empty input, show flashing block
     if (!input) {
       return (
-        <span className={`${styles.cursorBlock} ${isFocused ? '' : styles.active}`}>
-          &nbsp;
-        </span>
+        <span className={`${styles.cursorBlock} ${isFocused ? '' : styles.active}`}>&nbsp;</span>
       );
     }
 

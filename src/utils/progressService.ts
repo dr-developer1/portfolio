@@ -105,7 +105,10 @@ function unlock(progress: VisitorProgress, achievementId: string): VisitorProgre
   };
 }
 
-export function recordCommandExecution(commandName: string, hidden: boolean): {
+export function recordCommandExecution(
+  commandName: string,
+  hidden: boolean
+): {
   progress: VisitorProgress;
   unlocked: Achievement[];
 } {

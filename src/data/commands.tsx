@@ -1,6 +1,12 @@
 import React from 'react';
 
-import { CommandShortcutList, EducationEntry, JobEntry, ProjectCard, SkillSection } from '../components/Output';
+import {
+  CommandShortcutList,
+  EducationEntry,
+  JobEntry,
+  ProjectCard,
+  SkillSection,
+} from '../components/Output';
 import { SYSTEM_CONFIG } from '../config';
 import { MUSIC_STORAGE_KEY, MATRIX_STORAGE_KEY } from '../hooks/storageKeys';
 import type { Command, CommandCategory, VisitorMode } from '../types';
@@ -21,7 +27,12 @@ import {
   renderBulletList,
   resolveOpenTarget,
 } from '../utils/portfolioInsights';
-import { getVisitorProgress, unlockAdmin, unlockVault, ACHIEVEMENTS } from '../utils/progressService';
+import {
+  getVisitorProgress,
+  unlockAdmin,
+  unlockVault,
+  ACHIEVEMENTS,
+} from '../utils/progressService';
 import { getStoredBoolean } from '../utils/storageHelpers';
 import { AVAILABLE_THEMES, getDefaultTheme, isValidTheme } from '../utils/themeService';
 import styles from '../styles/outputUtilities.module.css';
@@ -75,7 +86,9 @@ function renderCommandGroups(commands: Command[]) {
       {Object.entries(grouped).map(([category, items]) =>
         items.length === 0 ? null : (
           <div key={category}>
-            <div className={styles.headerSection}>{CATEGORY_LABELS[category as CommandCategory]}</div>
+            <div className={styles.headerSection}>
+              {CATEGORY_LABELS[category as CommandCategory]}
+            </div>
             <div className={styles.commandGrid}>
               {items
                 .sort((a, b) => a.name.localeCompare(b.name))
@@ -144,9 +157,7 @@ const helpCommand: Command = {
 
     if (args.length > 0) {
       const query = args[0].toLowerCase();
-      const command = commands.find(
-        (item) => item.name === query || item.aliases?.includes(query)
-      );
+      const command = commands.find((item) => item.name === query || item.aliases?.includes(query));
 
       if (!command) {
         addOutput(<span className={styles.error}>Unknown command: {query}</span>, 'error');
@@ -392,7 +403,12 @@ const contactCommand: Command = {
           {content.socials.map((link) => (
             <React.Fragment key={link.platform}>
               <span className={styles.accentPurple}>{link.platform}:</span>
-              <a href={link.url} target="_blank" rel="noopener noreferrer" className={styles.textLink}>
+              <a
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.textLink}
+              >
                 {link.username}
               </a>
             </React.Fragment>
@@ -422,7 +438,9 @@ const contactMeCommand: Command = {
     window.location.href = `mailto:aibrahim0@outlook.com?subject=${subject}&body=${body}`;
 
     addOutput(
-      <span className={styles.success}>Opening your email client… Subject and intro pre-filled.</span>,
+      <span className={styles.success}>
+        Opening your email client… Subject and intro pre-filled.
+      </span>,
       'success'
     );
   },
@@ -495,7 +513,9 @@ const shareCommand: Command = {
   execute: async (args, addOutput) => {
     const commandToShare = args.join(' ').trim();
     const baseUrl = `${window.location.origin}${window.location.pathname}`;
-    const shareUrl = commandToShare ? `${baseUrl}?run=${encodeURIComponent(commandToShare)}` : baseUrl;
+    const shareUrl = commandToShare
+      ? `${baseUrl}?run=${encodeURIComponent(commandToShare)}`
+      : baseUrl;
 
     let copied = false;
     if (navigator.clipboard?.writeText) {
@@ -710,7 +730,9 @@ const tourCommand: Command = {
     const completed = RECRUITER_TOUR.filter((command) =>
       progress.discoveredCommands.includes(command)
     ).length;
-    const nextStep = RECRUITER_TOUR.find((command) => !progress.discoveredCommands.includes(command));
+    const nextStep = RECRUITER_TOUR.find(
+      (command) => !progress.discoveredCommands.includes(command)
+    );
 
     context?.setVisitorMode?.('recruiter');
     addOutput(
@@ -847,7 +869,9 @@ const themeCommand: Command = {
       addOutput(
         <div>
           <div>Usage: theme [list | reset | &lt;name&gt;]</div>
-          <div className={styles.marginTopMedium}>Available themes: {AVAILABLE_THEMES.join(', ')}</div>
+          <div className={styles.marginTopMedium}>
+            Available themes: {AVAILABLE_THEMES.join(', ')}
+          </div>
         </div>
       );
       return;
@@ -887,9 +911,8 @@ const themeCommand: Command = {
     window.dispatchEvent(new CustomEvent('theme-change', { detail: { theme: value } }));
     addOutput(<span className={styles.success}>Theme switched to {value}</span>, 'success');
   },
-  autocomplete: (partial) => ['list', 'reset', ...AVAILABLE_THEMES].filter((item) =>
-    item.startsWith(partial.toLowerCase())
-  ),
+  autocomplete: (partial) =>
+    ['list', 'reset', ...AVAILABLE_THEMES].filter((item) => item.startsWith(partial.toLowerCase())),
 };
 
 const resumeCommand: Command = {
@@ -905,7 +928,12 @@ const resumeCommand: Command = {
         <span className={styles.success}>Opening resume…</span>
         <div className={styles.textSecondary}>
           If it does not open automatically, use{' '}
-          <a href="/resume.pdf" target="_blank" rel="noopener noreferrer" className={styles.textLink}>
+          <a
+            href="/resume.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.textLink}
+          >
             this direct link
           </a>
           .
@@ -978,7 +1006,10 @@ const effectCommand: Command = {
     const next = action === 'toggle' ? !current : action === 'on';
 
     if (!['on', 'off', 'toggle'].includes(action)) {
-      addOutput(<span className={styles.error}>Invalid action. Use on, off, or toggle.</span>, 'error');
+      addOutput(
+        <span className={styles.error}>Invalid action. Use on, off, or toggle.</span>,
+        'error'
+      );
       return;
     }
 
@@ -1010,7 +1041,10 @@ const musicCommand: Command = {
     const next = action === 'toggle' ? !current : action === 'on';
 
     if (!['on', 'off', 'toggle'].includes(action)) {
-      addOutput(<span className={styles.error}>Invalid action. Use on, off, or toggle.</span>, 'error');
+      addOutput(
+        <span className={styles.error}>Invalid action. Use on, off, or toggle.</span>,
+        'error'
+      );
       return;
     }
 
@@ -1022,9 +1056,8 @@ const musicCommand: Command = {
       next ? 'success' : 'info'
     );
   },
-  autocomplete: (partial) => ['on', 'off', 'toggle'].filter((item) =>
-    item.startsWith(partial.toLowerCase())
-  ),
+  autocomplete: (partial) =>
+    ['on', 'off', 'toggle'].filter((item) => item.startsWith(partial.toLowerCase())),
 };
 
 const neofetchCommand: Command = {
@@ -1046,25 +1079,25 @@ const neofetchCommand: Command = {
         </pre>
         <div className={styles.flexColumn} style={{ gap: '0.25rem' }}>
           <div>
-            <span className={styles.accentGreen}>OS</span>       Portfolio OS v3.0.0
+            <span className={styles.accentGreen}>OS</span> Portfolio OS v3.0.0
           </div>
           <div>
-            <span className={styles.accentGreen}>Host</span>     Ahmad Ibrahim
+            <span className={styles.accentGreen}>Host</span> Ahmad Ibrahim
           </div>
           <div>
-            <span className={styles.accentGreen}>Shell</span>    Terminal (React + TypeScript)
+            <span className={styles.accentGreen}>Shell</span> Terminal (React + TypeScript)
           </div>
           <div>
-            <span className={styles.accentGreen}>Theme</span>    {theme}
+            <span className={styles.accentGreen}>Theme</span> {theme}
           </div>
           <div>
             <span className={styles.accentGreen}>Location</span> Lyon, France
           </div>
           <div>
-            <span className={styles.accentGreen}>Stack</span>    NestJS · Vue.js · React · PostgreSQL
+            <span className={styles.accentGreen}>Stack</span> NestJS · Vue.js · React · PostgreSQL
           </div>
           <div>
-            <span className={styles.accentGreen}>Contact</span>  aibrahim0@outlook.com
+            <span className={styles.accentGreen}>Contact</span> aibrahim0@outlook.com
           </div>
         </div>
       </div>
@@ -1091,7 +1124,9 @@ const weatherCommand: Command = {
     navigator.geolocation.getCurrentPosition(
       async ({ coords }) => {
         try {
-          const res = await fetch(`https://wttr.in/${coords.latitude},${coords.longitude}?format=j1`);
+          const res = await fetch(
+            `https://wttr.in/${coords.latitude},${coords.longitude}?format=j1`
+          );
           if (!res.ok) {
             throw new Error('Weather API error');
           }
@@ -1224,7 +1259,10 @@ const grepCommand: Command = {
   category: 'core',
   execute: (args, addOutput) => {
     if (args.length < 2) {
-      addOutput(<span className={styles.error}>Usage: grep &lt;term&gt; &lt;target&gt;</span>, 'error');
+      addOutput(
+        <span className={styles.error}>Usage: grep &lt;term&gt; &lt;target&gt;</span>,
+        'error'
+      );
       return;
     }
 
@@ -1260,7 +1298,10 @@ const openCommand: Command = {
 
     const target = resolveOpenTarget(query);
     if (!target) {
-      addOutput(<span className={styles.error}>No openable target found for "{query}".</span>, 'error');
+      addOutput(
+        <span className={styles.error}>No openable target found for "{query}".</span>,
+        'error'
+      );
       return;
     }
 
