@@ -19,7 +19,7 @@ export interface ProjectCardProps {
  */
 export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
   return (
-    <div className={styles.container}>
+    <div>
       <div className={styles.header}>
         <span className={styles.name}>{project.name}</span>
         {project.featured && <span className={styles.badge}>Featured</span>}

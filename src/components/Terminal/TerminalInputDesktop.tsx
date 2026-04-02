@@ -67,19 +67,6 @@ export const TerminalInputDesktop: React.FC = () => {
   const handleSubmit = useCallback(() => {
     const trimmedInput = input.trim();
 
-    if (
-      trimmedInput.toLowerCase() === 'clear' ||
-      trimmedInput.toLowerCase() === 'cls' ||
-      trimmedInput.toLowerCase() === 'reset'
-    ) {
-      clearTerminal();
-      setInput('');
-      setCursorPos(0);
-      resetCompletion();
-      requestAnimationFrame(() => inputRef.current?.focus());
-      return;
-    }
-
     if (!trimmedInput) {
       addOutput(
         <PromptDisplay
@@ -105,7 +92,6 @@ export const TerminalInputDesktop: React.FC = () => {
     input,
     executeCommand,
     addOutput,
-    clearTerminal,
     user,
     symbol,
     musicEnabled,
@@ -271,12 +257,12 @@ export const TerminalInputDesktop: React.FC = () => {
     <div>
       <div className={styles.desktopContainer} onClick={() => inputRef.current?.focus()}>
         <span className={styles.prompt}>
-          <span className={styles.promptUser}>{user}</span>
-          <span className={styles.promptAt}>@</span>
-          <span className={styles.promptHost}>{SYSTEM_CONFIG.hostname}</span>
-          <span className={styles.promptSeparator}>:</span>
-          <span className={styles.promptPath}>{currentDirectory}</span>
-          <span className={styles.promptSymbol}>{symbol}</span>
+          <PromptDisplay
+            user={user}
+            hostname={SYSTEM_CONFIG.hostname}
+            directory={currentDirectory}
+            symbol={symbol}
+          />
         </span>
 
         <input
@@ -291,6 +277,7 @@ export const TerminalInputDesktop: React.FC = () => {
           onBlur={() => setIsFocused(false)}
           autoFocus={true}
           spellCheck={false}
+          aria-label="Terminal command input"
           autoComplete="off"
         />
 

@@ -2,10 +2,6 @@
  * JobEntry Component Styles
  */
 
-.container {
-  /* Spacing handled by parent */
-}
-
 .header {
   display: flex;
   justify-content: space-between;

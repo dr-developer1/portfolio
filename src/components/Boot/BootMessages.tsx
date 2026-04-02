@@ -76,7 +76,11 @@ export const BootMessages: React.FC<BootMessagesProps> = memo(({ messages, curre
   return (
     <div className={styles.messagesContainer} role="log" aria-label="Boot sequence messages">
       {visibleMessages.map((message, index) => (
-        <MessageLine key={index} message={message} index={index} />
+        <MessageLine
+          key={`${message.text}-${message.status ?? 'none'}-${index}`}
+          message={message}
+          index={index}
+        />
       ))}
     </div>
   );

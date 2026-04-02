@@ -19,6 +19,7 @@ interface PlaygroundMobileProps {
   onClear: () => void;
   onReset: () => void;
   isRunning: boolean;
+  loadingHint?: string | null;
   outputs: Array<{ id: string; type: string; message: string }>;
 }
 
@@ -33,6 +34,7 @@ export const PlaygroundMobile: React.FC<PlaygroundMobileProps> = ({
   onClear,
   onReset,
   isRunning,
+  loadingHint,
   outputs,
 }) => {
   const [activeTab, setActiveTab] = useState<'files' | 'code' | 'console'>('code');
@@ -88,34 +90,15 @@ export const PlaygroundMobile: React.FC<PlaygroundMobileProps> = ({
       <div className={styles.content}>
         {activeTab === 'files' && (
           <div className={styles.fileList}>
-            <div
-              style={{ padding: '0 1rem 1rem 1rem', borderBottom: '1px solid var(--color-border)' }}
-            >
-              <label
-                htmlFor="mobile-lang-select"
-                style={{
-                  display: 'block',
-                  marginBottom: '0.5rem',
-                  fontSize: '0.85rem',
-                  color: 'var(--color-text-muted)',
-                }}
-              >
+            <div className={styles.fileListHeader}>
+              <label htmlFor="mobile-lang-select" className={styles.languageLabel}>
                 Language
               </label>
               <select
                 id="mobile-lang-select"
                 value={workspace.activeLanguage}
                 onChange={onLanguageChange}
-                style={{
-                  width: '100%',
-                  padding: '0.5rem',
-                  fontSize: '1rem',
-                  color: 'var(--color-text-primary)',
-                  background: 'var(--color-bg-secondary)',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: '4px',
-                  outline: 'none',
-                }}
+                className={styles.languageSelect}
               >
                 <option value="javascript">JavaScript</option>
                 <option value="typescript">TypeScript</option>
@@ -124,7 +107,8 @@ export const PlaygroundMobile: React.FC<PlaygroundMobileProps> = ({
             </div>
 
             {workspace.files.map((file) => (
-              <div
+              <button
+                type="button"
                 key={file.id}
                 className={`${styles.fileItem} ${file.id === workspace.activeFileId ? styles.activeFile : ''}`}
                 onClick={() => {
@@ -133,9 +117,9 @@ export const PlaygroundMobile: React.FC<PlaygroundMobileProps> = ({
                 }}
               >
                 {file.name}
-              </div>
+              </button>
             ))}
-            <button className={styles.resetButton} onClick={onReset}>
+            <button type="button" className={styles.resetButton} onClick={onReset}>
               Reset Workspace
             </button>
           </div>
@@ -162,7 +146,7 @@ export const PlaygroundMobile: React.FC<PlaygroundMobileProps> = ({
             {/* Accessory Keyboard */}
             <div className={styles.accessoryKeyboard}>
               {['{', '}', '(', ')', '[', ']', ';', '=', '=>', 'log'].map((sym) => (
-                <button key={sym} onClick={() => insertSymbol(sym)}>
+                <button type="button" key={sym} onClick={() => insertSymbol(sym)}>
                   {sym}
                 </button>
               ))}
@@ -173,8 +157,10 @@ export const PlaygroundMobile: React.FC<PlaygroundMobileProps> = ({
         {activeTab === 'console' && (
           <div className={styles.console}>
             <div className={styles.consoleToolbar}>
-              <button onClick={onClear}>Clear</button>
-              <button onClick={onStop} disabled={!isRunning}>
+              <button type="button" onClick={onClear}>
+                Clear
+              </button>
+              <button type="button" onClick={onStop} disabled={!isRunning}>
                 Stop
               </button>
             </div>
@@ -182,6 +168,7 @@ export const PlaygroundMobile: React.FC<PlaygroundMobileProps> = ({
               Lightweight sandbox for demos and short challenges. Reload a preset anytime from the
               Files tab.
             </div>
+            {loadingHint && <div className={styles.loadingHint}>{loadingHint}</div>}
             <div className={styles.consoleOutput}>
               {outputs.map((out) => (
                 <div key={out.id} className={`${styles.logLine} ${styles[out.type]}`}>
@@ -197,18 +184,21 @@ export const PlaygroundMobile: React.FC<PlaygroundMobileProps> = ({
       {/* Bottom Navigation Tabs */}
       <div className={styles.bottomNav}>
         <button
+          type="button"
           className={activeTab === 'files' ? styles.activeTab : ''}
           onClick={() => setActiveTab('files')}
         >
           Files
         </button>
         <button
+          type="button"
           className={activeTab === 'code' ? styles.activeTab : ''}
           onClick={() => setActiveTab('code')}
         >
           Code
         </button>
         <button
+          type="button"
           className={activeTab === 'console' ? styles.activeTab : ''}
           onClick={() => setActiveTab('console')}
         >

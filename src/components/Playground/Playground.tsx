@@ -97,7 +97,7 @@ export const Playground: React.FC<PlaygroundProps> = ({ initialPreset = 'default
     return stored ?? getPlaygroundWorkspace(initialPreset);
   });
 
-  const { outputs, isRunning, runCode, stopRun, clearOutputs } = usePlaygroundRunner();
+  const { outputs, isRunning, loadingHint, runCode, stopRun, clearOutputs } = usePlaygroundRunner();
 
   const handleEditorMount = useCallback((editor: MonacoEditor.IStandaloneCodeEditor) => {
     editor.focus();
@@ -165,6 +165,7 @@ export const Playground: React.FC<PlaygroundProps> = ({ initialPreset = 'default
         onClear={clearOutputs}
         onReset={handleReset}
         isRunning={isRunning}
+        loadingHint={loadingHint}
         outputs={outputs}
       />
     );
@@ -272,6 +273,7 @@ export const Playground: React.FC<PlaygroundProps> = ({ initialPreset = 'default
           Use the preset as a starter, then run, stop, and iterate. The runtime is intentionally
           lightweight and sandboxed.
         </div>
+        {loadingHint && <div className={styles.consoleHelp}>{loadingHint}</div>}
         {outputs.length === 0 ? (
           <div className={styles.consoleLine}>
             <span className={styles.consoleLabel}>Console</span>

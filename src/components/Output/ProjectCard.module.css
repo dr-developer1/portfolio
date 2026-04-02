@@ -2,10 +2,6 @@
  * ProjectCard Component Styles
  */
 
-.container {
-  /* Spacing handled by parent */
-}
-
 .header {
   display: flex;
   align-items: baseline;

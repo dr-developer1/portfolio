@@ -19,11 +19,16 @@
   font-size: var(--font-size-base);
   color: var(--color-output);
   overflow-wrap: break-word;
-  animation: fade-in-up 0.2s ease-out;
 }
 
-.line:first-child {
-  animation-delay: 0s;
+@media (prefers-reduced-motion: no-preference) {
+  .line {
+    animation: fade-in-up 0.2s ease-out;
+  }
+
+  .line:first-child {
+    animation-delay: 0s;
+  }
 }
 
 /* ========================================
@@ -193,7 +198,7 @@
   }
 
   .banner {
-    font-size: 6px;
+    font-size: 7px;
     line-height: 1.15;
   }
 
@@ -207,7 +212,7 @@
    ======================================== */
 @media (width <= 480px) {
   .banner {
-    font-size: 5px;
+    font-size: 6px;
     line-height: 1.1;
     margin-bottom: var(--spacing-sm);
   }
@@ -227,7 +232,7 @@
    ======================================== */
 @media (width <= 360px) {
   .banner {
-    font-size: 4px;
+    font-size: 5px;
   }
 }
 

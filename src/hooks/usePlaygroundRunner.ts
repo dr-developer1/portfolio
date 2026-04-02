@@ -27,6 +27,7 @@ type StopOptions = {
 export function usePlaygroundRunner() {
   const [outputs, setOutputs] = useState<PlaygroundOutputEntry[]>([]);
   const [isRunning, setIsRunning] = useState(false);
+  const [loadingHint, setLoadingHint] = useState<string | null>(null);
   const currentRunIdRef = useRef<string | null>(null);
   const timeoutRef = useRef<number | null>(null);
   const jsWorkerRef = useRef<Worker | null>(null);
@@ -94,6 +95,7 @@ export function usePlaygroundRunner() {
       }
 
       setIsRunning(false);
+      setLoadingHint(null);
 
       const shouldTerminate =
         (options.terminate ?? reason === 'stopped') || reason === 'timeout' || reason === 'error';
@@ -108,6 +110,11 @@ export function usePlaygroundRunner() {
     (language: PlaygroundLanguage, code: string) => {
       setOutputs([]);
       setIsRunning(true);
+      setLoadingHint(
+        language === 'python' && !pyWorkerRef.current
+          ? 'Loading Python runtime... (first run only)'
+          : null
+      );
 
       const runId = generateLineId();
       currentRunIdRef.current = runId;
@@ -163,6 +170,7 @@ export function usePlaygroundRunner() {
 
   const clearOutputs = useCallback(() => {
     setOutputs([]);
+    setLoadingHint(null);
   }, []);
 
   useEffect(() => {
@@ -174,6 +182,7 @@ export function usePlaygroundRunner() {
   return {
     outputs,
     isRunning,
+    loadingHint,
     runCode,
     stopRun,
     clearOutputs,

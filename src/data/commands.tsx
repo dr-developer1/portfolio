@@ -7,19 +7,25 @@ import {
   ProjectCard,
   SkillSection,
 } from '../components/Output';
-import { SYSTEM_CONFIG } from '../config';
+import { SYSTEM_CONFIG, UI_CONSTANTS } from '../config';
 import { MUSIC_STORAGE_KEY, MATRIX_STORAGE_KEY } from '../hooks/storageKeys';
 import type { Command, CommandCategory, VisitorMode } from '../types';
 import { clearRegistry, getAllCommands, registerCommands } from '../utils/commandRegistry';
+import { getNode, resolvePath } from '../utils/fileSystem';
 import {
+  getAboutSummary,
   findContent,
   getAvailabilityPoints,
+  getContactHint,
   getGuidedPath,
   getGuidedPaths,
   getHighlights,
+  getExperienceLead,
   getInterviewPrompts,
   getLegacyStory,
   getOpenAINotes,
+  getProjectsForMode,
+  getProjectsLead,
   getRecommendations,
   getTopProjects,
   getWhyMePoints,
@@ -27,14 +33,10 @@ import {
   renderBulletList,
   resolveOpenTarget,
 } from '../utils/portfolioInsights';
-import {
-  getVisitorProgress,
-  unlockAdmin,
-  unlockVault,
-  ACHIEVEMENTS,
-} from '../utils/progressService';
+import { unlockAdmin, unlockVault, ACHIEVEMENTS } from '../utils/progressService';
 import { getStoredBoolean } from '../utils/storageHelpers';
 import { AVAILABLE_THEMES, getDefaultTheme, isValidTheme } from '../utils/themeService';
+import { renderDirectoryTree } from '../utils/treeRenderer';
 import styles from '../styles/outputUtilities.module.css';
 import { content } from './content';
 import { RECRUITER_TOUR } from './guides';
@@ -145,6 +147,13 @@ function renderPathButtons(mode: VisitorMode) {
   );
 }
 
+function getHelpShortcuts(mode: VisitorMode) {
+  return getRecommendations(mode).map((command) => ({
+    label: command,
+    command,
+  }));
+}
+
 const helpCommand: Command = {
   name: 'help',
   description: 'Display available commands and recommended paths',
@@ -152,7 +161,7 @@ const helpCommand: Command = {
   aliases: ['?', 'commands'],
   category: 'core',
   featured: true,
-  execute: (args, addOutput) => {
+  execute: (args, addOutput, context) => {
     const commands = getAllCommands();
 
     if (args.length > 0) {
@@ -171,13 +180,12 @@ const helpCommand: Command = {
     addOutput(
       <div className={styles.flexColumn}>
         <CommandShortcutList
-          title="Best commands to start with"
-          items={[
-            { label: 'Highlights', command: 'highlights' },
-            { label: 'Tour', command: 'tour' },
-            { label: 'Top Projects', command: 'top-projects' },
-            { label: 'Contact', command: 'contact' },
-          ]}
+          title={
+            context.visitorMode === 'standard'
+              ? 'Best commands to start with'
+              : `${context.visitorMode} quick start`
+          }
+          items={getHelpShortcuts(context.visitorMode)}
         />
         {renderCommandGroups(commands)}
         <div className={styles.textMuted}>
@@ -195,7 +203,9 @@ const clearCommand: Command = {
   usage: 'clear',
   aliases: ['cls', 'reset'],
   category: 'core',
-  execute: () => {},
+  execute: (_args, _addOutput, context) => {
+    context.clearTerminal();
+  },
 };
 
 const echoCommand: Command = {
@@ -212,17 +222,18 @@ const aboutCommand: Command = {
   usage: 'about',
   aliases: ['bio'],
   category: 'career',
-  execute: (_args, addOutput) => {
+  execute: (_args, addOutput, context) => {
+    const summary = getAboutSummary(context.visitorMode);
     addOutput(
       <div>
         <div className={`${styles.accentCyan} ${styles.bold} ${styles.fontSize11}`}>
           {content.bio.name}
         </div>
         <div className={`${styles.accentPurple} ${styles.marginBottomMedium}`}>
-          {content.bio.tagline}
+          {summary.tagline}
         </div>
         <div className={styles.textPrimary}>
-          {content.bio.description.map((line) => (
+          {summary.lines.map((line) => (
             <div key={line}>{line}</div>
           ))}
         </div>
@@ -256,9 +267,13 @@ const experienceCommand: Command = {
   aliases: ['exp', 'work', 'jobs'],
   category: 'career',
   featured: true,
-  execute: (_args, addOutput) => {
+  execute: (_args, addOutput, context) => {
     addOutput(
       <div className={styles.flexColumnLarge}>
+        <div className={styles.panel}>
+          <div className={styles.panelTitle}>Experience focus · {context.visitorMode}</div>
+          {renderBulletList(getExperienceLead(context.visitorMode), styles.accentCyan)}
+        </div>
         {content.experience.map((job) => (
           <JobEntry key={`${job.company}-${job.date}`} job={job} />
         ))}
@@ -291,10 +306,14 @@ const projectsCommand: Command = {
   aliases: ['proj', 'portfolio'],
   category: 'projects',
   featured: true,
-  execute: (_args, addOutput) => {
+  execute: (_args, addOutput, context) => {
     addOutput(
       <div className={styles.flexColumn}>
-        {content.projects.map((project) => (
+        <div className={styles.panel}>
+          <div className={styles.panelTitle}>Project focus · {context.visitorMode}</div>
+          {renderBulletList(getProjectsLead(context.visitorMode), styles.accentPurple)}
+        </div>
+        {getProjectsForMode(context.visitorMode).map((project) => (
           <ProjectCard key={project.name} project={project} />
         ))}
       </div>
@@ -308,10 +327,14 @@ const topProjectsCommand: Command = {
   usage: 'top-projects',
   category: 'projects',
   featured: true,
-  execute: (_args, addOutput) => {
+  execute: (_args, addOutput, context) => {
     addOutput(
       <div className={styles.flexColumn}>
-        {getTopProjects().map((project) => (
+        <div className={styles.panel}>
+          <div className={styles.panelTitle}>Top projects · {context.visitorMode}</div>
+          {renderBulletList(getProjectsLead(context.visitorMode), styles.accentGreen)}
+        </div>
+        {getTopProjects(context.visitorMode).map((project) => (
           <ProjectCard key={project.name} project={project} />
         ))}
       </div>
@@ -396,7 +419,7 @@ const contactCommand: Command = {
   aliases: ['socials', 'email'],
   category: 'career',
   featured: true,
-  execute: (_args, addOutput) => {
+  execute: (_args, addOutput, context) => {
     addOutput(
       <div className={styles.flexColumn}>
         <div className={styles.infoGrid}>
@@ -414,10 +437,7 @@ const contactCommand: Command = {
             </React.Fragment>
           ))}
         </div>
-        <div className={styles.textSecondary}>
-          Best path: review <span className={styles.accentGreen}>highlights</span>, skim{' '}
-          <span className={styles.accentGreen}>top-projects</span>, then reach out.
-        </div>
+        <div className={styles.textSecondary}>{getContactHint(context.visitorMode)}</div>
       </div>
     );
   },
@@ -452,7 +472,7 @@ const whoamiCommand: Command = {
   usage: 'whoami [--raw]',
   category: 'core',
   execute: (args, addOutput, context) => {
-    const user = context?.user ?? SYSTEM_CONFIG.defaultUser;
+    const user = context.user;
 
     if (args[0] === '--raw') {
       addOutput(<span className={styles.accentGreen}>{user}</span>);
@@ -470,7 +490,7 @@ const whoamiCommand: Command = {
           <span className={styles.textMuted}>Location</span>
           <span>Lyon, France</span>
           <span className={styles.textMuted}>Current path</span>
-          <span className={styles.accentCyan}>{context?.visitorMode ?? 'standard'}</span>
+          <span className={styles.accentCyan}>{context.visitorMode}</span>
           <span className={styles.textMuted}>Shell</span>
           <span>
             {user}@{SYSTEM_CONFIG.hostname}
@@ -552,7 +572,7 @@ const uptimeCommand: Command = {
   usage: 'uptime',
   category: 'system',
   execute: (_args, addOutput, context) => {
-    const start = context?.sessionStartedAt ?? Date.now();
+    const start = context.sessionStartedAt;
     const elapsed = Date.now() - start;
 
     addOutput(
@@ -569,11 +589,11 @@ const uptimeCommand: Command = {
 
 const pingCommand: Command = {
   name: 'ping',
-  description: 'Measure response latency to the current host',
+  description: 'Measure HTTP response latency to the current host',
   usage: 'ping',
   category: 'system',
   execute: async (_args, addOutput) => {
-    addOutput(<span className={styles.textSecondary}>Pinging host…</span>);
+    addOutput(<span className={styles.textSecondary}>Pinging host over HTTP…</span>);
 
     const startedAt = performance.now();
 
@@ -583,7 +603,7 @@ const pingCommand: Command = {
         cache: 'no-store',
       });
       const elapsed = Math.max(1, Math.round(performance.now() - startedAt));
-      addOutput(<span className={styles.success}>pong {elapsed}ms</span>, 'success');
+      addOutput(<span className={styles.success}>http pong {elapsed}ms</span>, 'success');
     } catch {
       const elapsed = Math.max(1, Math.round(performance.now() - startedAt));
       addOutput(
@@ -599,7 +619,18 @@ const historyCommand: Command = {
   description: 'Show command history',
   usage: 'history',
   category: 'core',
-  execute: () => {},
+  execute: (_args, addOutput, context) => {
+    addOutput(
+      <div>
+        {context.commandHistory.map((cmd, index) => (
+          <div key={`${index + 1}-${cmd}`} className={styles.textSecondary}>
+            <span className={`${styles.textMuted} ${styles.historyIndex}`}>{index + 1}</span>
+            {cmd}
+          </div>
+        ))}
+      </div>
+    );
+  },
 };
 
 const lsCommand: Command = {
@@ -607,7 +638,51 @@ const lsCommand: Command = {
   description: 'List directory contents',
   usage: 'ls [directory]',
   category: 'core',
-  execute: () => {},
+  execute: (args, addOutput, context) => {
+    const targetPath = resolvePath(context.currentDirectory, args[0] ?? '.', context.user);
+    const node = getNode(targetPath);
+
+    if (!node) {
+      addOutput(
+        <span className={styles.error}>
+          ls: cannot access '{args[0] ?? '.'}': No such file or directory
+        </span>,
+        'error'
+      );
+      return;
+    }
+
+    if (node.type === 'file') {
+      addOutput(<span>{node.name}</span>);
+      return;
+    }
+
+    const entries = Array.from(node.children?.entries() ?? []).sort((a, b) =>
+      a[0].localeCompare(b[0])
+    );
+
+    if (entries.length === 0) {
+      addOutput(<span className={styles.textMuted}>Directory is empty.</span>, 'info');
+      return;
+    }
+
+    addOutput(
+      <div className={styles.flexRowGap}>
+        {entries.map(([name, child]) => {
+          const isDir = child.type === 'directory';
+          return (
+            <span
+              key={name}
+              className={isDir ? `${styles.accentBlue} ${styles.bold}` : styles.textPrimary}
+            >
+              {name}
+              {isDir ? '/' : ''}
+            </span>
+          );
+        })}
+      </div>
+    );
+  },
 };
 
 const cdCommand: Command = {
@@ -615,7 +690,26 @@ const cdCommand: Command = {
   description: 'Change the shell working directory',
   usage: 'cd [directory]',
   category: 'core',
-  execute: () => {},
+  execute: (args, addOutput, context) => {
+    const targetArg = args[0] || '~';
+    const targetPath = resolvePath(context.currentDirectory, targetArg, context.user);
+    const node = getNode(targetPath);
+
+    if (!node) {
+      addOutput(
+        <span className={styles.error}>cd: {targetArg}: No such file or directory</span>,
+        'error'
+      );
+      return;
+    }
+
+    if (node.type !== 'directory') {
+      addOutput(<span className={styles.error}>cd: {targetArg}: Not a directory</span>, 'error');
+      return;
+    }
+
+    context.setCurrentDirectory(targetPath);
+  },
 };
 
 const pwdCommand: Command = {
@@ -623,7 +717,9 @@ const pwdCommand: Command = {
   description: 'Print current working directory',
   usage: 'pwd',
   category: 'core',
-  execute: () => {},
+  execute: (_args, addOutput, context) => {
+    addOutput(<span>{resolvePath(context.currentDirectory, '.', context.user)}</span>);
+  },
 };
 
 const catCommand: Command = {
@@ -631,7 +727,30 @@ const catCommand: Command = {
   description: 'Display a file from the virtual filesystem',
   usage: 'cat [file]',
   category: 'core',
-  execute: () => {},
+  execute: (args, addOutput, context) => {
+    if (!args[0]) {
+      addOutput(<span className={styles.error}>Usage: cat [file]</span>, 'error');
+      return;
+    }
+
+    const targetPath = resolvePath(context.currentDirectory, args[0], context.user);
+    const node = getNode(targetPath);
+
+    if (!node) {
+      addOutput(
+        <span className={styles.error}>cat: {args[0]}: No such file or directory</span>,
+        'error'
+      );
+      return;
+    }
+
+    if (node.type === 'directory') {
+      addOutput(<span className={styles.error}>cat: {args[0]}: Is a directory</span>, 'error');
+      return;
+    }
+
+    addOutput(<div className={styles.textPreWrap}>{node.content}</div>);
+  },
 };
 
 const treeCommand: Command = {
@@ -639,7 +758,34 @@ const treeCommand: Command = {
   description: 'Display directory structure',
   usage: 'tree [directory]',
   category: 'core',
-  execute: () => {},
+  execute: (args, addOutput, context) => {
+    const rootPath = resolvePath(context.currentDirectory, args[0] || '.', context.user);
+    const rootNode = getNode(rootPath);
+
+    if (!rootNode || rootNode.type !== 'directory') {
+      addOutput(
+        <span className={styles.error}>tree: {args[0] || '.'}: Not a directory</span>,
+        'error'
+      );
+      return;
+    }
+
+    const rootLabel = rootPath === '/' ? '/' : rootPath.split('/').filter(Boolean).pop() || '/';
+    const [treeLines, wasLimited] = renderDirectoryTree(rootNode);
+
+    addOutput(
+      <div>
+        <div className={`${styles.accentBlue} ${styles.bold}`}>{rootLabel}</div>
+        {treeLines}
+        {wasLimited && (
+          <div className={`${styles.textMuted} ${styles.textSmall} ${styles.marginTopMedium}`}>
+            Maximum depth reached ({UI_CONSTANTS.MAX_TREE_DEPTH} levels) - some directories not
+            shown
+          </div>
+        )}
+      </div>
+    );
+  },
 };
 
 const highlightsCommand: Command = {
@@ -648,11 +794,11 @@ const highlightsCommand: Command = {
   usage: 'highlights',
   category: 'career',
   featured: true,
-  execute: (_args, addOutput) => {
+  execute: (_args, addOutput, context) => {
     addOutput(
       <div className={styles.flexColumn}>
         <div className={styles.headerSection}>Highlights</div>
-        {renderBulletList(getHighlights())}
+        {renderBulletList(getHighlights(context.visitorMode))}
       </div>
     );
   },
@@ -726,7 +872,7 @@ const tourCommand: Command = {
   category: 'career',
   featured: true,
   execute: (_args, addOutput, context) => {
-    const progress = getVisitorProgress();
+    const progress = context.visitorProgress;
     const completed = RECRUITER_TOUR.filter((command) =>
       progress.discoveredCommands.includes(command)
     ).length;
@@ -734,7 +880,7 @@ const tourCommand: Command = {
       (command) => !progress.discoveredCommands.includes(command)
     );
 
-    context?.setVisitorMode?.('recruiter');
+    context.setVisitorMode('recruiter');
     addOutput(
       <div className={styles.flexColumn}>
         <CommandShortcutList
@@ -793,7 +939,7 @@ const modeCommand: Command = {
       return;
     }
 
-    context?.setVisitorMode?.(nextMode);
+    context.setVisitorMode(nextMode);
     addOutput(
       <div className={styles.flexColumn}>
         <span className={styles.success}>Path switched to {nextMode}.</span>
@@ -819,7 +965,7 @@ const recommendCommand: Command = {
   aliases: ['next'],
   category: 'core',
   execute: (_args, addOutput, context) => {
-    const mode = context?.visitorMode ?? 'standard';
+    const mode = context.visitorMode;
     addOutput(
       <CommandShortcutList
         title={`Recommended next steps for ${mode}`}
@@ -972,7 +1118,7 @@ const playgroundCommand: Command = {
       }
     }
 
-    context?.openPlayground?.(preset);
+    context.openPlayground(preset);
     addOutput(
       <div className={styles.panel}>
         <div className={styles.panelTitle}>Coding Playground</div>
@@ -1315,8 +1461,8 @@ const statsCommand: Command = {
   description: 'Show local visitor stats and discovery progress',
   usage: 'stats',
   category: 'system',
-  execute: (_args, addOutput) => {
-    const progress = getVisitorProgress();
+  execute: (_args, addOutput, context) => {
+    const progress = context.visitorProgress;
     addOutput(
       <div className={styles.flexColumn}>
         <div className={styles.headerSection}>Local Stats</div>
@@ -1454,11 +1600,10 @@ const sudoCommand: Command = {
   category: 'fun',
   hidden: true,
   execute: (args, addOutput, context) => {
-    unlockAdmin();
-    context?.setBootMode?.('admin');
-
     if (args[0] === 'unlock' || args[0] === 'su') {
-      unlockVault();
+      unlockAdmin();
+      context.setVisitorProgress(unlockVault());
+      context.setBootMode('admin');
       addOutput(
         <div className={styles.flexColumn}>
           <span className={styles.success}>Privileges elevated. Vault access granted.</span>
@@ -1476,6 +1621,7 @@ const sudoCommand: Command = {
       return;
     }
 
+    context.setBootMode('admin');
     addOutput(
       <div className={styles.flexColumn}>
         <span className={styles.success}>Temporary admin shell enabled for this session.</span>
@@ -1492,8 +1638,8 @@ const vaultCommand: Command = {
   usage: 'vault',
   category: 'fun',
   hidden: true,
-  execute: (_args, addOutput) => {
-    const progress = getVisitorProgress();
+  execute: (_args, addOutput, context) => {
+    const progress = context.visitorProgress;
     const eligible =
       progress.unlockedVault || progress.adminUnlocked || progress.discoveredCommands.length >= 6;
 
@@ -1507,7 +1653,7 @@ const vaultCommand: Command = {
       return;
     }
 
-    unlockVault();
+    context.setVisitorProgress(unlockVault());
     addOutput(
       <CommandShortcutList
         title="Vault commands"
@@ -1529,8 +1675,8 @@ const eastereggCommand: Command = {
   usage: 'easteregg',
   category: 'fun',
   hidden: true,
-  execute: (_args, addOutput) => {
-    const progress = getVisitorProgress();
+  execute: (_args, addOutput, context) => {
+    const progress = context.visitorProgress;
     addOutput(
       <div className={styles.flexColumn}>
         <div className={styles.headerSection}>Discovery Log</div>

@@ -153,10 +153,11 @@
 }
 
 .windowActions {
-  width: 52px; /* Balance the controls on the left */
+  width: 88px; /* Balance the controls on the left */
   display: flex;
   justify-content: flex-end;
   align-items: center;
+  gap: 0.35rem;
 }
 
 /* Music toggle button */
