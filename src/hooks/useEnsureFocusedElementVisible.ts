@@ -18,6 +18,7 @@ export const useEnsureFocusedElementVisible = <T extends HTMLElement>({
 }: UseEnsureFocusedElementVisibleOptions<T>) => {
   const timeoutRef = useRef<number | null>(null);
   const animationFrameRef = useRef<number | null>(null);
+  const shouldSyncAfterKeyboardOpenRef = useRef(false);
 
   const cancelScheduledEnsureVisible = useCallback(() => {
     if (timeoutRef.current !== null) {
@@ -75,6 +76,20 @@ export const useEnsureFocusedElementVisible = <T extends HTMLElement>({
   }, [cancelScheduledEnsureVisible]);
 
   useEffect(() => {
+    if (!enabled) {
+      shouldSyncAfterKeyboardOpenRef.current = false;
+      return;
+    }
+
+    if (isKeyboardOpen) {
+      shouldSyncAfterKeyboardOpenRef.current = true;
+      return;
+    }
+
+    shouldSyncAfterKeyboardOpenRef.current = false;
+  }, [enabled, isKeyboardOpen]);
+
+  useEffect(() => {
     if (!enabled || !isKeyboardOpen || !isViewportSettled) {
       return;
     }
@@ -83,7 +98,12 @@ export const useEnsureFocusedElementVisible = <T extends HTMLElement>({
       return;
     }
 
+    if (!shouldSyncAfterKeyboardOpenRef.current) {
+      return;
+    }
+
     ensureVisible('smooth');
+    shouldSyncAfterKeyboardOpenRef.current = false;
   }, [elementRef, enabled, ensureVisible, isKeyboardOpen, isViewportSettled]);
 
   return {

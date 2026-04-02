@@ -71,6 +71,7 @@ export interface CommandContext {
   user: string;
   symbol: string;
   visitorMode: VisitorMode;
+  sessionStartedAt: number;
   openPlayground?: (preset?: PlaygroundPresetId) => void;
   closePlayground?: () => void;
   setVisitorMode?: (mode: VisitorMode) => void;
@@ -133,6 +134,8 @@ export interface TerminalState {
   input: string;
   /** Requested playground preset */
   playgroundPreset: PlaygroundPresetId;
+  /** Timestamp when current app session started */
+  sessionStartedAt: number;
 }
 
 /**

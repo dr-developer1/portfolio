@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type {
+  Achievement,
   TerminalState,
   TerminalActions,
   UseTerminalReturn,
@@ -26,6 +27,8 @@ import {
 } from '../utils/progressService';
 import styles from '../styles/outputUtilities.module.css';
 
+const SESSION_STARTED_AT = Date.now();
+
 const INITIAL_STATE: TerminalState = {
   history: [],
   commandHistory: [],
@@ -41,6 +44,7 @@ const INITIAL_STATE: TerminalState = {
   visitorMode: getVisitorProgress().activePath,
   input: '',
   playgroundPreset: 'default',
+  sessionStartedAt: SESSION_STARTED_AT,
 };
 
 /**
@@ -56,6 +60,12 @@ export function getPromptConfig(mode: BootMode): { user: string; symbol: string 
  */
 export function useTerminal(): UseTerminalReturn {
   const [state, setState] = useState<TerminalState>(INITIAL_STATE);
+
+  const emitAchievementEvents = useCallback((unlocked: Achievement[]) => {
+    unlocked.forEach((achievement) => {
+      window.dispatchEvent(new CustomEvent<Achievement>('achievement-unlocked', { detail: achievement }));
+    });
+  }, []);
 
   // Apply theme on mount
   useEffect(() => {
@@ -216,14 +226,7 @@ export function useTerminal(): UseTerminalReturn {
 
       const trackInternalCommand = () => {
         const { unlocked } = recordCommandExecution(parsed.name, false);
-        unlocked.forEach((achievement) => {
-          addOutput(
-            <span className={styles.success}>
-              Achievement unlocked: {achievement.title} ({achievement.description})
-            </span>,
-            'success'
-          );
-        });
+        emitAchievementEvents(unlocked);
       };
 
       // Handle history command internally to access state
@@ -431,6 +434,7 @@ export function useTerminal(): UseTerminalReturn {
           user,
           symbol,
           visitorMode: state.visitorMode,
+          sessionStartedAt: state.sessionStartedAt,
           openPlayground,
           closePlayground,
           setVisitorMode,
@@ -439,14 +443,7 @@ export function useTerminal(): UseTerminalReturn {
         await command.execute(parsed.args, addOutput, context);
 
         const { unlocked } = recordCommandExecution(command.name, Boolean(command.hidden));
-        unlocked.forEach((achievement) => {
-          addOutput(
-            <span className={styles.success}>
-              Achievement unlocked: {achievement.title} ({achievement.description})
-            </span>,
-            'success'
-          );
-        });
+        emitAchievementEvents(unlocked);
       } catch (error) {
         addOutput(
           <span className={styles.error}>
@@ -464,10 +461,12 @@ export function useTerminal(): UseTerminalReturn {
       state.commandHistory,
       state.bootMode,
       state.visitorMode,
+      state.sessionStartedAt,
       openPlayground,
       closePlayground,
       setVisitorMode,
       setBootMode,
+      emitAchievementEvents,
     ]
   );
 

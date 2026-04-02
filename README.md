@@ -1,10 +1,11 @@
 # Portfolio OS
 
-Interactive terminal-style portfolio built with React, TypeScript, and Vite. The site is fully client-side and combines a terminal shell, hidden modes, a lightweight coding playground, and recruiter-friendly guided navigation.
+Interactive terminal-style portfolio built with React, TypeScript, and Vite. The experience is fully in English, fully client-side, and combines a terminal shell, hidden modes, a lightweight coding playground, and recruiter-friendly guided navigation.
 
 ## Highlights
 
 - Recruiter-first terminal UX with guided commands like `tour`, `highlights`, `top-projects`, and `why-me`
+- Visitor path chooser after boot (`mode recruiter|engineer|founder|client`) for tailored flows
 - Virtual filesystem commands: `ls`, `cd`, `cat`, `pwd`, `tree`
 - Search and navigation commands: `find`, `grep`, `open`, `recommend`
 - Hidden depth: `sudo`, `vault`, `interview`, `legacy`, `incident`, `openai`, `coffee`
@@ -49,8 +50,13 @@ npm run test:e2e
 - `tour`: guided recruiter path
 - `mode recruiter|engineer|founder|client`: switch visitor path
 - `projects` / `top-projects`: portfolio project views
+- `github`: live GitHub stats and recent repositories
+- `weather`: local weather via geolocation
+- `contact-me`: pre-filled email shortcut (`hire-me`, `reach-out`)
+- `neofetch`: terminal system snapshot
 - `playground --demo` / `playground --challenge debugging`
 - `find <keyword>` / `grep <term> <target>`
+- `banner <text>`: hidden ASCII-style text easter egg
 - `stats`: local usage and discovery progress
 
 ## Architecture Notes

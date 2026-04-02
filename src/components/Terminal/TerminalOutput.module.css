@@ -93,6 +93,16 @@
   margin-top: var(--spacing-sm);
 }
 
+.returningHint {
+  display: inline-block;
+  animation: glitch-flicker 10s steps(2, end) infinite;
+}
+
+.tourHint {
+  display: inline-block;
+  color: var(--color-text-secondary);
+}
+
 .highlight {
   color: var(--color-accent-green);
   font-weight: 500;

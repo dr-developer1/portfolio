@@ -87,18 +87,21 @@ body {
    ======================================== */
 @media (width <= 768px) {
   body {
-    padding: calc(var(--spacing-sm) + var(--safe-area-top))
+    min-height: 100dvh;
+    height: 100dvh;
+    padding: calc(var(--spacing-md) + var(--safe-area-top))
       calc(var(--spacing-sm) + var(--safe-area-right))
       calc(var(--spacing-sm) + var(--safe-area-bottom))
       calc(var(--spacing-sm) + var(--safe-area-left));
-    align-items: flex-start; /* Allow content to flow naturally */
-    overflow: auto hidden; /* Enable vertical scrolling, prevent horizontal */
+    align-items: stretch;
+    justify-content: flex-start;
+    overflow: hidden;
   }
 
   #root {
-    /* Use min-height instead of fixed height to allow growth */
-    min-height: 85dvh;
-    height: auto;
+    height: 100%;
+    min-height: 0;
+    max-height: none;
     border-radius: 0;
   }
 }

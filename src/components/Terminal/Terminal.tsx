@@ -1,29 +1,156 @@
-import React from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { BackgroundMusic } from '../Effects/BackgroundMusic';
 import { MatrixRain } from '../Effects/MatrixRain';
 import { useTerminalContext } from '../../hooks/TerminalContext';
+import { useAutoRun } from '../../hooks/useAutoRun';
 import { useKeyboardViewport } from '../../hooks/useKeyboardViewport';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { getPromptConfig } from '../../hooks/useTerminal';
 import { BP } from '../../config/breakpoints';
 import { SYSTEM_CONFIG } from '../../config';
+import type { Achievement } from '../../types';
 
 import { MusicToggleButton } from './MusicToggleButton';
 import { PlaygroundOverlay } from '../Playground';
 import styles from './Terminal.module.css';
 import { TerminalInput } from './TerminalInput';
 import { TerminalOutput } from './TerminalOutput';
+import { AchievementToastStack, type AchievementToast } from './AchievementToastStack';
+import { KeyboardShortcutsOverlay } from './KeyboardShortcutsOverlay';
+
+const AUTO_SCROLL_BOTTOM_THRESHOLD_PX = 72;
 
 export const Terminal: React.FC = () => {
-  const { bootMode, isPlaygroundOpen, closePlayground, playgroundPreset } = useTerminalContext();
+  const { bootMode, history, isPlaygroundOpen, closePlayground, playgroundPreset, executeCommand } =
+    useTerminalContext();
   const { user } = getPromptConfig(bootMode);
   const isMobile = useMediaQuery(
     `(max-width: ${BP.mobile}px), (hover: none) and (pointer: coarse)`
   );
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
+  const [isStartupAnimating, setIsStartupAnimating] = useState(true);
+  const [toasts, setToasts] = useState<AchievementToast[]>([]);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const bottomAnchorRef = useRef<HTMLDivElement>(null);
+  const shouldAutoScrollRef = useRef(true);
+  const toastTimeoutsRef = useRef<Map<string, number>>(new Map());
+  const seenAchievementsRef = useRef<Set<string>>(new Set());
   const { keyboardInsetPx, isKeyboardOpen, isViewportSettled } = useKeyboardViewport({
     enabled: isMobile,
   });
+
+  useAutoRun(executeCommand);
+
+  const updateAutoScrollState = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) {
+      shouldAutoScrollRef.current = true;
+      return;
+    }
+
+    const distanceToBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight;
+    shouldAutoScrollRef.current = distanceToBottom <= AUTO_SCROLL_BOTTOM_THRESHOLD_PX;
+  }, []);
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) {
+      shouldAutoScrollRef.current = true;
+      return;
+    }
+
+    updateAutoScrollState();
+    container.addEventListener('scroll', updateAutoScrollState, { passive: true });
+
+    return () => {
+      container.removeEventListener('scroll', updateAutoScrollState);
+    };
+  }, [updateAutoScrollState]);
+
+  useEffect(() => {
+    if (!shouldAutoScrollRef.current) {
+      return;
+    }
+
+    bottomAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }, [history]);
+
+  const dismissToast = useCallback((toastId: string) => {
+    const timeout = toastTimeoutsRef.current.get(toastId);
+    if (timeout !== undefined) {
+      window.clearTimeout(timeout);
+      toastTimeoutsRef.current.delete(toastId);
+    }
+
+    setToasts((prev) => prev.filter((toast) => toast.toastId !== toastId));
+  }, []);
+
+  useEffect(() => {
+    const animationTimeout = window.setTimeout(() => {
+      setIsStartupAnimating(false);
+    }, 700);
+
+    return () => {
+      window.clearTimeout(animationTimeout);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleAchievementUnlocked = (event: Event) => {
+      const achievement = (event as CustomEvent<Achievement>).detail;
+      if (!achievement?.id || seenAchievementsRef.current.has(achievement.id)) {
+        return;
+      }
+
+      seenAchievementsRef.current.add(achievement.id);
+      const toastId = `${achievement.id}-${Date.now()}`;
+
+      setToasts((prev) => [...prev, { ...achievement, toastId }]);
+
+      const timeout = window.setTimeout(() => {
+        dismissToast(toastId);
+      }, 4800);
+      toastTimeoutsRef.current.set(toastId, timeout);
+    };
+
+    window.addEventListener('achievement-unlocked', handleAchievementUnlocked);
+    return () => {
+      window.removeEventListener('achievement-unlocked', handleAchievementUnlocked);
+    };
+  }, [dismissToast]);
+
+  useEffect(() => {
+    const timeoutMap = toastTimeoutsRef.current;
+
+    return () => {
+      for (const timeoutId of timeoutMap.values()) {
+        window.clearTimeout(timeoutId);
+      }
+      timeoutMap.clear();
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleGlobalKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.code === 'Slash') {
+        event.preventDefault();
+        if (isPlaygroundOpen) {
+          return;
+        }
+        setIsShortcutsOpen((prev) => !prev);
+        return;
+      }
+
+      if (event.key === 'Escape') {
+        setIsShortcutsOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [isPlaygroundOpen]);
 
   const containerStyle = isMobile
     ? ({ '--keyboard-inset': `${keyboardInsetPx}px` } as React.CSSProperties)
@@ -33,29 +160,33 @@ export const Terminal: React.FC = () => {
     <>
       <MatrixRain />
       <BackgroundMusic />
-      <div className={styles.window}>
+      <div className={`${styles.window} ${isStartupAnimating ? styles.windowWillChange : ''}`}>
         <div className={styles.scanline} />
+        <div className={styles.scanlineBeam} />
         <div className={styles.overlay} />
         {/* macOS-style title bar */}
-        <div className={styles.titleBar}>
+        <div className={styles.titleBar} role="toolbar" aria-label="Terminal window controls">
           <div className={styles.windowControls}>
             <button
+              type="button"
               className={`${styles.windowButton} ${styles.closeButton}`}
               aria-label="Close"
               tabIndex={-1}
             />
             <button
+              type="button"
               className={`${styles.windowButton} ${styles.minimizeButton}`}
               aria-label="Minimize"
               tabIndex={-1}
             />
             <button
+              type="button"
               className={`${styles.windowButton} ${styles.maximizeButton}`}
               aria-label="Maximize"
               tabIndex={-1}
             />
           </div>
-          <span className={styles.windowTitle}>
+          <span className={`${styles.windowTitle} ${styles.windowTitleGlitch}`}>
             {user}@{SYSTEM_CONFIG.hostname} — bash
           </span>
           <div className={styles.windowActions}>
@@ -65,7 +196,10 @@ export const Terminal: React.FC = () => {
 
         {/* Terminal body */}
         <div
-          className={`${styles.container} ${isKeyboardOpen ? styles.keyboardOpen : ''}`}
+          ref={scrollContainerRef}
+          className={`${styles.container} ${styles.scanlineBeamContainer} ${
+            isKeyboardOpen ? styles.keyboardOpen : ''
+          }`}
           style={containerStyle}
         >
           <TerminalOutput />
@@ -74,6 +208,7 @@ export const Terminal: React.FC = () => {
             isKeyboardOpen={isKeyboardOpen}
             isViewportSettled={isViewportSettled}
           />
+          <div ref={bottomAnchorRef} aria-hidden="true" className={styles.scrollAnchor} />
         </div>
       </div>
       <PlaygroundOverlay
@@ -81,6 +216,11 @@ export const Terminal: React.FC = () => {
         onClose={closePlayground}
         preset={playgroundPreset}
       />
+      <KeyboardShortcutsOverlay
+        isOpen={isShortcutsOpen && !isPlaygroundOpen}
+        onClose={() => setIsShortcutsOpen(false)}
+      />
+      <AchievementToastStack toasts={toasts} onDismiss={dismissToast} />
     </>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useEffect, useState } from 'react';
+import React, { useRef, useCallback, useEffect, useState, useMemo } from 'react';
 import { useTerminalContext } from '../../hooks/TerminalContext';
 import { useEnsureFocusedElementVisible } from '../../hooks/useEnsureFocusedElementVisible';
 import { getPromptConfig } from '../../hooks/useTerminal';
@@ -6,6 +6,7 @@ import { SYSTEM_CONFIG } from '../../config';
 import { UI_CONSTANTS } from '../../config/constants';
 import { useTabCompletion } from '../../hooks/useTabCompletion';
 import { getCompletions } from '../../utils/completionService';
+import { playCommandFire, playKeyClick } from '../../utils/soundService';
 import { PromptDisplay } from './PromptDisplay';
 import styles from './TerminalInput.module.css';
 import outputStyles from '../../styles/outputUtilities.module.css';
@@ -30,6 +31,7 @@ export const TerminalInputMobile: React.FC<TerminalInputMobileProps> = ({
     currentDirectory,
     isLoading,
     bootMode,
+    musicEnabled,
     isPlaygroundOpen,
     input,
     setInput,
@@ -41,9 +43,13 @@ export const TerminalInputMobile: React.FC<TerminalInputMobileProps> = ({
 
   const { handleTabKey, resetCompletion } = useTabCompletion();
   const { user, symbol } = getPromptConfig(bootMode);
-  const suggestion = !isLoading
-    ? getCompletions(input, currentDirectory, user)?.matches[0] ?? null
-    : null;
+  const suggestion = useMemo(() => {
+    if (isLoading) {
+      return null;
+    }
+
+    return getCompletions(input, currentDirectory, user)?.matches[0] ?? null;
+  }, [isLoading, input, currentDirectory, user]);
 
   const { scheduleEnsureVisible, cancelScheduledEnsureVisible } =
     useEnsureFocusedElementVisible<HTMLInputElement>({
@@ -86,6 +92,9 @@ export const TerminalInputMobile: React.FC<TerminalInputMobileProps> = ({
     setInput(e.target.value);
     resetHistoryIndex();
     resetCompletion();
+    if (musicEnabled) {
+      playKeyClick();
+    }
   };
 
   const handleSubmit = useCallback(() => {
@@ -116,6 +125,9 @@ export const TerminalInputMobile: React.FC<TerminalInputMobileProps> = ({
         'command'
       );
     } else {
+      if (musicEnabled) {
+        playCommandFire();
+      }
       executeCommand(trimmedInput);
       shouldRefocusRef.current = true;
     }
@@ -127,6 +139,7 @@ export const TerminalInputMobile: React.FC<TerminalInputMobileProps> = ({
     executeCommand,
     addOutput,
     clearTerminal,
+    musicEnabled,
     user,
     symbol,
     currentDirectory,

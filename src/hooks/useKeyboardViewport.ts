@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { UI_CONSTANTS } from '../config/constants';
 
@@ -14,6 +14,17 @@ export const computeKeyboardInset = (baselineHeight: number, visibleHeight: numb
   }
 
   return Math.max(0, Math.round(baselineHeight - visibleHeight));
+};
+
+export const computeKeyboardOpenThreshold = (baselineHeight: number): number => {
+  if (!Number.isFinite(baselineHeight) || baselineHeight <= 0) {
+    return UI_CONSTANTS.MOBILE_KEYBOARD.OPEN_THRESHOLD_PX;
+  }
+
+  return Math.max(
+    UI_CONSTANTS.MOBILE_KEYBOARD.OPEN_THRESHOLD_PX,
+    Math.round(baselineHeight * UI_CONSTANTS.MOBILE_KEYBOARD.OPEN_THRESHOLD_RATIO)
+  );
 };
 
 interface UseKeyboardViewportOptions {
@@ -40,8 +51,11 @@ export const useKeyboardViewport = (
 
   const baselineHeightRef = useRef(0);
   const settleTimerRef = useRef<number | null>(null);
+  const lastReportedInsetRef = useRef(0);
+  const keyboardOpenRef = useRef(false);
 
   const [keyboardInsetPx, setKeyboardInsetPx] = useState(0);
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const [isViewportSettled, setIsViewportSettled] = useState(true);
 
   useEffect(() => {
@@ -82,14 +96,35 @@ export const useKeyboardViewport = (
       }
 
       const nextInset = computeKeyboardInset(baselineHeightRef.current, visibleHeight);
-      setKeyboardInsetPx(nextInset);
+      const openThreshold = computeKeyboardOpenThreshold(baselineHeightRef.current);
+      const nextKeyboardOpen = nextInset > openThreshold;
+      const nextReportedInset = nextKeyboardOpen ? nextInset : 0;
 
-      // When keyboard is effectively closed, refresh the baseline for future calculations.
-      if (nextInset <= UI_CONSTANTS.MOBILE_KEYBOARD.OPEN_THRESHOLD_PX) {
-        baselineHeightRef.current = visibleHeight;
+      let shouldQueueSettledState = false;
+
+      if (nextKeyboardOpen !== keyboardOpenRef.current) {
+        keyboardOpenRef.current = nextKeyboardOpen;
+        setIsKeyboardOpen(nextKeyboardOpen);
+        shouldQueueSettledState = true;
       }
 
-      queueSettledState();
+      if (nextReportedInset !== lastReportedInsetRef.current) {
+        if (nextKeyboardOpen) {
+          shouldQueueSettledState = true;
+        }
+
+        lastReportedInsetRef.current = nextReportedInset;
+        setKeyboardInsetPx(nextReportedInset);
+      }
+
+      if (shouldQueueSettledState) {
+        queueSettledState();
+      }
+
+      // When keyboard is effectively closed, refresh the baseline for future calculations.
+      if (!nextKeyboardOpen) {
+        baselineHeightRef.current = visibleHeight;
+      }
     };
 
     const handleOrientationChange = () => {
@@ -103,35 +138,29 @@ export const useKeyboardViewport = (
     };
 
     baselineHeightRef.current = getVisibleViewportHeight();
+    keyboardOpenRef.current = false;
+    lastReportedInsetRef.current = 0;
     syncState();
 
     const viewport = window.visualViewport;
     viewport?.addEventListener('resize', syncState);
-    viewport?.addEventListener('scroll', syncState);
     window.addEventListener('resize', syncState);
     window.addEventListener('orientationchange', handleOrientationChange);
 
     return () => {
       clearSettleTimer();
       viewport?.removeEventListener('resize', syncState);
-      viewport?.removeEventListener('scroll', syncState);
       window.removeEventListener('resize', syncState);
       window.removeEventListener('orientationchange', handleOrientationChange);
     };
   }, [enabled]);
 
-  const isKeyboardOpen = useMemo(
-    () =>
-      enabled && keyboardInsetPx > UI_CONSTANTS.MOBILE_KEYBOARD.OPEN_THRESHOLD_PX,
-    [enabled, keyboardInsetPx]
-  );
-
-  const safeKeyboardInset = enabled ? keyboardInsetPx : 0;
+  const safeKeyboardInset = enabled && isKeyboardOpen ? keyboardInsetPx : 0;
   const safeViewportSettled = enabled ? isViewportSettled : true;
 
   return {
     keyboardInsetPx: safeKeyboardInset,
-    isKeyboardOpen,
+    isKeyboardOpen: enabled ? isKeyboardOpen : false,
     isViewportSettled: safeViewportSettled,
   };
 };
