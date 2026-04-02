@@ -14,7 +14,11 @@ interface PlaygroundOverlayProps {
   preset: PlaygroundPresetId;
 }
 
-export const PlaygroundOverlay: React.FC<PlaygroundOverlayProps> = ({ isOpen, onClose, preset }) => {
+export const PlaygroundOverlay: React.FC<PlaygroundOverlayProps> = ({
+  isOpen,
+  onClose,
+  preset,
+}) => {
   const panelRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const previousActiveRef = useRef<HTMLElement | null>(null);

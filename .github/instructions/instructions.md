@@ -5,14 +5,14 @@ When I report a bug, you must follow this process:
 3. Explain the full execution path that leads to the bug.
 4. Identify why the current design allowed this bug to exist.
 5. Evaluate whether the issue indicates:
+   - flawed abstraction
+   - incorrect state ownership
+   - bad separation of concerns
+   - hidden side effects
+   - mutation / lifecycle problems
+   - race conditions
+   - invalid assumptions
 
-   * flawed abstraction
-   * incorrect state ownership
-   * bad separation of concerns
-   * hidden side effects
-   * mutation / lifecycle problems
-   * race conditions
-   * invalid assumptions
 6. If the bug is caused by structural/design problems, you MUST propose a refactor instead of a patch.
 7. Prefer refactoring over workaround. Never patch symptoms.
 8. Do not add guards, conditionals, retries, or fallbacks unless they are part of the correct design.

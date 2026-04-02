@@ -3,13 +3,7 @@ import type { ReactNode } from 'react';
 import type { BootMode } from './boot';
 import type { PlaygroundPresetId } from './playground';
 
-export type CommandCategory =
-  | 'core'
-  | 'career'
-  | 'projects'
-  | 'playground'
-  | 'fun'
-  | 'system';
+export type CommandCategory = 'core' | 'career' | 'projects' | 'playground' | 'fun' | 'system';
 
 export type VisitorMode = 'standard' | 'recruiter' | 'engineer' | 'founder' | 'client';
 

@@ -269,11 +269,7 @@ export const TerminalInputMobile: React.FC<TerminalInputMobileProps> = ({
   const placeholder = isLoading ? 'Processing...' : "Type 'help' for available commands...";
 
   return (
-    <div
-      className={styles.inputContainer}
-      onClick={focusInput}
-      data-testid="terminal-input-mobile"
-    >
+    <div className={styles.inputContainer} onClick={focusInput} data-testid="terminal-input-mobile">
       <span className={styles.prompt}>
         <span className={styles.promptUser}>{user}</span>
         <span className={styles.promptAt}>@</span>
@@ -309,18 +305,20 @@ export const TerminalInputMobile: React.FC<TerminalInputMobileProps> = ({
           data-testid="terminal-input-native"
         />
 
-        <span className={styles.inputDisplay} aria-hidden="true" data-testid="terminal-input-display">
-          {input ? (
-            input
-          ) : (
-            <span className={styles.inputPlaceholder}>{placeholder}</span>
-          )}
+        <span
+          className={styles.inputDisplay}
+          aria-hidden="true"
+          data-testid="terminal-input-display"
+        >
+          {input ? input : <span className={styles.inputPlaceholder}>{placeholder}</span>}
           {isInputFocused && <span className={styles.cursorBlock}>&nbsp;</span>}
         </span>
       </span>
 
       {suggestion && suggestion !== input && (
-        <div className={styles.suggestion}>Tap Tab on supported keyboards to autocomplete: {suggestion}</div>
+        <div className={styles.suggestion}>
+          Tap Tab on supported keyboards to autocomplete: {suggestion}
+        </div>
       )}
     </div>
   );

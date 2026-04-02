@@ -127,14 +127,15 @@ export const content: PortfolioContent = {
       company: 'SILICO',
       location: 'Lyon, France',
       shortLabel: 'Migration & product engineering',
-      impact: 'Drove multiple legacy-to-modern migrations and shipped offline-first and AI-assisted workflows.',
+      impact:
+        'Drove multiple legacy-to-modern migrations and shipped offline-first and AI-assisted workflows.',
       featured: true,
       description: [
         "Designed a cross-platform desktop application (Electron) for medical follow-up with an automatic update system; 'Offline First' architecture using IndexedDB for local storage, automatic bidirectional synchronization, and upload/download handling for medical forms and reports.",
-        "Led a full rewrite of a paid-leave management web app for CICPR (transport/logistics sector), acting as the interface between member companies and the association. Migrated legacy technologies to Vue3/TypeScript/NestJS, including entitlement-calculation algorithms for irregular schedules and contributions.",
-        "Built an innovative reimbursement solution for defective medical products (R2D2) with integrated AI (custom GPT) to automate mapping between variable forms and patient data, including a verification interface with manual correction of predictions.",
-        "Led the technical migration of a legacy DMS from Symfony/Vue2 to NestJS/Vue3/TypeScript, delivering a complete UI redesign and improved maintainability.",
-        "Developed and maintained a patient intervention tracking web application. Implemented key features such as real-time synchronization, activity report generation, and automated email delivery of medical summaries to doctors.",
+        'Led a full rewrite of a paid-leave management web app for CICPR (transport/logistics sector), acting as the interface between member companies and the association. Migrated legacy technologies to Vue3/TypeScript/NestJS, including entitlement-calculation algorithms for irregular schedules and contributions.',
+        'Built an innovative reimbursement solution for defective medical products (R2D2) with integrated AI (custom GPT) to automate mapping between variable forms and patient data, including a verification interface with manual correction of predictions.',
+        'Led the technical migration of a legacy DMS from Symfony/Vue2 to NestJS/Vue3/TypeScript, delivering a complete UI redesign and improved maintainability.',
+        'Developed and maintained a patient intervention tracking web application. Implemented key features such as real-time synchronization, activity report generation, and automated email delivery of medical summaries to doctors.',
       ],
       technologies: [
         'NestJS',
@@ -158,7 +159,7 @@ export const content: PortfolioContent = {
       description: [
         'Developed high-performance RESTful APIs for high-volume document management.',
         'Implemented a custom SAP content server to streamline data flows.',
-        "Evolved and strategically migrated a web application from PHP Symfony to Node.js, significantly improving server response times.",
+        'Evolved and strategically migrated a web application from PHP Symfony to Node.js, significantly improving server response times.',
       ],
     },
     {
@@ -229,7 +230,7 @@ export const content: PortfolioContent = {
     {
       name: 'YouLike: Recruitment Platform',
       description:
-        "A Tinder-style professional network enabling smart matching between students and recruiters.",
+        'A Tinder-style professional network enabling smart matching between students and recruiters.',
       technologies: ['ReactJS', 'TypeScript'],
       shortLabel: 'Matching product',
     },

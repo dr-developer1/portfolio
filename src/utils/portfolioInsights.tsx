@@ -35,7 +35,8 @@ export function getTopProjects(): ProjectItem[] {
 export function getHighlights(): string[] {
   const highlights: string[] = [];
 
-  const featuredExperience = content.experience.find((job) => job.featured) ?? content.experience[0];
+  const featuredExperience =
+    content.experience.find((job) => job.featured) ?? content.experience[0];
   if (featuredExperience?.impact) {
     highlights.push(featuredExperience.impact);
   }
@@ -123,7 +124,12 @@ export function findContent(keyword: string): SearchResult[] {
   const results: SearchResult[] = [];
 
   content.projects.forEach((project) => {
-    const haystack = [project.name, project.description, project.technologies.join(' '), project.impact]
+    const haystack = [
+      project.name,
+      project.description,
+      project.technologies.join(' '),
+      project.impact,
+    ]
       .filter(Boolean)
       .join(' ');
     if (normalize(haystack).includes(query)) {
