@@ -69,9 +69,20 @@ npm run test:e2e
 
 ## Testing
 
-Unit tests cover parser, completion, command registry behavior, filesystem basics, and secret-code detection.
+Unit tests cover parser, completion, command registry behavior, filesystem basics,
+keyboard viewport calculations, and secret-code detection.
 
-Playwright smoke coverage is scaffolded for the boot flow and guided experience.
+Playwright end-to-end coverage includes:
+
+- Desktop boot-to-terminal smoke flow
+- Mobile keyboard visibility and refocus behavior after command execution
+- Mobile input visibility with long terminal history
+
+Configured Playwright projects:
+
+- `desktop-chromium`
+- `mobile-chrome` (Pixel 7 profile)
+- `mobile-safari` (iPhone 14 profile)
 
 ## CI
 
