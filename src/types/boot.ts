@@ -91,8 +91,6 @@ export interface StartPromptProps {
   onStart?: () => void;
   /** Feed input value to secret code detection (for mobile virtual keyboard) */
   onInputChange?: (value: string) => void;
-  /** Callback to skip boot sequence instantly */
-  onSkip?: () => void;
 }
 
 /**

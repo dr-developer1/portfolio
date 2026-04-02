@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { CommandShortcutList } from '../Output';
 import { useTerminalContext } from '../../hooks/TerminalContext';
 import { RECRUITER_TOUR } from '../../data/guides';
@@ -29,10 +29,8 @@ const ASCII_BANNER = String.raw`
 `;
 
 const BANNER_FONT_FAMILY = 'JetBrains Mono Banner';
-
 export const TerminalOutput: React.FC = () => {
   const { history, visitorMode } = useTerminalContext();
-  const bottomRef = useRef<HTMLDivElement>(null);
   const [isBannerFontReady, setIsBannerFontReady] = useState(false);
   const progress = getVisitorProgress();
   const isReturningVisitor = progress.visits > 1;
@@ -42,11 +40,6 @@ export const TerminalOutput: React.FC = () => {
   const recruiterTourNext = RECRUITER_TOUR.find(
     (command) => !progress.discoveredCommands.includes(command)
   );
-
-  // Auto-scroll to bottom when new content is added
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [history]);
 
   useEffect(() => {
     let isActive = true;
@@ -169,7 +162,6 @@ export const TerminalOutput: React.FC = () => {
           {line.content}
         </div>
       ))}
-      <div ref={bottomRef} />
     </div>
   );
 };

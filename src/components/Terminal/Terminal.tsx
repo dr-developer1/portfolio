@@ -19,8 +19,10 @@ import { TerminalOutput } from './TerminalOutput';
 import { AchievementToastStack, type AchievementToast } from './AchievementToastStack';
 import { KeyboardShortcutsOverlay } from './KeyboardShortcutsOverlay';
 
+const AUTO_SCROLL_BOTTOM_THRESHOLD_PX = 72;
+
 export const Terminal: React.FC = () => {
-  const { bootMode, isPlaygroundOpen, closePlayground, playgroundPreset, executeCommand } =
+  const { bootMode, history, isPlaygroundOpen, closePlayground, playgroundPreset, executeCommand } =
     useTerminalContext();
   const { user } = getPromptConfig(bootMode);
   const isMobile = useMediaQuery(
@@ -29,6 +31,9 @@ export const Terminal: React.FC = () => {
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
   const [isStartupAnimating, setIsStartupAnimating] = useState(true);
   const [toasts, setToasts] = useState<AchievementToast[]>([]);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const bottomAnchorRef = useRef<HTMLDivElement>(null);
+  const shouldAutoScrollRef = useRef(true);
   const toastTimeoutsRef = useRef<Map<string, number>>(new Map());
   const seenAchievementsRef = useRef<Set<string>>(new Set());
   const { keyboardInsetPx, isKeyboardOpen, isViewportSettled } = useKeyboardViewport({
@@ -36,6 +41,41 @@ export const Terminal: React.FC = () => {
   });
 
   useAutoRun(executeCommand);
+
+  const updateAutoScrollState = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) {
+      shouldAutoScrollRef.current = true;
+      return;
+    }
+
+    const distanceToBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight;
+    shouldAutoScrollRef.current = distanceToBottom <= AUTO_SCROLL_BOTTOM_THRESHOLD_PX;
+  }, []);
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) {
+      shouldAutoScrollRef.current = true;
+      return;
+    }
+
+    updateAutoScrollState();
+    container.addEventListener('scroll', updateAutoScrollState, { passive: true });
+
+    return () => {
+      container.removeEventListener('scroll', updateAutoScrollState);
+    };
+  }, [updateAutoScrollState]);
+
+  useEffect(() => {
+    if (!shouldAutoScrollRef.current) {
+      return;
+    }
+
+    bottomAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }, [history]);
 
   const dismissToast = useCallback((toastId: string) => {
     const timeout = toastTimeoutsRef.current.get(toastId);
@@ -156,6 +196,7 @@ export const Terminal: React.FC = () => {
 
         {/* Terminal body */}
         <div
+          ref={scrollContainerRef}
           className={`${styles.container} ${styles.scanlineBeamContainer} ${
             isKeyboardOpen ? styles.keyboardOpen : ''
           }`}
@@ -167,6 +208,7 @@ export const Terminal: React.FC = () => {
             isKeyboardOpen={isKeyboardOpen}
             isViewportSettled={isViewportSettled}
           />
+          <div ref={bottomAnchorRef} aria-hidden="true" className={styles.scrollAnchor} />
         </div>
       </div>
       <PlaygroundOverlay

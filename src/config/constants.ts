@@ -26,6 +26,9 @@ export const UI_CONSTANTS = {
     /** Minimum viewport inset required to consider keyboard as open */
     OPEN_THRESHOLD_PX: 56,
 
+    /** Ratio of baseline viewport height used as an adaptive keyboard-open threshold */
+    OPEN_THRESHOLD_RATIO: 0.15,
+
     /** Delay used to align scrollIntoView with virtual keyboard animation */
     FOCUS_SCROLL_DELAY_MS: 320,
 
