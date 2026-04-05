@@ -175,6 +175,8 @@ export interface TerminalActions {
   closePlayground: () => void;
   /** Set the active guided visitor mode */
   setVisitorMode: (mode: VisitorMode) => void;
+  /** Trim processed achievements from the transient feed */
+  consumeAchievementFeed: (count?: number) => void;
 }
 
 /**

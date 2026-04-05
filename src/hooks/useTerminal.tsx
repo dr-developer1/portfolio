@@ -74,6 +74,27 @@ export function useTerminal(): UseTerminalReturn {
     }));
   }, []);
 
+  const consumeAchievementFeed = useCallback((count?: number) => {
+    setState((prev) => {
+      if (prev.achievementFeed.length === 0) {
+        return prev;
+      }
+
+      const amount = Math.max(
+        0,
+        Math.min(count ?? prev.achievementFeed.length, prev.achievementFeed.length)
+      );
+      if (amount === 0) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        achievementFeed: prev.achievementFeed.slice(amount),
+      };
+    });
+  }, []);
+
   const setVisitorProgress = useCallback((progress: VisitorProgress) => {
     setState((prev) => ({
       ...prev,
@@ -449,5 +470,6 @@ export function useTerminal(): UseTerminalReturn {
     openPlayground,
     closePlayground,
     setVisitorMode,
+    consumeAchievementFeed,
   };
 }

@@ -14,7 +14,7 @@ export const MusicToggleButton: React.FC = () => {
 
   return (
     <button
-      className={styles.musicToggle}
+      className={styles.iconButton}
       onClick={handleClick}
       aria-label={musicEnabled ? 'Mute music' : 'Unmute music'}
       title={musicEnabled ? 'Mute music' : 'Unmute music'}

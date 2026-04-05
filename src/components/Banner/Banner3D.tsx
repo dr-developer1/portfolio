@@ -128,6 +128,7 @@ const Banner3D: React.FC = () => {
       context.clearRect(0, 0, width, height);
       context.fillStyle = 'rgba(8, 12, 20, 0.18)';
       context.fillRect(0, 0, width, height);
+      context.shadowBlur = 0;
 
       for (let index = 0; index < particles.length; index += 1) {
         const particle = particles[index];
@@ -171,13 +172,26 @@ const Banner3D: React.FC = () => {
 
         context.beginPath();
         context.fillStyle = `rgba(88, 166, 255, ${0.48 + scale * 0.32})`;
-        context.shadowColor = 'rgba(88, 166, 255, 0.48)';
-        context.shadowBlur = 10;
         context.arc(screenX, screenY, radius, 0, Math.PI * 2);
         context.fill();
       }
 
-      context.shadowBlur = 0;
+      const glow = context.createRadialGradient(
+        width / 2,
+        height / 2,
+        0,
+        width / 2,
+        height / 2,
+        width * 0.42
+      );
+      glow.addColorStop(0, 'rgba(88, 166, 255, 0.08)');
+      glow.addColorStop(0.55, 'rgba(88, 166, 255, 0.03)');
+      glow.addColorStop(1, 'rgba(88, 166, 255, 0)');
+
+      context.globalCompositeOperation = 'lighter';
+      context.fillStyle = glow;
+      context.fillRect(0, 0, width, height);
+      context.globalCompositeOperation = 'source-over';
 
       if (!reduceMotion && isVisible) {
         animationFrame = window.requestAnimationFrame(render);
@@ -188,31 +202,31 @@ const Banner3D: React.FC = () => {
       dpr = window.devicePixelRatio || 1;
       width = Math.max(320, Math.floor(container.clientWidth));
       height = Math.max(160, Math.floor(container.clientHeight));
+      const needsRebuild = width !== lastWidth || height !== lastHeight;
 
-      if (width === lastWidth && height === lastHeight) {
-        return;
+      if (needsRebuild) {
+        lastWidth = width;
+        lastHeight = height;
+
+        canvas.width = Math.floor(width * dpr);
+        canvas.height = Math.floor(height * dpr);
+
+        context.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        const targets = createTargets(width, height, PARTICLE_LIMIT);
+        particles = targets.map(([tx, ty, tz], index) => ({
+          x: (Math.random() - 0.5) * width * 1.35,
+          y: (Math.random() - 0.5) * height * 1.4,
+          z: (Math.random() - 0.5) * 280,
+          tx,
+          ty,
+          tz,
+          phase: (index / Math.max(1, targets.length)) * Math.PI * 2,
+        }));
+
+        startTime = performance.now();
       }
 
-      lastWidth = width;
-      lastHeight = height;
-
-      canvas.width = Math.floor(width * dpr);
-      canvas.height = Math.floor(height * dpr);
-
-      context.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-      const targets = createTargets(width, height, PARTICLE_LIMIT);
-      particles = targets.map(([tx, ty, tz], index) => ({
-        x: (Math.random() - 0.5) * width * 1.35,
-        y: (Math.random() - 0.5) * height * 1.4,
-        z: (Math.random() - 0.5) * 280,
-        tx,
-        ty,
-        tz,
-        phase: (index / Math.max(1, targets.length)) * Math.PI * 2,
-      }));
-
-      startTime = performance.now();
       window.cancelAnimationFrame(animationFrame);
       animationFrame = window.requestAnimationFrame(render);
     };

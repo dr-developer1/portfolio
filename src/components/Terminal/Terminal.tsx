@@ -25,6 +25,7 @@ export const Terminal: React.FC = () => {
     bootMode,
     history,
     achievementFeed,
+    consumeAchievementFeed,
     isPlaygroundOpen,
     closePlayground,
     playgroundPreset,
@@ -41,7 +42,6 @@ export const Terminal: React.FC = () => {
   const bottomAnchorRef = useRef<HTMLDivElement>(null);
   const shouldAutoScrollRef = useRef(true);
   const toastTimeoutsRef = useRef<Map<string, number>>(new Map());
-  const processedAchievementCountRef = useRef(0);
   const { keyboardInsetPx, isKeyboardOpen, isViewportSettled } = useKeyboardViewport({
     enabled: isMobile,
   });
@@ -103,14 +103,11 @@ export const Terminal: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const newAchievements = achievementFeed.slice(processedAchievementCountRef.current);
-    if (newAchievements.length === 0) {
+    if (achievementFeed.length === 0) {
       return;
     }
 
-    processedAchievementCountRef.current = achievementFeed.length;
-
-    newAchievements.forEach((achievement) => {
+    achievementFeed.forEach((achievement) => {
       const toastId = `${achievement.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
       setToasts((prev) => [...prev, { ...achievement, toastId }]);
@@ -120,7 +117,9 @@ export const Terminal: React.FC = () => {
       }, 4800);
       toastTimeoutsRef.current.set(toastId, timeout);
     });
-  }, [achievementFeed, dismissToast]);
+
+    consumeAchievementFeed(achievementFeed.length);
+  }, [achievementFeed, consumeAchievementFeed, dismissToast]);
 
   useEffect(() => {
     const timeoutMap = toastTimeoutsRef.current;
@@ -190,7 +189,7 @@ export const Terminal: React.FC = () => {
           <div className={styles.windowActions}>
             <button
               type="button"
-              className={styles.musicToggle}
+              className={styles.iconButton}
               aria-label="Open keyboard shortcuts"
               onClick={() => setIsShortcutsOpen(true)}
             >
