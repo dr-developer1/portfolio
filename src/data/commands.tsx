@@ -41,6 +41,11 @@ import styles from '../styles/outputUtilities.module.css';
 import { content } from './content';
 import { RECRUITER_TOUR } from './guides';
 
+function resolveSitePath(path: string): string {
+  const normalizedPath = path.replace(/^\/+/, '');
+  return new URL(normalizedPath, window.location.origin + import.meta.env.BASE_URL).toString();
+}
+
 const CATEGORY_LABELS: Record<CommandCategory, string> = {
   core: 'Core',
   career: 'Career',
@@ -598,7 +603,7 @@ const pingCommand: Command = {
     const startedAt = performance.now();
 
     try {
-      await fetch(`${window.location.origin}/`, {
+      await fetch(resolveSitePath('/'), {
         method: 'HEAD',
         cache: 'no-store',
       });
@@ -1069,13 +1074,15 @@ const resumeCommand: Command = {
   category: 'career',
   featured: true,
   execute: (_args, addOutput) => {
+    const resumeUrl = resolveSitePath('/resume.pdf');
+
     addOutput(
       <div>
         <span className={styles.success}>Opening resume…</span>
         <div className={styles.textSecondary}>
           If it does not open automatically, use{' '}
           <a
-            href="/resume.pdf"
+            href={resumeUrl}
             target="_blank"
             rel="noopener noreferrer"
             className={styles.textLink}
@@ -1087,7 +1094,7 @@ const resumeCommand: Command = {
       </div>,
       'success'
     );
-    window.open('/resume.pdf', '_blank', 'noopener,noreferrer');
+    window.open(resumeUrl, '_blank', 'noopener,noreferrer');
   },
 };
 
