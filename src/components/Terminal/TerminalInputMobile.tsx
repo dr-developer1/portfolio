@@ -100,20 +100,6 @@ export const TerminalInputMobile: React.FC<TerminalInputMobileProps> = ({
   const handleSubmit = useCallback(() => {
     const trimmedInput = input.trim();
 
-    if (
-      trimmedInput.toLowerCase() === 'clear' ||
-      trimmedInput.toLowerCase() === 'cls' ||
-      trimmedInput.toLowerCase() === 'reset'
-    ) {
-      clearTerminal();
-      setInput('');
-      resetCompletion();
-      requestAnimationFrame(() => {
-        focusInput();
-      });
-      return;
-    }
-
     if (!trimmedInput) {
       addOutput(
         <PromptDisplay
@@ -138,12 +124,10 @@ export const TerminalInputMobile: React.FC<TerminalInputMobileProps> = ({
     input,
     executeCommand,
     addOutput,
-    clearTerminal,
     musicEnabled,
     user,
     symbol,
     currentDirectory,
-    focusInput,
     resetCompletion,
     setInput,
   ]);
@@ -245,11 +229,8 @@ export const TerminalInputMobile: React.FC<TerminalInputMobileProps> = ({
     if (isPlaygroundOpen) {
       cancelScheduledEnsureVisible();
       inputRef.current?.blur();
-      return;
     }
-
-    focusInput();
-  }, [cancelScheduledEnsureVisible, focusInput, isPlaygroundOpen]);
+  }, [cancelScheduledEnsureVisible, isPlaygroundOpen]);
 
   useEffect(() => {
     if (!isLoading && shouldRefocusRef.current && !isPlaygroundOpen) {
@@ -266,17 +247,17 @@ export const TerminalInputMobile: React.FC<TerminalInputMobileProps> = ({
     };
   }, [cancelScheduledEnsureVisible]);
 
-  const placeholder = isLoading ? 'Processing...' : "Type 'help' for available commands...";
+  const placeholder = isLoading ? 'Processing...' : "";
 
   return (
     <div className={styles.inputContainer} onClick={focusInput} data-testid="terminal-input-mobile">
       <span className={styles.prompt}>
-        <span className={styles.promptUser}>{user}</span>
-        <span className={styles.promptAt}>@</span>
-        <span className={styles.promptHost}>{SYSTEM_CONFIG.hostname}</span>
-        <span className={styles.promptSeparator}>:</span>
-        <span className={styles.promptPath}>{currentDirectory}</span>
-        <span className={styles.promptSymbol}>{symbol}</span>
+        <PromptDisplay
+          user={user}
+          hostname={SYSTEM_CONFIG.hostname}
+          directory={currentDirectory}
+          symbol={symbol}
+        />
       </span>
 
       <span className={styles.mobileInlineInput}>
@@ -295,13 +276,12 @@ export const TerminalInputMobile: React.FC<TerminalInputMobileProps> = ({
             setIsInputFocused(false);
             cancelScheduledEnsureVisible();
           }}
-          autoFocus
           spellCheck={false}
           autoCapitalize="off"
           autoCorrect="off"
           autoComplete="off"
           enterKeyHint="send"
-          aria-label="Terminal input"
+          aria-label="Terminal command input"
           data-testid="terminal-input-native"
         />
 

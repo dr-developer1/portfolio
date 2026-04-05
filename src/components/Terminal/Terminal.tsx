@@ -9,7 +9,6 @@ import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { getPromptConfig } from '../../hooks/useTerminal';
 import { BP } from '../../config/breakpoints';
 import { SYSTEM_CONFIG } from '../../config';
-import type { Achievement } from '../../types';
 
 import { MusicToggleButton } from './MusicToggleButton';
 import { PlaygroundOverlay } from '../Playground';
@@ -22,8 +21,16 @@ import { KeyboardShortcutsOverlay } from './KeyboardShortcutsOverlay';
 const AUTO_SCROLL_BOTTOM_THRESHOLD_PX = 72;
 
 export const Terminal: React.FC = () => {
-  const { bootMode, history, isPlaygroundOpen, closePlayground, playgroundPreset, executeCommand } =
-    useTerminalContext();
+  const {
+    bootMode,
+    history,
+    achievementFeed,
+    consumeAchievementFeed,
+    isPlaygroundOpen,
+    closePlayground,
+    playgroundPreset,
+    executeCommand,
+  } = useTerminalContext();
   const { user } = getPromptConfig(bootMode);
   const isMobile = useMediaQuery(
     `(max-width: ${BP.mobile}px), (hover: none) and (pointer: coarse)`
@@ -35,7 +42,6 @@ export const Terminal: React.FC = () => {
   const bottomAnchorRef = useRef<HTMLDivElement>(null);
   const shouldAutoScrollRef = useRef(true);
   const toastTimeoutsRef = useRef<Map<string, number>>(new Map());
-  const seenAchievementsRef = useRef<Set<string>>(new Set());
   const { keyboardInsetPx, isKeyboardOpen, isViewportSettled } = useKeyboardViewport({
     enabled: isMobile,
   });
@@ -97,14 +103,12 @@ export const Terminal: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const handleAchievementUnlocked = (event: Event) => {
-      const achievement = (event as CustomEvent<Achievement>).detail;
-      if (!achievement?.id || seenAchievementsRef.current.has(achievement.id)) {
-        return;
-      }
+    if (achievementFeed.length === 0) {
+      return;
+    }
 
-      seenAchievementsRef.current.add(achievement.id);
-      const toastId = `${achievement.id}-${Date.now()}`;
+    achievementFeed.forEach((achievement) => {
+      const toastId = `${achievement.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
       setToasts((prev) => [...prev, { ...achievement, toastId }]);
 
@@ -112,13 +116,10 @@ export const Terminal: React.FC = () => {
         dismissToast(toastId);
       }, 4800);
       toastTimeoutsRef.current.set(toastId, timeout);
-    };
+    });
 
-    window.addEventListener('achievement-unlocked', handleAchievementUnlocked);
-    return () => {
-      window.removeEventListener('achievement-unlocked', handleAchievementUnlocked);
-    };
-  }, [dismissToast]);
+    consumeAchievementFeed(achievementFeed.length);
+  }, [achievementFeed, consumeAchievementFeed, dismissToast]);
 
   useEffect(() => {
     const timeoutMap = toastTimeoutsRef.current;
@@ -166,29 +167,34 @@ export const Terminal: React.FC = () => {
         {/* macOS-style title bar */}
         <div className={styles.titleBar} role="toolbar" aria-label="Terminal window controls">
           <div className={styles.windowControls}>
-            <button
-              type="button"
+            <span
               className={`${styles.windowButton} ${styles.closeButton}`}
-              aria-label="Close"
-              tabIndex={-1}
+              aria-hidden="true"
+              role="presentation"
             />
-            <button
-              type="button"
+            <span
               className={`${styles.windowButton} ${styles.minimizeButton}`}
-              aria-label="Minimize"
-              tabIndex={-1}
+              aria-hidden="true"
+              role="presentation"
             />
-            <button
-              type="button"
+            <span
               className={`${styles.windowButton} ${styles.maximizeButton}`}
-              aria-label="Maximize"
-              tabIndex={-1}
+              aria-hidden="true"
+              role="presentation"
             />
           </div>
           <span className={`${styles.windowTitle} ${styles.windowTitleGlitch}`}>
-            {user}@{SYSTEM_CONFIG.hostname} — bash
+            {user}@{SYSTEM_CONFIG.hostname} - bash
           </span>
           <div className={styles.windowActions}>
+            <button
+              type="button"
+              className={styles.iconButton}
+              aria-label="Open keyboard shortcuts"
+              onClick={() => setIsShortcutsOpen(true)}
+            >
+              ?
+            </button>
             <MusicToggleButton />
           </div>
         </div>

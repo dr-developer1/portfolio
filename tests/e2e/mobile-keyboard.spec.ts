@@ -26,7 +26,7 @@ const focusTerminalInput = async (page: Page) => {
     .poll(
       async () =>
         page.evaluate(() => {
-          const input = document.querySelector('input[aria-label="Terminal input"]');
+          const input = document.querySelector('input[aria-label="Terminal command input"]');
           return document.activeElement === input;
         }),
       { timeout: 3000 }

@@ -55,7 +55,7 @@ export const BackgroundMusic: FC = () => {
     const audio = new Audio(MUSIC_SRC);
     audio.loop = true;
     audio.volume = 0.5; // Set to 50% volume
-    audio.preload = 'auto';
+    audio.preload = 'none';
     audioRef.current = audio;
 
     // Cleanup on unmount

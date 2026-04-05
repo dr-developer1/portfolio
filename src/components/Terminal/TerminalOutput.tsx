@@ -1,26 +1,26 @@
-import React, { useEffect, useState } from 'react';
-import { CommandShortcutList } from '../Output';
+import React, { Suspense, lazy } from 'react';
+
+import { CommandShortcutList, type CommandShortcut } from '../Output';
 import { useTerminalContext } from '../../hooks/TerminalContext';
 import { RECRUITER_TOUR } from '../../data/guides';
-import { getVisitorProgress } from '../../utils/progressService';
 import styles from './TerminalOutput.module.css';
 
 const ASCII_BANNER = String.raw`
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
-║  ██████╗ ██╗  ██╗███╗   ███╗ █████╗ ██████╗              ║
-║  ██╔══██╗██║  ██║████╗ ████║██╔══██╗██╔══██╗             ║
-║  ███████║███████║██╔████╔██║███████║██║  ██║             ║
-║  ██╔══██║██╔══██║██║╚██╔╝██║██╔══██║██║  ██║             ║
-║  ██║  ██║██║  ██║██║ ╚═╝ ██║██║  ██║██████╔╝             ║
-║  ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝  ╚═╝╚═════╝              ║
+║  ██████╗ ██╗  ██╗███╗   ███╗ █████╗ ██████╗               ║
+║  ██╔══██╗██║  ██║████╗ ████║██╔══██╗██╔══██╗              ║
+║  ███████║███████║██╔████╔██║███████║██║  ██║              ║
+║  ██╔══██║██╔══██║██║╚██╔╝██║██╔══██║██║  ██║              ║
+║  ██║  ██║██║  ██║██║ ╚═╝ ██║██║  ██║██████╔╝              ║
+║  ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝  ╚═╝╚═════╝               ║
 ║                                                           ║
-║  ██╗██████╗ ██████╗  █████╗ ██╗  ██╗██╗███╗   ███╗       ║
-║  ██║██╔══██╗██╔══██╗██╔══██╗██║  ██║██║████╗ ████║       ║
-║  ██║██████╔╝██████╔╝███████║███████║██║██╔████╔██║       ║
-║  ██║██╔══██╗██╔══██╗██╔══██║██╔══██║██║██║╚██╔╝██║       ║
-║  ██║██████╔╝██║  ██║██║  ██║██║  ██║██║██║ ╚═╝ ██║       ║
-║  ╚═╝╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚═╝     ╚═╝       ║
+║  ██╗██████╗ ██████╗  █████╗ ██╗  ██╗██╗███╗   ███╗        ║
+║  ██║██╔══██╗██╔══██╗██╔══██╗██║  ██║██║████╗ ████║        ║
+║  ██║██████╔╝██████╔╝███████║███████║██║██╔████╔██║        ║
+║  ██║██╔══██╗██╔══██╗██╔══██║██╔══██║██║██║╚██╔╝██║        ║
+║  ██║██████╔╝██║  ██║██║  ██║██║  ██║██║██║ ╚═╝ ██║        ║
+║  ╚═╝╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚═╝     ╚═╝        ║
 ║                                                           ║
 ║               AHMAD IBRAHIM • LYON, FRANCE                ║
 ║               Full Stack Software Engineer                ║
@@ -28,117 +28,140 @@ const ASCII_BANNER = String.raw`
 ╚═══════════════════════════════════════════════════════════╝
 `;
 
-const BANNER_FONT_FAMILY = 'JetBrains Mono Banner';
+const Banner3D = lazy(() => import('../Banner/Banner3D'));
+const PATH_CHOOSER_ITEMS: CommandShortcut[] = [
+  {
+    label: 'Recruiter',
+    command: 'mode recruiter',
+    description: 'Fast overview, experience, contact',
+  },
+  {
+    label: 'Engineer',
+    command: 'mode engineer',
+    description: 'Architecture, playground, deep dives',
+  },
+  {
+    label: 'Founder',
+    command: 'mode founder',
+    description: 'Product delivery, ownership, speed',
+  },
+  {
+    label: 'Client',
+    command: 'mode client',
+    description: 'Outcomes, stack, communication',
+  },
+];
+
+function AsciiBanner() {
+  return (
+    <div className={styles.bannerScroll}>
+      <pre className={styles.banner}>{ASCII_BANNER}</pre>
+    </div>
+  );
+}
+
+function getQuickActions(mode: string) {
+  switch (mode) {
+    case 'recruiter':
+      return [
+        { label: 'Highlights', command: 'highlights' },
+        { label: 'Experience', command: 'experience' },
+        { label: 'Top Projects', command: 'top-projects' },
+        { label: 'Resume', command: 'resume' },
+      ];
+    case 'engineer':
+      return [
+        { label: 'Skills', command: 'skills' },
+        { label: 'Projects', command: 'projects' },
+        { label: 'Playground', command: 'playground --challenge debugging' },
+        { label: 'Legacy', command: 'legacy' },
+      ];
+    case 'founder':
+      return [
+        { label: 'Highlights', command: 'highlights' },
+        { label: 'Projects', command: 'projects' },
+        { label: 'Availability', command: 'availability' },
+        { label: 'Contact', command: 'contact' },
+      ];
+    case 'client':
+      return [
+        { label: 'About', command: 'about' },
+        { label: 'Projects', command: 'projects' },
+        { label: 'Skills', command: 'skills' },
+        { label: 'Contact Me', command: 'contact-me' },
+      ];
+    default:
+      return [
+        { label: 'Help', command: 'help' },
+        { label: 'Highlights', command: 'highlights' },
+        { label: 'Tour', command: 'tour' },
+        { label: 'Projects', command: 'top-projects' },
+      ];
+  }
+}
+
+function getOnboardingPanel(mode: string) {
+  if (mode === 'standard') {
+    return {
+      title: 'Who are you? Choose your path',
+      items: PATH_CHOOSER_ITEMS,
+    };
+  }
+
+  return {
+    title: `${mode} quick start`,
+    items: getQuickActions(mode),
+  };
+}
+
 export const TerminalOutput: React.FC = () => {
-  const { history, visitorMode } = useTerminalContext();
-  const [isBannerFontReady, setIsBannerFontReady] = useState(false);
-  const progress = getVisitorProgress();
-  const isReturningVisitor = progress.visits > 1;
+  const { history, visitorMode, visitorProgress } = useTerminalContext();
+  const isReturningVisitor = visitorProgress.visits > 1;
+  const onboardingPanel = getOnboardingPanel(visitorMode);
   const recruiterTourProgress = RECRUITER_TOUR.filter((command) =>
-    progress.discoveredCommands.includes(command)
+    visitorProgress.discoveredCommands.includes(command)
   ).length;
   const recruiterTourNext = RECRUITER_TOUR.find(
-    (command) => !progress.discoveredCommands.includes(command)
+    (command) => !visitorProgress.discoveredCommands.includes(command)
   );
-
-  useEffect(() => {
-    let isActive = true;
-
-    const loadBannerFont = async () => {
-      if (typeof document === 'undefined' || !('fonts' in document)) {
-        return;
-      }
-
-      const fontSpec = `400 1em "${BANNER_FONT_FAMILY}"`;
-
-      try {
-        await document.fonts.load(fontSpec);
-        await document.fonts.ready;
-
-        if (isActive && document.fonts.check(fontSpec)) {
-          setIsBannerFontReady(true);
-        }
-      } catch {
-        // Keep banner hidden if the deterministic font cannot be confirmed.
-      }
-    };
-
-    void loadBannerFont();
-
-    return () => {
-      isActive = false;
-    };
-  }, []);
 
   return (
     <div className={styles.output}>
-      <div className={styles.bannerScroll}>
-        <pre
-          className={styles.banner}
-          style={
-            isBannerFontReady
-              ? undefined
-              : { fontFamily: 'monospace', opacity: 0.75, filter: 'blur(0.2px)' }
-          }
-        >
-          {ASCII_BANNER}
-        </pre>
-      </div>
+      <Suspense fallback={<AsciiBanner />}>
+        <Banner3D />
+      </Suspense>
       <div className={styles.line}>
         <span className={styles.muted}>
           Type <span className={styles.highlight}>help</span> to explore projects, skills, and
-          experience
+          experience.
         </span>
       </div>
       {isReturningVisitor && (
         <div className={styles.line}>
           <span className={`${styles.muted} ${styles.returningHint}`}>
-            Welcome back. Try <span className={styles.highlight}>recommend</span> for personalized
-            next steps.
+            Welcome back. Try <span className={styles.highlight}>recommend</span> for the next best
+            commands.
           </span>
         </div>
       )}
       <div className={styles.quickActions}>
         <CommandShortcutList
-          title={visitorMode === 'recruiter' ? 'Recruiter quick start' : 'Quick start'}
+          title={onboardingPanel.title}
           compact
-          items={[
-            { label: 'Help', command: 'help' },
-            { label: 'Highlights', command: 'highlights' },
-            { label: 'Tour', command: 'tour' },
-            { label: 'Projects', command: 'top-projects' },
-            { label: 'Contact', command: 'contact' },
-          ]}
+          items={onboardingPanel.items}
         />
       </div>
-      <div className={styles.quickActions}>
-        <CommandShortcutList
-          title="Who are you? Choose your path"
-          compact
-          items={[
-            {
-              label: 'Recruiter',
-              command: 'mode recruiter',
-              description: 'Fast overview, experience, contact',
-            },
-            {
-              label: 'Engineer',
-              command: 'mode engineer',
-              description: 'Architecture, playground, deep dives',
-            },
-            {
-              label: 'Founder',
-              command: 'mode founder',
-              description: 'Product delivery, ownership, speed',
-            },
-            {
-              label: 'Client',
-              command: 'mode client',
-              description: 'Outcomes, stack, communication',
-            },
-          ]}
-        />
-      </div>
+      {visitorMode !== 'standard' && (
+        <div className={styles.line}>
+          <span className={`${styles.muted} ${styles.pathHint}`}>
+            Want a different lens? Try <span className={styles.highlight}>mode standard</span> or{' '}
+            <span className={styles.highlight}>mode recruiter</span>,{' '}
+            <span className={styles.highlight}>mode engineer</span>,{' '}
+            <span className={styles.highlight}>mode founder</span>, or{' '}
+            <span className={styles.highlight}>mode client</span>.
+          </span>
+        </div>
+      )}
       {visitorMode === 'recruiter' && (
         <div className={styles.line}>
           <span className={`${styles.muted} ${styles.tourHint}`}>
@@ -155,8 +178,6 @@ export const TerminalOutput: React.FC = () => {
         </div>
       )}
       <div className={styles.line}>&nbsp;</div>
-
-      {/* Command history */}
       {history.map((line) => (
         <div key={line.id} className={`${styles.line} ${styles[line.type] || ''}`}>
           {line.content}

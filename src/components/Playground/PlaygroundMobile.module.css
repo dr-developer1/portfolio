@@ -64,10 +64,10 @@
   border-top: 2px solid transparent;
 }
 
-.activeTab {
-  color: var(--color-accent-blue) !important;
-  border-top-color: var(--color-accent-blue) !important;
-  background: rgb(255 255 255 / 5%) !important;
+.bottomNav .activeTab {
+  color: var(--color-accent-blue);
+  border-top-color: var(--color-accent-blue);
+  background: rgb(255 255 255 / 5%);
 }
 
 /* Files Tab */
@@ -76,10 +76,41 @@
   overflow-y: auto;
 }
 
+.fileListHeader {
+  padding: 0 1rem 1rem;
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.languageLabel {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.languageSelect {
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 1rem;
+  color: var(--color-text-primary);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-default);
+  border-radius: 4px;
+  outline: none;
+}
+
 .fileItem {
   padding: 12px;
   border-bottom: 1px solid var(--color-border-subtle);
   font-family: var(--font-mono);
+  background: transparent;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
 }
 
 .activeFile {
@@ -165,7 +196,7 @@
   overflow-y: auto;
   font-family: var(--font-mono);
   font-size: 12px;
-  background: #000;
+  background: var(--color-bg-canvas);
 }
 
 .logLine {
@@ -197,6 +228,12 @@
 
 .consoleHelp {
   color: var(--color-text-muted);
+  font-size: 11px;
+  padding: 0 8px 8px;
+}
+
+.loadingHint {
+  color: var(--color-accent-cyan);
   font-size: 11px;
   padding: 0 8px 8px;
 }

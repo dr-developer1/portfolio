@@ -19,7 +19,7 @@ export interface JobEntryProps {
  */
 export const JobEntry: React.FC<JobEntryProps> = ({ job }) => {
   return (
-    <div className={styles.container}>
+    <div>
       <div className={styles.header}>
         <span className={styles.role}>{job.role}</span>
         <span className={styles.date}>{job.date}</span>

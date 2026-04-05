@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
 import styles from './KeyboardShortcutsOverlay.module.css';
 
@@ -20,6 +20,66 @@ export const KeyboardShortcutsOverlay: React.FC<KeyboardShortcutsOverlayProps> =
   isOpen,
   onClose,
 }) => {
+  const panelRef = useRef<HTMLElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    previouslyFocusedRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    closeButtonRef.current?.focus();
+
+    return () => {
+      previouslyFocusedRef.current?.focus();
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+
+      if (event.key !== 'Tab' || !panelRef.current) {
+        return;
+      }
+
+      const focusable = panelRef.current.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+
+      if (focusable.length === 0) {
+        event.preventDefault();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+
+      if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) {
     return null;
   }
@@ -32,17 +92,25 @@ export const KeyboardShortcutsOverlay: React.FC<KeyboardShortcutsOverlayProps> =
       aria-labelledby="terminal-shortcuts-title"
       onClick={onClose}
     >
-      <section className={styles.panel} onClick={(event) => event.stopPropagation()}>
+      <section ref={panelRef} className={styles.panel} onClick={(event) => event.stopPropagation()}>
         <header className={styles.header}>
           <h2 id="terminal-shortcuts-title" className={styles.title}>
             Keyboard shortcuts
           </h2>
-          <button type="button" className={styles.closeButton} onClick={onClose}>
+          <button
+            ref={closeButtonRef}
+            type="button"
+            className={styles.closeButton}
+            onClick={onClose}
+          >
             Close
           </button>
         </header>
 
-        <p className={styles.hint}>Press Ctrl + / at any time to toggle this panel.</p>
+        <p className={styles.hint}>
+          Press Ctrl + / at any time to toggle this panel. On touch devices, use the ? button in the
+          title bar.
+        </p>
 
         <div className={styles.grid}>
           {SHORTCUTS.map((item) => (

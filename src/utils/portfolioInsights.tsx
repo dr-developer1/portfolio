@@ -28,11 +28,49 @@ export function getFeaturedProjects(): ProjectItem[] {
   return content.projects.filter((project) => project.featured).slice(0, 3);
 }
 
-export function getTopProjects(): ProjectItem[] {
-  return getFeaturedProjects().length > 0 ? getFeaturedProjects() : content.projects.slice(0, 3);
+function getProjectScore(project: ProjectItem, mode: VisitorMode): number {
+  let score = 0;
+
+  if (project.featured) score += 3;
+  if (project.impact) score += 2;
+  if (project.url) score += mode === 'client' ? 4 : 1;
+  if (project.repo) score += mode === 'engineer' ? 4 : 1;
+  score += project.technologies.length >= 4 ? 1 : 0;
+
+  if (mode === 'recruiter' || mode === 'founder') {
+    score += project.impact ? 2 : 0;
+  }
+
+  return score;
 }
 
-export function getHighlights(): string[] {
+export function getProjectsForMode(
+  mode: VisitorMode,
+  options: { featuredOnly?: boolean } = {}
+): ProjectItem[] {
+  const source = options.featuredOnly
+    ? content.projects.filter((project) => project.featured)
+    : content.projects;
+
+  const projects = source.length > 0 ? source : content.projects;
+
+  return [...projects].sort((left, right) => {
+    const scoreDelta = getProjectScore(right, mode) - getProjectScore(left, mode);
+    if (scoreDelta !== 0) {
+      return scoreDelta;
+    }
+
+    return left.name.localeCompare(right.name);
+  });
+}
+
+export function getTopProjects(mode: VisitorMode = 'standard'): ProjectItem[] {
+  const featured = getProjectsForMode(mode, { featuredOnly: true });
+  const ordered = featured.length > 0 ? featured : getProjectsForMode(mode);
+  return ordered.slice(0, 3);
+}
+
+export function getHighlights(mode: VisitorMode = 'standard'): string[] {
   const highlights: string[] = [];
 
   const featuredExperience =
@@ -56,7 +94,144 @@ export function getHighlights(): string[] {
     );
   }
 
+  if (mode === 'recruiter') {
+    return [
+      '5+ years shipping production software across web, mobile, and desktop products.',
+      'Based in Lyon, France and open to full-time software engineering opportunities.',
+      ...highlights,
+    ];
+  }
+
+  if (mode === 'engineer') {
+    return [
+      'Strongest in legacy-to-modern migrations, offline-first flows, and debugging high-friction systems.',
+      'Comfortable across NestJS, Vue/React, Electron, PostgreSQL/MongoDB, and AI-assisted workflows.',
+      ...highlights,
+    ];
+  }
+
+  if (mode === 'founder') {
+    return [
+      'Bias toward shipping: move fast, reduce product risk, and keep delivery moving during rewrites.',
+      'Comfortable owning features end-to-end, from product framing to implementation and rollout.',
+      ...highlights,
+    ];
+  }
+
+  if (mode === 'client') {
+    return [
+      'I work autonomously, communicate clearly, and keep delivery grounded in business outcomes.',
+      'The output is reliable software, not handoff theatre: working flows, cleaner systems, and faster iteration.',
+      ...highlights,
+    ];
+  }
+
   return highlights;
+}
+
+export function getAboutSummary(mode: VisitorMode): { tagline: string; lines: string[] } {
+  switch (mode) {
+    case 'recruiter':
+      return {
+        tagline: 'Full Stack Software Engineer · available for product-focused teams',
+        lines: [
+          '5+ years shipping software across web, mobile, and desktop products.',
+          'Strong track record in modernization, delivery ownership, and pragmatic execution.',
+          'Based in Lyon, France and open to full-time opportunities.',
+        ],
+      };
+    case 'engineer':
+      return {
+        tagline: 'Engineer focused on migration strategy, architecture, and hard debugging',
+        lines: [
+          'Most effective when a system needs to keep shipping while its complexity is reduced.',
+          'Comfortable in backend-heavy and full-stack work, from data flows to UI behavior.',
+          'I care about correctness, maintainability, and operational clarity more than novelty.',
+        ],
+      };
+    case 'founder':
+      return {
+        tagline: 'Product-minded engineer biased toward ownership and shipping momentum',
+        lines: [
+          'I like ambiguous product work where speed matters but shortcuts still need to hold up.',
+          'My value is not just implementation, but keeping delivery moving through complexity.',
+          'I can move between architecture, product constraints, and execution detail without much overhead.',
+        ],
+      };
+    case 'client':
+      return {
+        tagline: 'Autonomous full-stack engineer with a clear delivery and communication style',
+        lines: [
+          'I work well in direct collaboration, keep progress visible, and reduce avoidable back-and-forth.',
+          'The goal is dependable delivery with thoughtful technical decisions behind it.',
+          'I am comfortable owning implementation end-to-end and explaining tradeoffs in plain language.',
+        ],
+      };
+    default:
+      return {
+        tagline: content.bio.tagline,
+        lines: content.bio.description,
+      };
+  }
+}
+
+export function getExperienceLead(mode: VisitorMode): string[] {
+  switch (mode) {
+    case 'recruiter':
+      return [
+        'Recent roles first, with dates, impact, and hiring-relevant context.',
+        'Best fit: product teams that value ownership, modernization, and pragmatic delivery.',
+      ];
+    case 'engineer':
+      return [
+        'Focus areas: legacy rewrites, offline-first workflows, sync reliability, and backend-heavy product work.',
+        'Read the tech stacks and impact lines as the fastest signal for the kind of systems I like building.',
+      ];
+    case 'founder':
+      return [
+        'This experience skews toward shipped products, replacing legacy bottlenecks, and moving quickly without losing control.',
+      ];
+    case 'client':
+      return [
+        'Expect a delivery-oriented reading of this history: shipped software, reduced friction, and clearer operations.',
+      ];
+    default:
+      return ['Recent experience with a bias toward product delivery and modernization.'];
+  }
+}
+
+export function getProjectsLead(mode: VisitorMode): string[] {
+  switch (mode) {
+    case 'recruiter':
+      return ['Featured work first, optimized for signal: impact, stack range, and role fit.'];
+    case 'engineer':
+      return [
+        'Projects ordered for technical depth first: architecture surface area, stack breadth, and implementation complexity.',
+      ];
+    case 'founder':
+      return [
+        'Projects ordered for execution and product value: impact, ownership, and shipped outcomes.',
+      ];
+    case 'client':
+      return ['Projects ordered for client-facing outcomes, demos, and communication clarity.'];
+    default:
+      return ['A balanced view of projects across product, technical depth, and execution.'];
+  }
+}
+
+export function getContactHint(mode: VisitorMode): string {
+  switch (mode) {
+    case 'recruiter':
+      return 'Best path: highlights → top-projects → resume → contact.';
+    case 'engineer':
+      return 'Best path: skills → projects → playground → contact.';
+    case 'founder':
+      return 'Best path: highlights → projects → availability → contact.';
+    case 'client':
+      return 'Best path: about → projects → contact-me.';
+    default:
+      return 'Best path: review highlights, skim top-projects, then reach out.';
+  }
 }
 
 export function renderBulletList(items: string[], accentClass: string = styles.accentGreen) {

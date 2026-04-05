@@ -153,14 +153,15 @@
 }
 
 .windowActions {
-  width: 52px; /* Balance the controls on the left */
+  width: 88px; /* Balance the controls on the left */
   display: flex;
   justify-content: flex-end;
   align-items: center;
+  gap: 0.35rem;
 }
 
-/* Music toggle button */
-.musicToggle {
+/* Title bar icon buttons */
+.iconButton {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -175,17 +176,17 @@
   transition: all var(--transition-fast);
 }
 
-.musicToggle:hover {
+.iconButton:hover {
   color: var(--color-text-primary);
   background: var(--color-bg-tertiary);
 }
 
-.musicToggle:focus-visible {
+.iconButton:focus-visible {
   outline: 2px solid var(--color-accent-cyan);
   outline-offset: 2px;
 }
 
-.musicToggle svg {
+.iconButton svg {
   flex-shrink: 0;
 }
 

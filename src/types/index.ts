@@ -62,14 +62,19 @@ export interface ParsedCommand {
 export interface CommandContext {
   bootMode: BootMode;
   currentDirectory: string;
+  commandHistory: string[];
   user: string;
   symbol: string;
   visitorMode: VisitorMode;
+  visitorProgress: VisitorProgress;
   sessionStartedAt: number;
-  openPlayground?: (preset?: PlaygroundPresetId) => void;
-  closePlayground?: () => void;
-  setVisitorMode?: (mode: VisitorMode) => void;
-  setBootMode?: (mode: BootMode) => void;
+  clearTerminal: () => void;
+  setCurrentDirectory: (path: string) => void;
+  openPlayground: (preset?: PlaygroundPresetId) => void;
+  closePlayground: () => void;
+  setVisitorMode: (mode: VisitorMode) => void;
+  setVisitorProgress: (progress: VisitorProgress) => void;
+  setBootMode: (mode: BootMode) => void;
 }
 
 /**
@@ -86,7 +91,7 @@ export interface Command {
   execute: (
     args: string[],
     addOutput: OutputFunction,
-    context?: CommandContext
+    context: CommandContext
   ) => void | Promise<void>;
   autocomplete?: (partial: string) => string[];
 }
@@ -124,6 +129,10 @@ export interface TerminalState {
   isPlaygroundOpen: boolean;
   /** Active visitor mode for guided flows */
   visitorMode: VisitorMode;
+  /** Persisted visitor progress synced from localStorage */
+  visitorProgress: VisitorProgress;
+  /** Newly unlocked achievements emitted through React state */
+  achievementFeed: Achievement[];
   /** Current input value in the terminal */
   input: string;
   /** Requested playground preset */
@@ -166,6 +175,8 @@ export interface TerminalActions {
   closePlayground: () => void;
   /** Set the active guided visitor mode */
   setVisitorMode: (mode: VisitorMode) => void;
+  /** Trim processed achievements from the transient feed */
+  consumeAchievementFeed: (count?: number) => void;
 }
 
 /**
