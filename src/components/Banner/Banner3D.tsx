@@ -218,11 +218,7 @@ function drawGrid(context: CanvasRenderingContext2D, width: number, height: numb
   context.restore();
 }
 
-function drawStaticTrace(
-  context: CanvasRenderingContext2D,
-  points: Point[],
-  lineWidth: number
-) {
+function drawStaticTrace(context: CanvasRenderingContext2D, points: Point[], lineWidth: number) {
   if (points.length < 2) {
     return;
   }

@@ -1081,12 +1081,7 @@ const resumeCommand: Command = {
         <span className={styles.success}>Opening resume…</span>
         <div className={styles.textSecondary}>
           If it does not open automatically, use{' '}
-          <a
-            href={resumeUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.textLink}
-          >
+          <a href={resumeUrl} target="_blank" rel="noopener noreferrer" className={styles.textLink}>
             this direct link
           </a>
           .

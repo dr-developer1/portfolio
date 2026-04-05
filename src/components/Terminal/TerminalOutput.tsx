@@ -145,11 +145,7 @@ export const TerminalOutput: React.FC = () => {
         </div>
       )}
       <div className={styles.quickActions}>
-        <CommandShortcutList
-          title={onboardingPanel.title}
-          compact
-          items={onboardingPanel.items}
-        />
+        <CommandShortcutList title={onboardingPanel.title} compact items={onboardingPanel.items} />
       </div>
       {visitorMode !== 'standard' && (
         <div className={styles.line}>
