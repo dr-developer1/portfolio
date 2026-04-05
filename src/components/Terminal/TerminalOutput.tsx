@@ -1,6 +1,6 @@
 import React, { Suspense, lazy } from 'react';
 
-import { CommandShortcutList } from '../Output';
+import { CommandShortcutList, type CommandShortcut } from '../Output';
 import { useTerminalContext } from '../../hooks/TerminalContext';
 import { RECRUITER_TOUR } from '../../data/guides';
 import styles from './TerminalOutput.module.css';
@@ -29,6 +29,28 @@ const ASCII_BANNER = String.raw`
 `;
 
 const Banner3D = lazy(() => import('../Banner/Banner3D'));
+const PATH_CHOOSER_ITEMS: CommandShortcut[] = [
+  {
+    label: 'Recruiter',
+    command: 'mode recruiter',
+    description: 'Fast overview, experience, contact',
+  },
+  {
+    label: 'Engineer',
+    command: 'mode engineer',
+    description: 'Architecture, playground, deep dives',
+  },
+  {
+    label: 'Founder',
+    command: 'mode founder',
+    description: 'Product delivery, ownership, speed',
+  },
+  {
+    label: 'Client',
+    command: 'mode client',
+    description: 'Outcomes, stack, communication',
+  },
+];
 
 function AsciiBanner() {
   return (
@@ -78,9 +100,24 @@ function getQuickActions(mode: string) {
   }
 }
 
+function getOnboardingPanel(mode: string) {
+  if (mode === 'standard') {
+    return {
+      title: 'Who are you? Choose your path',
+      items: PATH_CHOOSER_ITEMS,
+    };
+  }
+
+  return {
+    title: `${mode} quick start`,
+    items: getQuickActions(mode),
+  };
+}
+
 export const TerminalOutput: React.FC = () => {
   const { history, visitorMode, visitorProgress } = useTerminalContext();
   const isReturningVisitor = visitorProgress.visits > 1;
+  const onboardingPanel = getOnboardingPanel(visitorMode);
   const recruiterTourProgress = RECRUITER_TOUR.filter((command) =>
     visitorProgress.discoveredCommands.includes(command)
   ).length;
@@ -109,39 +146,22 @@ export const TerminalOutput: React.FC = () => {
       )}
       <div className={styles.quickActions}>
         <CommandShortcutList
-          title={visitorMode === 'standard' ? 'Quick start' : `${visitorMode} quick start`}
+          title={onboardingPanel.title}
           compact
-          items={getQuickActions(visitorMode)}
+          items={onboardingPanel.items}
         />
       </div>
-      <div className={styles.quickActions}>
-        <CommandShortcutList
-          title="Who are you? Choose your path"
-          compact
-          items={[
-            {
-              label: 'Recruiter',
-              command: 'mode recruiter',
-              description: 'Fast overview, experience, contact',
-            },
-            {
-              label: 'Engineer',
-              command: 'mode engineer',
-              description: 'Architecture, playground, deep dives',
-            },
-            {
-              label: 'Founder',
-              command: 'mode founder',
-              description: 'Product delivery, ownership, speed',
-            },
-            {
-              label: 'Client',
-              command: 'mode client',
-              description: 'Outcomes, stack, communication',
-            },
-          ]}
-        />
-      </div>
+      {visitorMode !== 'standard' && (
+        <div className={styles.line}>
+          <span className={`${styles.muted} ${styles.pathHint}`}>
+            Want a different lens? Try <span className={styles.highlight}>mode standard</span> or{' '}
+            <span className={styles.highlight}>mode recruiter</span>,{' '}
+            <span className={styles.highlight}>mode engineer</span>,{' '}
+            <span className={styles.highlight}>mode founder</span>, or{' '}
+            <span className={styles.highlight}>mode client</span>.
+          </span>
+        </div>
+      )}
       {visitorMode === 'recruiter' && (
         <div className={styles.line}>
           <span className={`${styles.muted} ${styles.tourHint}`}>

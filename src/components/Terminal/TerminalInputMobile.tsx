@@ -229,11 +229,8 @@ export const TerminalInputMobile: React.FC<TerminalInputMobileProps> = ({
     if (isPlaygroundOpen) {
       cancelScheduledEnsureVisible();
       inputRef.current?.blur();
-      return;
     }
-
-    focusInput();
-  }, [cancelScheduledEnsureVisible, focusInput, isPlaygroundOpen]);
+  }, [cancelScheduledEnsureVisible, isPlaygroundOpen]);
 
   useEffect(() => {
     if (!isLoading && shouldRefocusRef.current && !isPlaygroundOpen) {
@@ -279,7 +276,6 @@ export const TerminalInputMobile: React.FC<TerminalInputMobileProps> = ({
             setIsInputFocused(false);
             cancelScheduledEnsureVisible();
           }}
-          autoFocus
           spellCheck={false}
           autoCapitalize="off"
           autoCorrect="off"
