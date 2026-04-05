@@ -297,7 +297,8 @@ const Banner3D: React.FC = () => {
 
     const drawFrame = () => {
       context.setTransform(1, 0, 0, 1, 0, 0);
-      context.clearRect(0, 0, width, height);
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.setTransform(dpr, 0, 0, dpr, 0, 0);
 
       const background = context.createRadialGradient(
         width * 0.5,
@@ -349,6 +350,8 @@ const Banner3D: React.FC = () => {
     const tick = (time: number) => {
       const deltaSeconds = Math.min(0.05, (time - lastFrameTime) / 1000);
       lastFrameTime = time;
+
+      trailContext.setTransform(dpr, 0, 0, dpr, 0, 0);
 
       trailContext.save();
       trailContext.globalCompositeOperation = 'source-over';
@@ -408,7 +411,9 @@ const Banner3D: React.FC = () => {
       beamProgress = 0;
       lastFrameTime = performance.now();
 
-      trailContext.clearRect(0, 0, width, height);
+      trailContext.setTransform(1, 0, 0, 1, 0, 0);
+      trailContext.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
+      trailContext.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (reduceMotion) {
         drawStaticTrace(trailContext, tracePoints, Math.max(1.7, width * 0.0027));
       }

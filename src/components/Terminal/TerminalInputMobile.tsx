@@ -250,7 +250,7 @@ export const TerminalInputMobile: React.FC<TerminalInputMobileProps> = ({
     };
   }, [cancelScheduledEnsureVisible]);
 
-  const placeholder = isLoading ? 'Processing...' : "Type 'help' for available commands...";
+  const placeholder = isLoading ? 'Processing...' : "";
 
   return (
     <div className={styles.inputContainer} onClick={focusInput} data-testid="terminal-input-mobile">
