@@ -1,9 +1,10 @@
 import type { FC } from 'react';
 import { useEffect, useRef, useCallback } from 'react';
 import { useTerminalContext } from '../../hooks/TerminalContext';
+import { resolveSitePath } from '../../utils/sitePaths';
 
 // Path to the background music file in public folder
-const MUSIC_SRC = '/audio/background.mp3';
+const MUSIC_SRC = resolveSitePath('/audio/background.mp3');
 
 /**
  * BackgroundMusic component handles audio playback at fixed 50% volume.
@@ -29,8 +30,8 @@ export const BackgroundMusic: FC = () => {
     try {
       await audio.play();
     } catch (error) {
-      // Log non-autoplay errors for debugging
       if (
+        import.meta.env.DEV &&
         error instanceof Error &&
         error.name !== 'NotAllowedError' &&
         error.name !== 'AbortError'

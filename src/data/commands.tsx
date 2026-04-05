@@ -37,14 +37,10 @@ import { unlockAdmin, unlockVault, ACHIEVEMENTS } from '../utils/progressService
 import { getStoredBoolean } from '../utils/storageHelpers';
 import { AVAILABLE_THEMES, getDefaultTheme, isValidTheme } from '../utils/themeService';
 import { renderDirectoryTree } from '../utils/treeRenderer';
+import { resolveSitePath, resolveSiteUrl } from '../utils/sitePaths';
 import styles from '../styles/outputUtilities.module.css';
 import { content } from './content';
 import { RECRUITER_TOUR } from './guides';
-
-function resolveSitePath(path: string): string {
-  const normalizedPath = path.replace(/^\/+/, '');
-  return new URL(normalizedPath, window.location.origin + import.meta.env.BASE_URL).toString();
-}
 
 const CATEGORY_LABELS: Record<CommandCategory, string> = {
   core: 'Core',
@@ -603,7 +599,7 @@ const pingCommand: Command = {
     const startedAt = performance.now();
 
     try {
-      await fetch(resolveSitePath('/'), {
+      await fetch(resolveSiteUrl('/'), {
         method: 'HEAD',
         cache: 'no-store',
       });

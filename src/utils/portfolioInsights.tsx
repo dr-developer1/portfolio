@@ -11,6 +11,7 @@ import {
 } from '../data/guides';
 import type { GuidedPath, VisitorMode } from '../types';
 import { getNode } from './fileSystem';
+import { resolveSitePath } from './sitePaths';
 import styles from '../styles/outputUtilities.module.css';
 
 export interface SearchResult {
@@ -431,7 +432,7 @@ export function resolveOpenTarget(rawTarget: string): { label: string; url: stri
   }
 
   if (target === 'resume' || target === 'cv') {
-    return { label: 'Resume', url: '/resume.pdf' };
+    return { label: 'Resume', url: resolveSitePath('/resume.pdf') };
   }
 
   const social = content.socials.find(
