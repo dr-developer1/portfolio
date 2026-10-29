@@ -25,3 +25,6 @@ dist-ssr
 
 #Others
 .serena
+
+# Local Codex configuration
+.codex/config.toml
