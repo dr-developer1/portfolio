@@ -1,34 +1,19 @@
-import React from 'react';
+import { GuidedTour } from '../components/Navigation/GuidedTour';
+import { PortfolioSection, PortfolioHelp } from '../components/Output/PortfolioSection';
+import { PathLauncher, PathActions } from '../components/Navigation/PathLauncher';
+import { getLocale, setLocale, isLocale, text, getResumePath } from '../i18n/locale';
 
-import {
-  CommandShortcutList,
-  EducationEntry,
-  JobEntry,
-  ProjectCard,
-  SkillSection,
-} from '../components/Output';
+import { CommandShortcutList } from '../components/Output';
 import { SYSTEM_CONFIG, UI_CONSTANTS } from '../config';
 import { MUSIC_STORAGE_KEY, MATRIX_STORAGE_KEY } from '../hooks/storageKeys';
 import type { Command, CommandCategory, VisitorMode } from '../types';
 import { clearRegistry, getAllCommands, registerCommands } from '../utils/commandRegistry';
 import { getNode, resolvePath } from '../utils/fileSystem';
 import {
-  getAboutSummary,
   findContent,
-  getAvailabilityPoints,
-  getContactHint,
-  getGuidedPath,
-  getGuidedPaths,
-  getHighlights,
-  getExperienceLead,
   getInterviewPrompts,
   getLegacyStory,
   getOpenAINotes,
-  getProjectsForMode,
-  getProjectsLead,
-  getRecommendations,
-  getTopProjects,
-  getWhyMePoints,
   grepVirtualTarget,
   renderBulletList,
   resolveOpenTarget,
@@ -37,10 +22,8 @@ import { unlockAdmin, unlockVault, ACHIEVEMENTS } from '../utils/progressService
 import { getStoredBoolean } from '../utils/storageHelpers';
 import { AVAILABLE_THEMES, getDefaultTheme, isValidTheme } from '../utils/themeService';
 import { renderDirectoryTree } from '../utils/treeRenderer';
-import { resolveSitePath, resolveSiteUrl } from '../utils/sitePaths';
+import { resolveSiteUrl } from '../utils/sitePaths';
 import styles from '../styles/outputUtilities.module.css';
-import { content } from './content';
-import { RECRUITER_TOUR } from './guides';
 
 const CATEGORY_LABELS: Record<CommandCategory, string> = {
   core: 'Core',
@@ -65,48 +48,6 @@ function formatDuration(ms: number): string {
   if (seconds > 0 || parts.length === 0) parts.push(`${seconds}s`);
 
   return parts.join(' ');
-}
-
-function renderCommandGroups(commands: Command[]) {
-  const visible = commands.filter((command) => !command.hidden);
-  const grouped = visible.reduce<Record<CommandCategory, Command[]>>(
-    (acc, command) => {
-      acc[command.category].push(command);
-      return acc;
-    },
-    {
-      core: [],
-      career: [],
-      projects: [],
-      playground: [],
-      fun: [],
-      system: [],
-    }
-  );
-
-  return (
-    <div className={styles.flexColumn}>
-      {Object.entries(grouped).map(([category, items]) =>
-        items.length === 0 ? null : (
-          <div key={category}>
-            <div className={styles.headerSection}>
-              {CATEGORY_LABELS[category as CommandCategory]}
-            </div>
-            <div className={styles.commandGrid}>
-              {items
-                .sort((a, b) => a.name.localeCompare(b.name))
-                .map((cmd) => (
-                  <React.Fragment key={cmd.name}>
-                    <span className={styles.accentGreen}>{cmd.name}</span>
-                    <span className={styles.textSecondary}>{cmd.description}</span>
-                  </React.Fragment>
-                ))}
-            </div>
-          </div>
-        )
-      )}
-    </div>
-  );
 }
 
 function renderCommandDetails(command: Command) {
@@ -135,26 +76,6 @@ function renderCommandDetails(command: Command) {
   );
 }
 
-function renderPathButtons(mode: VisitorMode) {
-  const path = getGuidedPath(mode);
-  return (
-    <CommandShortcutList
-      title={`${path.label} path`}
-      items={path.commands.map((command) => ({
-        label: command,
-        command,
-      }))}
-    />
-  );
-}
-
-function getHelpShortcuts(mode: VisitorMode) {
-  return getRecommendations(mode).map((command) => ({
-    label: command,
-    command,
-  }));
-}
-
 const helpCommand: Command = {
   name: 'help',
   description: 'Display available commands and recommended paths',
@@ -162,7 +83,7 @@ const helpCommand: Command = {
   aliases: ['?', 'commands'],
   category: 'core',
   featured: true,
-  execute: (args, addOutput, context) => {
+  execute: (args, addOutput) => {
     const commands = getAllCommands();
 
     if (args.length > 0) {
@@ -178,23 +99,7 @@ const helpCommand: Command = {
       return;
     }
 
-    addOutput(
-      <div className={styles.flexColumn}>
-        <CommandShortcutList
-          title={
-            context.visitorMode === 'standard'
-              ? 'Best commands to start with'
-              : `${context.visitorMode} quick start`
-          }
-          items={getHelpShortcuts(context.visitorMode)}
-        />
-        {renderCommandGroups(commands)}
-        <div className={styles.textMuted}>
-          Type <span className={styles.accentGreen}>help [command]</span> for details. Hidden
-          commands are discoverable but intentionally not listed here.
-        </div>
-      </div>
-    );
+    addOutput(<PortfolioHelp />);
   },
 };
 
@@ -223,23 +128,8 @@ const aboutCommand: Command = {
   usage: 'about',
   aliases: ['bio'],
   category: 'career',
-  execute: (_args, addOutput, context) => {
-    const summary = getAboutSummary(context.visitorMode);
-    addOutput(
-      <div>
-        <div className={`${styles.accentCyan} ${styles.bold} ${styles.fontSize11}`}>
-          {content.bio.name}
-        </div>
-        <div className={`${styles.accentPurple} ${styles.marginBottomMedium}`}>
-          {summary.tagline}
-        </div>
-        <div className={styles.textPrimary}>
-          {summary.lines.map((line) => (
-            <div key={line}>{line}</div>
-          ))}
-        </div>
-      </div>
-    );
+  execute: (_args, addOutput) => {
+    addOutput(<PortfolioSection section="about" />);
   },
 };
 
@@ -250,14 +140,7 @@ const skillsCommand: Command = {
   aliases: ['stack', 'tech'],
   category: 'career',
   execute: (_args, addOutput) => {
-    addOutput(
-      <div>
-        <SkillSection title="Languages" items={content.skills.languages} color="orange" />
-        <SkillSection title="Frameworks" items={content.skills.frameworks} color="green" />
-        <SkillSection title="Infra & Tools" items={content.skills.tools} color="cyan" />
-        <SkillSection title="Soft Skills" items={content.skills.softSkills} color="purple" />
-      </div>
-    );
+    addOutput(<PortfolioSection section="skills" />);
   },
 };
 
@@ -268,18 +151,8 @@ const experienceCommand: Command = {
   aliases: ['exp', 'work', 'jobs'],
   category: 'career',
   featured: true,
-  execute: (_args, addOutput, context) => {
-    addOutput(
-      <div className={styles.flexColumnLarge}>
-        <div className={styles.panel}>
-          <div className={styles.panelTitle}>Experience focus · {context.visitorMode}</div>
-          {renderBulletList(getExperienceLead(context.visitorMode), styles.accentCyan)}
-        </div>
-        {content.experience.map((job) => (
-          <JobEntry key={`${job.company}-${job.date}`} job={job} />
-        ))}
-      </div>
-    );
+  execute: (_args, addOutput) => {
+    addOutput(<PortfolioSection section="experience" />);
   },
 };
 
@@ -290,13 +163,7 @@ const educationCommand: Command = {
   aliases: ['edu'],
   category: 'career',
   execute: (_args, addOutput) => {
-    addOutput(
-      <div className={styles.flexColumn}>
-        {content.education.map((education) => (
-          <EducationEntry key={`${education.school}-${education.date}`} education={education} />
-        ))}
-      </div>
-    );
+    addOutput(<PortfolioSection section="education" />);
   },
 };
 
@@ -307,18 +174,8 @@ const projectsCommand: Command = {
   aliases: ['proj', 'portfolio'],
   category: 'projects',
   featured: true,
-  execute: (_args, addOutput, context) => {
-    addOutput(
-      <div className={styles.flexColumn}>
-        <div className={styles.panel}>
-          <div className={styles.panelTitle}>Project focus · {context.visitorMode}</div>
-          {renderBulletList(getProjectsLead(context.visitorMode), styles.accentPurple)}
-        </div>
-        {getProjectsForMode(context.visitorMode).map((project) => (
-          <ProjectCard key={project.name} project={project} />
-        ))}
-      </div>
-    );
+  execute: (_args, addOutput) => {
+    addOutput(<PortfolioSection section="projects" />);
   },
 };
 
@@ -328,18 +185,8 @@ const topProjectsCommand: Command = {
   usage: 'top-projects',
   category: 'projects',
   featured: true,
-  execute: (_args, addOutput, context) => {
-    addOutput(
-      <div className={styles.flexColumn}>
-        <div className={styles.panel}>
-          <div className={styles.panelTitle}>Top projects · {context.visitorMode}</div>
-          {renderBulletList(getProjectsLead(context.visitorMode), styles.accentGreen)}
-        </div>
-        {getTopProjects(context.visitorMode).map((project) => (
-          <ProjectCard key={project.name} project={project} />
-        ))}
-      </div>
-    );
+  execute: (_args, addOutput) => {
+    addOutput(<PortfolioSection section="top-projects" />);
   },
 };
 
@@ -420,27 +267,8 @@ const contactCommand: Command = {
   aliases: ['socials', 'email'],
   category: 'career',
   featured: true,
-  execute: (_args, addOutput, context) => {
-    addOutput(
-      <div className={styles.flexColumn}>
-        <div className={styles.infoGrid}>
-          {content.socials.map((link) => (
-            <React.Fragment key={link.platform}>
-              <span className={styles.accentPurple}>{link.platform}:</span>
-              <a
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.textLink}
-              >
-                {link.username}
-              </a>
-            </React.Fragment>
-          ))}
-        </div>
-        <div className={styles.textSecondary}>{getContactHint(context.visitorMode)}</div>
-      </div>
-    );
+  execute: (_args, addOutput) => {
+    addOutput(<PortfolioSection section="contact" />);
   },
 };
 
@@ -511,7 +339,7 @@ const dateCommand: Command = {
   execute: (_args, addOutput) => {
     addOutput(
       <span>
-        {new Date().toLocaleString('en-US', {
+        {new Date().toLocaleString(getLocale() === 'fr' ? 'fr-FR' : 'en-GB', {
           weekday: 'long',
           year: 'numeric',
           month: 'long',
@@ -533,10 +361,11 @@ const shareCommand: Command = {
   category: 'core',
   execute: async (args, addOutput) => {
     const commandToShare = args.join(' ').trim();
-    const baseUrl = `${window.location.origin}${window.location.pathname}`;
-    const shareUrl = commandToShare
-      ? `${baseUrl}?run=${encodeURIComponent(commandToShare)}`
-      : baseUrl;
+    const url = new URL(window.location.href);
+    url.search = '';
+    url.searchParams.set('lang', getLocale());
+    if (commandToShare) url.searchParams.set('run', commandToShare);
+    const shareUrl = url.toString();
 
     let copied = false;
     if (navigator.clipboard?.writeText) {
@@ -795,13 +624,8 @@ const highlightsCommand: Command = {
   usage: 'highlights',
   category: 'career',
   featured: true,
-  execute: (_args, addOutput, context) => {
-    addOutput(
-      <div className={styles.flexColumn}>
-        <div className={styles.headerSection}>Highlights</div>
-        {renderBulletList(getHighlights(context.visitorMode))}
-      </div>
-    );
+  execute: (_args, addOutput) => {
+    addOutput(<PortfolioSection section="highlights" />);
   },
 };
 
@@ -811,28 +635,7 @@ const timelineCommand: Command = {
   usage: 'timeline',
   category: 'career',
   execute: (_args, addOutput) => {
-    addOutput(
-      <div className={styles.flexColumn}>
-        <div className={styles.headerSection}>Career Timeline</div>
-        {content.experience.map((job) => (
-          <div key={`${job.company}-${job.date}`} className={styles.flexBaseline}>
-            <span className={styles.accentGreen}>{job.date}</span>
-            <span className={styles.textSecondary}>
-              {job.role} @ {job.company}
-            </span>
-          </div>
-        ))}
-        <div className={styles.headerSection}>Education</div>
-        {content.education.map((education) => (
-          <div key={`${education.school}-${education.date}`} className={styles.flexBaseline}>
-            <span className={styles.accentGreen}>{education.date}</span>
-            <span className={styles.textSecondary}>
-              {education.degree} · {education.school}
-            </span>
-          </div>
-        ))}
-      </div>
-    );
+    addOutput(<PortfolioSection section="timeline" />);
   },
 };
 
@@ -842,12 +645,7 @@ const whyMeCommand: Command = {
   usage: 'why-me',
   category: 'career',
   execute: (_args, addOutput) => {
-    addOutput(
-      <div className={styles.flexColumn}>
-        <div className={styles.headerSection}>Why Me</div>
-        {renderBulletList(getWhyMePoints(), styles.accentPurple)}
-      </div>
-    );
+    addOutput(<PortfolioSection section="why-me" />);
   },
 };
 
@@ -857,12 +655,7 @@ const availabilityCommand: Command = {
   usage: 'availability',
   category: 'career',
   execute: (_args, addOutput) => {
-    addOutput(
-      <div className={styles.flexColumn}>
-        <div className={styles.headerSection}>Availability</div>
-        {renderBulletList(getAvailabilityPoints(), styles.accentBlue)}
-      </div>
-    );
+    addOutput(<PortfolioSection section="availability" />);
   },
 };
 
@@ -873,34 +666,8 @@ const tourCommand: Command = {
   category: 'career',
   featured: true,
   execute: (_args, addOutput, context) => {
-    const progress = context.visitorProgress;
-    const completed = RECRUITER_TOUR.filter((command) =>
-      progress.discoveredCommands.includes(command)
-    ).length;
-    const nextStep = RECRUITER_TOUR.find(
-      (command) => !progress.discoveredCommands.includes(command)
-    );
-
     context.setVisitorMode('recruiter');
-    addOutput(
-      <div className={styles.flexColumn}>
-        <CommandShortcutList
-          title="Recruiter tour"
-          items={RECRUITER_TOUR.map((command) => ({ label: command, command }))}
-        />
-        <span className={styles.textMuted}>
-          Progress: {completed}/{RECRUITER_TOUR.length}
-          {nextStep ? (
-            <>
-              {' '}
-              • Next recommended: <span className={styles.accentGreen}>{nextStep}</span>
-            </>
-          ) : (
-            ' • Tour complete. Try recommend for personalized next steps.'
-          )}
-        </span>
-      </div>
-    );
+    addOutput(<GuidedTour />);
   },
 };
 
@@ -911,24 +678,7 @@ const modeCommand: Command = {
   category: 'system',
   execute: (args, addOutput, context) => {
     if (args.length === 0) {
-      addOutput(
-        <div className={styles.flexColumn}>
-          <div className={styles.headerSection}>Choose Your Path</div>
-          {getGuidedPaths().map((path) => (
-            <div key={path.id} className={styles.marginBottomSmall}>
-              <span className={styles.accentGreen}>{path.label}</span>
-              <span className={styles.separator}> — </span>
-              <span className={styles.textSecondary}>{path.summary}</span>
-            </div>
-          ))}
-          <CommandShortcutList
-            title="Switch path"
-            items={getGuidedPaths()
-              .filter((path) => path.id !== 'standard')
-              .map((path) => ({ label: path.label, command: `mode ${path.id}` }))}
-          />
-        </div>
-      );
+      addOutput(<PathLauncher alwaysExpanded />);
       return;
     }
 
@@ -943,8 +693,10 @@ const modeCommand: Command = {
     context.setVisitorMode(nextMode);
     addOutput(
       <div className={styles.flexColumn}>
-        <span className={styles.success}>Path switched to {nextMode}.</span>
-        {renderPathButtons(nextMode)}
+        <span className={styles.success}>
+          {text('Perspective selected:', 'Perspective sélectionnée :')} {nextMode}.
+        </span>
+        <PathActions mode={nextMode} />
       </div>,
       'success'
     );
@@ -966,13 +718,7 @@ const recommendCommand: Command = {
   aliases: ['next'],
   category: 'core',
   execute: (_args, addOutput, context) => {
-    const mode = context.visitorMode;
-    addOutput(
-      <CommandShortcutList
-        title={`Recommended next steps for ${mode}`}
-        items={getRecommendations(mode).map((command) => ({ label: command, command }))}
-      />
-    );
+    addOutput(<PathActions mode={context.visitorMode} />);
   },
 };
 
@@ -1062,6 +808,30 @@ const themeCommand: Command = {
     ['list', 'reset', ...AVAILABLE_THEMES].filter((item) => item.startsWith(partial.toLowerCase())),
 };
 
+const languageCommand: Command = {
+  name: 'language',
+  description: 'Switch display language and CV (en / fr)',
+  usage: 'language [en | fr]',
+  aliases: ['lang'],
+  category: 'system',
+  execute: (args, addOutput) => {
+    if (!isLocale(args[0])) {
+      addOutput(
+        <span>
+          {text('Use language en or language fr.', 'Utilisez language en ou language fr.')}
+        </span>
+      );
+      return;
+    }
+    setLocale(args[0]);
+    addOutput(
+      <span>{text('Language: English · CV: English', 'Langue : français · CV : français')}</span>,
+      'success'
+    );
+  },
+  autocomplete: (partial) => ['en', 'fr'].filter((language) => language.startsWith(partial)),
+};
+
 const resumeCommand: Command = {
   name: 'resume',
   description: 'Download or open the resume',
@@ -1070,22 +840,13 @@ const resumeCommand: Command = {
   category: 'career',
   featured: true,
   execute: (_args, addOutput) => {
-    const resumeUrl = resolveSitePath('/resume.pdf');
-
-    addOutput(
-      <div>
-        <span className={styles.success}>Opening resume…</span>
-        <div className={styles.textSecondary}>
-          If it does not open automatically, use{' '}
-          <a href={resumeUrl} target="_blank" rel="noopener noreferrer" className={styles.textLink}>
-            this direct link
-          </a>
-          .
-        </div>
-      </div>,
-      'success'
-    );
-    window.open(resumeUrl, '_blank', 'noopener,noreferrer');
+    addOutput(<PortfolioSection section="resume" />);
+    const link = document.createElement('a');
+    link.href = getResumePath();
+    link.download = '';
+    document.body.append(link);
+    link.click();
+    link.remove();
   },
 };
 
@@ -1181,7 +942,7 @@ const musicCommand: Command = {
     }
 
     const action = args[0].toLowerCase();
-    const current = getStoredBoolean(MUSIC_STORAGE_KEY, true);
+    const current = getStoredBoolean(MUSIC_STORAGE_KEY, false);
     const next = action === 'toggle' ? !current : action === 'on';
 
     if (!['on', 'off', 'toggle'].includes(action)) {
@@ -1223,7 +984,7 @@ const neofetchCommand: Command = {
         </pre>
         <div className={styles.flexColumn} style={{ gap: '0.25rem' }}>
           <div>
-            <span className={styles.accentGreen}>OS</span> Portfolio OS v3.0.0
+            <span className={styles.accentGreen}>OS</span> Portfolio OS v3.1.0
           </div>
           <div>
             <span className={styles.accentGreen}>Host</span> Ahmad Ibrahim
@@ -1725,6 +1486,7 @@ export const basicCommands: Command[] = [
   uptimeCommand,
   pingCommand,
   resumeCommand,
+  languageCommand,
   playgroundCommand,
   neofetchCommand,
   effectCommand,

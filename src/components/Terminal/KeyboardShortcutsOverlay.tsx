@@ -1,3 +1,4 @@
+import { text, useLocale } from '../../i18n/locale';
 import React, { useEffect, useRef } from 'react';
 
 import styles from './KeyboardShortcutsOverlay.module.css';
@@ -20,6 +21,15 @@ export const KeyboardShortcutsOverlay: React.FC<KeyboardShortcutsOverlayProps> =
   isOpen,
   onClose,
 }) => {
+  const locale = useLocale();
+  const translations = [
+    'Ouvrir ou fermer les raccourcis',
+    'Annuler la ligne de commande',
+    'Effacer la sortie du terminal',
+    'Compléter une commande ou un chemin',
+    'Parcourir l’historique des commandes',
+    'Fermer le panneau',
+  ];
   const panelRef = useRef<HTMLElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const previouslyFocusedRef = useRef<HTMLElement | null>(null);
@@ -95,7 +105,7 @@ export const KeyboardShortcutsOverlay: React.FC<KeyboardShortcutsOverlayProps> =
       <section ref={panelRef} className={styles.panel} onClick={(event) => event.stopPropagation()}>
         <header className={styles.header}>
           <h2 id="terminal-shortcuts-title" className={styles.title}>
-            Keyboard shortcuts
+            {text('Keyboard shortcuts', 'Raccourcis clavier', locale)}
           </h2>
           <button
             ref={closeButtonRef}
@@ -103,20 +113,25 @@ export const KeyboardShortcutsOverlay: React.FC<KeyboardShortcutsOverlayProps> =
             className={styles.closeButton}
             onClick={onClose}
           >
-            Close
+            {text('Close', 'Fermer', locale)}
           </button>
         </header>
 
         <p className={styles.hint}>
-          Press Ctrl + / at any time to toggle this panel. On touch devices, use the ? button in the
-          title bar.
+          {text(
+            'Press Ctrl + / to toggle this panel. On touch devices, use the ? button in the title bar.',
+            'Appuyez sur Ctrl + / pour ouvrir ou fermer ce panneau. Sur écran tactile, utilisez le bouton ? dans la barre de titre.',
+            locale
+          )}
         </p>
 
         <div className={styles.grid}>
-          {SHORTCUTS.map((item) => (
+          {SHORTCUTS.map((item, index) => (
             <React.Fragment key={item.keys}>
               <kbd className={styles.keys}>{item.keys}</kbd>
-              <span className={styles.description}>{item.description}</span>
+              <span className={styles.description}>
+                {locale === 'fr' ? translations[index] : item.description}
+              </span>
             </React.Fragment>
           ))}
         </div>

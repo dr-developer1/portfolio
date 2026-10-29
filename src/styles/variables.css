@@ -62,6 +62,7 @@
   --spacing-2xl: 3rem;
 
   /* Typography */
+  --font-display: 'Trebuchet MS', 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
   --font-mono-banner: 'JetBrains Mono Banner';
   --font-size-xs: 0.75rem;

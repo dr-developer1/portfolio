@@ -1,4 +1,5 @@
-import { content } from '../data/content';
+import { getResumePath } from '../i18n/locale';
+import { getContent } from '../data/content';
 import type { ProjectItem } from '../data/content';
 import {
   AVAILABILITY_POINTS,
@@ -11,7 +12,6 @@ import {
 } from '../data/guides';
 import type { GuidedPath, VisitorMode } from '../types';
 import { getNode } from './fileSystem';
-import { resolveSitePath } from './sitePaths';
 import styles from '../styles/outputUtilities.module.css';
 
 export interface SearchResult {
@@ -26,7 +26,9 @@ function normalize(value: string): string {
 }
 
 export function getFeaturedProjects(): ProjectItem[] {
-  return content.projects.filter((project) => project.featured).slice(0, 3);
+  return getContent()
+    .projects.filter((project) => project.featured)
+    .slice(0, 3);
 }
 
 function getProjectScore(project: ProjectItem, mode: VisitorMode): number {
@@ -50,10 +52,10 @@ export function getProjectsForMode(
   options: { featuredOnly?: boolean } = {}
 ): ProjectItem[] {
   const source = options.featuredOnly
-    ? content.projects.filter((project) => project.featured)
-    : content.projects;
+    ? getContent().projects.filter((project) => project.featured)
+    : getContent().projects;
 
-  const projects = source.length > 0 ? source : content.projects;
+  const projects = source.length > 0 ? source : getContent().projects;
 
   return [...projects].sort((left, right) => {
     const scoreDelta = getProjectScore(right, mode) - getProjectScore(left, mode);
@@ -75,13 +77,13 @@ export function getHighlights(mode: VisitorMode = 'standard'): string[] {
   const highlights: string[] = [];
 
   const featuredExperience =
-    content.experience.find((job) => job.featured) ?? content.experience[0];
+    getContent().experience.find((job) => job.featured) ?? getContent().experience[0];
   if (featuredExperience?.impact) {
     highlights.push(featuredExperience.impact);
   }
 
-  content.projects
-    .filter((project) => project.featured && project.impact)
+  getContent()
+    .projects.filter((project) => project.featured && project.impact)
     .slice(0, 2)
     .forEach((project) => {
       if (project.impact) {
@@ -97,7 +99,7 @@ export function getHighlights(mode: VisitorMode = 'standard'): string[] {
 
   if (mode === 'recruiter') {
     return [
-      '5+ years shipping production software across web, mobile, and desktop products.',
+      '6+ years shipping production software across web, mobile, and desktop products.',
       'Based in Lyon, France and open to full-time software engineering opportunities.',
       ...highlights,
     ];
@@ -136,7 +138,7 @@ export function getAboutSummary(mode: VisitorMode): { tagline: string; lines: st
       return {
         tagline: 'Full Stack Software Engineer · available for product-focused teams',
         lines: [
-          '5+ years shipping software across web, mobile, and desktop products.',
+          '6+ years shipping software across web, mobile, and desktop products.',
           'Strong track record in modernization, delivery ownership, and pragmatic execution.',
           'Based in Lyon, France and open to full-time opportunities.',
         ],
@@ -170,8 +172,8 @@ export function getAboutSummary(mode: VisitorMode): { tagline: string; lines: st
       };
     default:
       return {
-        tagline: content.bio.tagline,
-        lines: content.bio.description,
+        tagline: getContent().bio.tagline,
+        lines: getContent().bio.description,
       };
   }
 }
@@ -299,7 +301,7 @@ export function findContent(keyword: string): SearchResult[] {
 
   const results: SearchResult[] = [];
 
-  content.projects.forEach((project) => {
+  getContent().projects.forEach((project) => {
     const haystack = [
       project.name,
       project.description,
@@ -318,7 +320,7 @@ export function findContent(keyword: string): SearchResult[] {
     }
   });
 
-  content.experience.forEach((job) => {
+  getContent().experience.forEach((job) => {
     const haystack = [
       job.role,
       job.company,
@@ -339,7 +341,7 @@ export function findContent(keyword: string): SearchResult[] {
     }
   });
 
-  content.education.forEach((entry) => {
+  getContent().education.forEach((entry) => {
     const haystack = `${entry.degree} ${entry.school} ${entry.location}`;
     if (normalize(haystack).includes(query)) {
       results.push({
@@ -351,11 +353,11 @@ export function findContent(keyword: string): SearchResult[] {
     }
   });
 
-  if (normalize(content.bio.description.join(' ')).includes(query)) {
+  if (normalize(getContent().bio.description.join(' ')).includes(query)) {
     results.push({
       section: 'about',
-      title: content.bio.name,
-      snippet: content.bio.tagline,
+      title: getContent().bio.name,
+      snippet: getContent().bio.tagline,
       command: 'about',
     });
   }
@@ -380,25 +382,25 @@ export function grepVirtualTarget(term: string, target: string): string[] {
   }
 
   const namedTargets: Record<string, string[]> = {
-    projects: content.projects.flatMap((project) => [
+    projects: getContent().projects.flatMap((project) => [
       project.name,
       project.description,
       project.technologies.join(', '),
       project.impact ?? '',
     ]),
-    experience: content.experience.flatMap((job) => [
+    experience: getContent().experience.flatMap((job) => [
       job.role,
       job.company,
       ...job.description,
       job.impact ?? '',
     ]),
     skills: [
-      ...content.skills.languages,
-      ...content.skills.frameworks,
-      ...content.skills.tools,
-      ...content.skills.softSkills,
+      ...getContent().skills.languages,
+      ...getContent().skills.frameworks,
+      ...getContent().skills.tools,
+      ...getContent().skills.softSkills,
     ],
-    contact: content.socials.map((social) => `${social.platform}: ${social.username}`),
+    contact: getContent().socials.map((social) => `${social.platform}: ${social.username}`),
   };
 
   const section = namedTargets[target.toLowerCase()];
@@ -416,7 +418,7 @@ export function grepVirtualTarget(term: string, target: string): string[] {
 export function resolveOpenTarget(rawTarget: string): { label: string; url: string } | null {
   const target = normalize(rawTarget);
 
-  const project = content.projects.find(
+  const project = getContent().projects.find(
     (item) =>
       normalize(item.name) === target ||
       normalize(item.shortLabel ?? '') === target ||
@@ -432,10 +434,10 @@ export function resolveOpenTarget(rawTarget: string): { label: string; url: stri
   }
 
   if (target === 'resume' || target === 'cv') {
-    return { label: 'Resume', url: resolveSitePath('/resume.pdf') };
+    return { label: 'Resume', url: getResumePath() };
   }
 
-  const social = content.socials.find(
+  const social = getContent().socials.find(
     (item) => normalize(item.platform) === target || normalize(item.username) === target
   );
 

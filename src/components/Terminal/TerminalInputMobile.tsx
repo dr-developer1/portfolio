@@ -1,3 +1,4 @@
+import { text, useLocale } from '../../i18n/locale';
 import React, { useRef, useCallback, useEffect, useState, useMemo } from 'react';
 import { useTerminalContext } from '../../hooks/TerminalContext';
 import { useEnsureFocusedElementVisible } from '../../hooks/useEnsureFocusedElementVisible';
@@ -37,6 +38,7 @@ export const TerminalInputMobile: React.FC<TerminalInputMobileProps> = ({
     setInput,
   } = useTerminalContext();
 
+  const locale = useLocale();
   const inputRef = useRef<HTMLInputElement>(null);
   const shouldRefocusRef = useRef(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
@@ -247,7 +249,7 @@ export const TerminalInputMobile: React.FC<TerminalInputMobileProps> = ({
     };
   }, [cancelScheduledEnsureVisible]);
 
-  const placeholder = isLoading ? 'Processing...' : '';
+  const placeholder = isLoading ? text('Processing...', 'Traitement…', locale) : '';
 
   return (
     <div className={styles.inputContainer} onClick={focusInput} data-testid="terminal-input-mobile">
@@ -282,6 +284,7 @@ export const TerminalInputMobile: React.FC<TerminalInputMobileProps> = ({
           autoComplete="off"
           enterKeyHint="send"
           aria-label="Terminal command input"
+          data-terminal-input="true"
           data-testid="terminal-input-native"
         />
 

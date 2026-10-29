@@ -1,111 +1,90 @@
 # Portfolio OS
 
-Interactive terminal-style portfolio built with React, TypeScript, and Vite. The experience is fully in English, fully client-side, and combines a terminal shell, hidden modes, a lightweight coding playground, and recruiter-friendly guided navigation.
+Ahmad Ibrahim’s interactive portfolio, built with React, TypeScript, and Vite.
+English and French career content follows the supplied CVs, with a matching PDF
+available before boot and throughout the terminal session.
 
-## Highlights
+## Experience
 
-- Recruiter-first terminal UX with guided commands like `tour`, `highlights`, `top-projects`, and `why-me`
-- Visitor path chooser after boot (`mode recruiter|engineer|founder|client`) for tailored flows
-- Virtual filesystem commands: `ls`, `cd`, `cat`, `pwd`, `tree`
-- Search and navigation commands: `find`, `grep`, `open`, `recommend`
-- Hidden depth: `sudo`, `vault`, `interview`, `legacy`, `incident`, `openai`, `coffee`
-- Persistent themes, Matrix/music toggles, local achievements, and visitor stats
-- Monaco-based playground with demo and challenge presets
+- Persistent EN / FR controls next to a PDF download that names its language
+- Locale precedence: valid `?lang=`, saved choice, French browser language, English
+- Four optional perspectives: recruiter, engineer, founder, and client
+- CV-backed profile, work history, education, core stack, and spoken languages
+- Existing personal and academic projects clearly distinguished from professional work
+- Career output already in terminal history translates when the language changes
+- Shareable commands preserve the active language: `?lang=fr&run=experience`
+- Skip-able boot animation; reduced-motion support; music off until enabled
+- Virtual filesystem, search, themes, hidden commands, and a coding playground
 
-## Stack
+Executable command names, virtual paths, technical shell output, boot logs,
+playground tools, and hidden Easter eggs retain English vocabulary. Use `help`
+for localized navigation and `help <command>` for technical syntax.
 
-- React 19
-- TypeScript
-- Vite
-- Monaco Editor
-- CSS Modules
-- Web Workers for playground execution
+## Development
 
-## Local Development
-
-This project expects Node to be managed with `nvm`.
-
-```bash
-source ~/.nvm/nvm.sh
-nvm use
-npm install
-npm run dev
-```
-
-## Scripts
+Use **Node 26 LTS** (exact version in `.node-version`) and **pnpm 12.15.0**
+(pinned by `packageManager`). Install Node with your preferred runtime manager;
+no nvm setup is required.
 
 ```bash
-npm run dev
-npm run build
-npm run lint
-npm run lint:css
-npm run test:unit
-npm run test:e2e
+pnpm install --frozen-lockfile
+pnpm dev
 ```
 
-## Core Commands
-
-- `help`: grouped command overview
-- `highlights`: strongest recruiter-facing wins
-- `tour`: guided recruiter path
-- `mode recruiter|engineer|founder|client`: switch visitor path
-- `projects` / `top-projects`: portfolio project views
-- `github`: live GitHub stats and recent repositories
-- `weather`: local weather via geolocation
-- `contact-me`: pre-filled email shortcut (`hire-me`, `reach-out`)
-- `neofetch`: terminal system snapshot
-- `playground --demo` / `playground --challenge debugging`
-- `find <keyword>` / `grep <term> <target>`
-- `banner <text>`: hidden ASCII-style text easter egg
-- `stats`: local usage and discovery progress
-
-## Architecture Notes
-
-- `src/hooks/useTerminal.tsx`: terminal state, command execution, virtual shell behavior
-- `src/data/commands.tsx`: typed command registry and grouped command surface
-- `src/utils/fileSystem.ts`: in-memory filesystem generated from portfolio content
-- `src/utils/portfolioInsights.tsx`: highlights, guided paths, search, and open-target helpers
-- `src/components/Playground/*`: playground UI and mobile variant
-
-## Testing
-
-Unit tests cover parser, completion, command registry behavior, filesystem basics,
-keyboard viewport calculations, and secret-code detection.
-
-Playwright end-to-end coverage includes:
-
-- Desktop boot-to-terminal smoke flow
-- Mobile keyboard visibility and refocus behavior after command execution
-- Mobile input visibility with long terminal history
-
-Configured Playwright projects:
-
-- `desktop-chromium`
-- `mobile-chrome` (Pixel 7 profile)
-- `mobile-safari` (iPhone 14 profile)
-
-## CI
-
-GitHub Actions runs:
-
-- ESLint
-- Stylelint
-- Unit tests
-- Production build
-
-The workflow reads the Node version from `.nvmrc`.
-
-## Deployment
-
-The app is static and can be deployed to:
-
-- GitHub Pages
-- Vercel
-- Netlify
-- Cloudflare Pages
-
-Build output is generated with:
+`pnpm-workspace.yaml` explicitly permits esbuild’s installation script. Other
+dependency build scripts require their own policy decision.
 
 ```bash
-npm run build
+pnpm lint
+pnpm lint:css
+pnpm exec prettier --check <changed-files>
+pnpm test:unit
+pnpm build
+pnpm exec playwright install chromium webkit
+pnpm test:e2e
 ```
+
+The unit runner disables Node’s native Web Storage in its workers so jsdom owns
+browser storage during tests. This matters on Node 26.
+
+## Navigation
+
+- `about`, `highlights`, `skills`, `experience`, `education`: CV-backed career information
+- `projects`, `top-projects`: existing personal and academic projects
+- `resume` / `cv`: the current language’s CV
+- `open resume`: open the current language’s PDF
+- `language en|fr`: change display language and CV
+- `mode recruiter|engineer|founder|client|standard`: change perspective
+- `tour`, `recommend`, `contact`: guided discovery and contact
+- `ls`, `cd`, `cat`, `pwd`, `tree`, `find`, `grep`: explore the virtual filesystem
+- `playground --demo` / `playground --challenge debugging`: coding workspace
+- `theme`, `music`, `effect`: appearance and optional effects
+
+## Content and design
+
+- `src/data/content.ts`: English and French CV content; retained project data
+- `src/i18n/locale.ts`: locale preference, document metadata, PDF routing
+- `src/i18n/paths.ts`: translated perspectives and shortcut labels
+- `src/components/Navigation/*`: shared language/CV toolbar and path launcher
+- `src/components/Output/PortfolioSection.tsx`: reactive translated career output
+- `src/data/commands.tsx`: command registry and technical shell commands
+- `src/utils/fileSystem.ts`: locale-specific virtual files with stable paths
+- `DESIGN.md`: visual direction, token ownership, accessibility, and locale boundaries
+
+The supplied CVs live at `public/CV_Ahmad_IBRAHIM.pdf` (French) and
+`public/CV_Ahmad_IBRAHIM_En.pdf` (English). The legacy `public/resume.pdf` URL
+contains the updated English CV for compatibility. Update all three together
+when replacing the CVs. PDF paths respect Vite’s base URL on GitHub Pages.
+
+## Verification and deployment
+
+Unit tests cover command execution, parser/completion, virtual files, locale
+precedence and unavailable storage, CV routing, and mobile viewport helpers.
+Playwright covers boot, both actual PDF downloads, language persistence and
+keyboard switching, all perspectives, translation of existing history, and
+mobile command focus/visibility in Chromium and WebKit.
+
+CI and GitHub Pages builds install pinned pnpm, read Node from `.node-version`,
+and use the frozen pnpm lockfile. CI runs lint, CSS lint, unit tests, and a
+production build; a separate browser job runs Chromium and WebKit checks. Pages deploys only from `main`; feature branches do not deploy.
+The static build is also compatible with Vercel, Netlify, and Cloudflare Pages.

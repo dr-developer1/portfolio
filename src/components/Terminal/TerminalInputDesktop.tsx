@@ -1,3 +1,4 @@
+import { text, useLocale } from '../../i18n/locale';
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { useTerminalContext } from '../../hooks/TerminalContext';
 import { getPromptConfig } from '../../hooks/useTerminal';
@@ -10,6 +11,7 @@ import styles from './TerminalInput.module.css';
 import outputStyles from '../../styles/outputUtilities.module.css';
 
 export const TerminalInputDesktop: React.FC = () => {
+  const locale = useLocale();
   const {
     executeCommand,
     addOutput,
@@ -196,7 +198,7 @@ export const TerminalInputDesktop: React.FC = () => {
       inputRef.current?.blur();
       return;
     }
-    inputRef.current?.focus();
+    inputRef.current?.focus({ preventScroll: true });
   }, [isPlaygroundOpen]);
 
   useEffect(() => {
@@ -275,16 +277,19 @@ export const TerminalInputDesktop: React.FC = () => {
           onKeyDown={handleKeyDown}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          autoFocus={true}
           spellCheck={false}
           aria-label="Terminal command input"
+          data-terminal-input="true"
           autoComplete="off"
         />
 
         <span className={styles.inputDisplay}>{renderInputDisplay()}</span>
       </div>
       {suggestion && suggestion !== input && (
-        <div className={styles.suggestion}>Press Tab to autocomplete: {suggestion}</div>
+        <div className={styles.suggestion}>
+          {text('Press Tab to autocomplete:', 'Appuyez sur Tab pour compléter :', locale)}{' '}
+          {suggestion}
+        </div>
       )}
     </div>
   );

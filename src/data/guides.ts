@@ -1,7 +1,7 @@
 import type { GuidedPath, VisitorMode } from '../types';
 
 export const WHY_ME_POINTS = [
-  'Full-stack engineer with 5+ years shipping products across web, mobile, and desktop.',
+  'Full-stack engineer with 6+ years shipping products across web, mobile, and desktop.',
   'Strong on legacy modernization, pragmatic architecture, and difficult debugging.',
   'Comfortable moving between product delivery, technical leadership, and implementation detail.',
 ];

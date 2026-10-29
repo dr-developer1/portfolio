@@ -1,3 +1,5 @@
+import { LanguageTools } from '../Navigation/LanguageTools';
+import { text, useLocale } from '../../i18n/locale';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { BackgroundMusic } from '../Effects/BackgroundMusic';
@@ -21,6 +23,7 @@ import { KeyboardShortcutsOverlay } from './KeyboardShortcutsOverlay';
 const AUTO_SCROLL_BOTTOM_THRESHOLD_PX = 72;
 
 export const Terminal: React.FC = () => {
+  const locale = useLocale();
   const {
     bootMode,
     history,
@@ -41,6 +44,7 @@ export const Terminal: React.FC = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const bottomAnchorRef = useRef<HTMLDivElement>(null);
   const shouldAutoScrollRef = useRef(true);
+  const previousHistoryLengthRef = useRef(0);
   const toastTimeoutsRef = useRef<Map<string, number>>(new Map());
   const { keyboardInsetPx, isKeyboardOpen, isViewportSettled } = useKeyboardViewport({
     enabled: isMobile,
@@ -75,7 +79,17 @@ export const Terminal: React.FC = () => {
   }, [updateAutoScrollState]);
 
   useEffect(() => {
-    if (!shouldAutoScrollRef.current) {
+    const previousLength = previousHistoryLengthRef.current;
+    previousHistoryLengthRef.current = history.length;
+    const newCommand = history.slice(previousLength).find((line) => line.type === 'command');
+    if (newCommand) {
+      // An explicit command should reveal its result, even from the launch panel.
+      document
+        .getElementById(`terminal-line-${newCommand.id}`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    if (history.length === 0 || !shouldAutoScrollRef.current) {
       return;
     }
 
@@ -161,11 +175,12 @@ export const Terminal: React.FC = () => {
       <MatrixRain />
       <BackgroundMusic />
       <div className={`${styles.window} ${isStartupAnimating ? styles.windowWillChange : ''}`}>
-        <div className={styles.scanline} />
-        <div className={styles.scanlineBeam} />
-        <div className={styles.overlay} />
         {/* macOS-style title bar */}
-        <div className={styles.titleBar} role="toolbar" aria-label="Terminal window controls">
+        <div
+          className={styles.titleBar}
+          role="toolbar"
+          aria-label={text('Terminal window controls', 'Contrôles du terminal', locale)}
+        >
           <div className={styles.windowControls}>
             <span
               className={`${styles.windowButton} ${styles.closeButton}`}
@@ -190,13 +205,20 @@ export const Terminal: React.FC = () => {
             <button
               type="button"
               className={styles.iconButton}
-              aria-label="Open keyboard shortcuts"
+              aria-label={text('Open keyboard shortcuts', 'Ouvrir les raccourcis clavier', locale)}
               onClick={() => setIsShortcutsOpen(true)}
             >
               ?
             </button>
             <MusicToggleButton />
           </div>
+        </div>
+
+        <div className={styles.portfolioToolbar}>
+          <span className={styles.toolbarLabel}>
+            PORTFOLIO OS <span>/ v3.1</span>
+          </span>
+          <LanguageTools />
         </div>
 
         {/* Terminal body */}

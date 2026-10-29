@@ -1,3 +1,4 @@
+import { text, useLocale } from '../../i18n/locale';
 import React from 'react';
 import { useTerminalContext } from '../../hooks/TerminalContext';
 import styles from './Terminal.module.css';
@@ -6,6 +7,7 @@ import styles from './Terminal.module.css';
  * Speaker/mute toggle button for the terminal title bar
  */
 export const MusicToggleButton: React.FC = () => {
+  const locale = useLocale();
   const { musicEnabled, setMusicEnabled } = useTerminalContext();
 
   const handleClick = () => {
@@ -16,8 +18,16 @@ export const MusicToggleButton: React.FC = () => {
     <button
       className={styles.iconButton}
       onClick={handleClick}
-      aria-label={musicEnabled ? 'Mute music' : 'Unmute music'}
-      title={musicEnabled ? 'Mute music' : 'Unmute music'}
+      aria-label={
+        musicEnabled
+          ? text('Mute music', 'Couper la musique', locale)
+          : text('Enable music', 'Activer la musique', locale)
+      }
+      title={
+        musicEnabled
+          ? text('Mute music', 'Couper la musique', locale)
+          : text('Enable music', 'Activer la musique', locale)
+      }
     >
       {musicEnabled ? (
         // Speaker with sound waves (unmuted)

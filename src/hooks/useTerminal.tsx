@@ -37,7 +37,7 @@ const INITIAL_STATE: TerminalState = {
   theme: getStoredTheme(),
   isLoading: false,
   matrixEnabled: getStoredBoolean(MATRIX_STORAGE_KEY, true),
-  musicEnabled: getStoredBoolean(MUSIC_STORAGE_KEY, true),
+  musicEnabled: getStoredBoolean(MUSIC_STORAGE_KEY, false),
   hasUserInteracted: false,
   bootMode: 'normal',
   isPlaygroundOpen: false,
