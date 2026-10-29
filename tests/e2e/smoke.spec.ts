@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 test.use({ reducedMotion: 'reduce' });
 
 test('boot shows oscilloscope and quiet command hints', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('./');
   await page.getByLabel('Type a secret code or press Enter to boot').press('Enter');
   await expect(page.getByText('Oscilloscope Name Trace', { exact: true })).toBeVisible();
   await expect(page.getByTestId('command-hint')).toBeVisible();
@@ -15,7 +15,7 @@ test('boot shows oscilloscope and quiet command hints', async ({ page }) => {
 });
 
 test('help and ls commands produce output', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('./');
   await page.getByLabel('Type a secret code or press Enter to boot').press('Enter');
 
   const input = page.getByLabel('Terminal command input');

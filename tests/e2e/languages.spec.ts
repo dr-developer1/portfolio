@@ -8,11 +8,11 @@ async function boot(page: import('@playwright/test').Page) {
 }
 
 test('language and matching CV work before boot and persist after reload', async ({ page }) => {
-  await page.goto('/?lang=en');
+  await page.goto('./?lang=en');
   await page.getByRole('button', { name: 'Français', exact: true }).click();
   await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
   const cv = page.getByRole('link', { name: /Télécharger le CV/ });
-  await expect(cv).toHaveAttribute('href', '/CV_Ahmad_IBRAHIM.pdf');
+  await expect(cv).toHaveAttribute('href', new URL('CV_Ahmad_IBRAHIM.pdf', page.url()).pathname);
   const downloadPromise = page.waitForEvent('download');
   await cv.click();
   const download = await downloadPromise;
@@ -21,7 +21,7 @@ test('language and matching CV work before boot and persist after reload', async
   await expect(
     page.getByText('Appuyez sur Entrée pour démarrer le système…', { exact: true })
   ).toBeAttached();
-  await page.goto('/');
+  await page.goto('./');
   await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
   await boot(page);
   await expect(page.getByTestId('command-hint')).toHaveText(
@@ -30,7 +30,7 @@ test('language and matching CV work before boot and persist after reload', async
   await page.getByRole('button', { name: 'English', exact: true }).click();
   await expect(page.getByRole('link', { name: /Download CV/ })).toHaveAttribute(
     'href',
-    '/CV_Ahmad_IBRAHIM_En.pdf'
+    new URL('CV_Ahmad_IBRAHIM_En.pdf', page.url()).pathname
   );
   const enDownload = page.waitForEvent('download');
   await page.getByRole('link', { name: /Download CV/ }).click();
@@ -38,7 +38,7 @@ test('language and matching CV work before boot and persist after reload', async
 });
 
 test('command hints execute localized career content and disappear after use', async ({ page }) => {
-  await page.goto('/?lang=en');
+  await page.goto('./?lang=en');
   await boot(page);
   const hint = page.getByTestId('command-hint');
   await expect(hint).toHaveText('Try about, experience, projects, or help.');
@@ -57,7 +57,7 @@ test('command hints execute localized career content and disappear after use', a
   await input.press('Enter');
   await expect(
     page.getByRole('link', { name: 'Télécharger le CV français (PDF)' })
-  ).toHaveAttribute('href', '/CV_Ahmad_IBRAHIM.pdf');
+  ).toHaveAttribute('href', new URL('CV_Ahmad_IBRAHIM.pdf', page.url()).pathname);
   await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true
@@ -65,7 +65,7 @@ test('command hints execute localized career content and disappear after use', a
 });
 
 test('language controls support keyboard activation without starting boot', async ({ page }) => {
-  await page.goto('/?lang=en');
+  await page.goto('./?lang=en');
   await page.getByRole('button', { name: 'Français', exact: true }).focus();
   await page.keyboard.press('Enter');
   await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
@@ -79,6 +79,6 @@ test('language controls support keyboard activation without starting boot', asyn
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await expect(page.getByRole('link', { name: /Download CV/ })).toHaveAttribute(
     'href',
-    '/CV_Ahmad_IBRAHIM_En.pdf'
+    new URL('CV_Ahmad_IBRAHIM_En.pdf', page.url()).pathname
   );
 });

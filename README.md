@@ -90,3 +90,10 @@ CI and GitHub Pages builds install pinned pnpm, read Node from `.node-version`,
 and use the frozen pnpm lockfile. CI runs lint, CSS lint, unit tests, and a
 production build; a separate browser job runs Chromium and WebKit checks. Pages deploys only from `main`; feature branches do not deploy.
 The static build is also compatible with Vercel, Netlify, and Cloudflare Pages.
+
+Browser checks follow the GitHub Pages base path in CI. To reproduce CI's cold
+build and browser startup locally (with port 4173 free):
+
+```bash
+CI=true GITHUB_ACTIONS=true GITHUB_REPOSITORY=dr-developer1/portfolio pnpm test:e2e --workers=2
+```

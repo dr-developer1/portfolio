@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
 const bootToTerminal = async (page: Page) => {
-  await page.goto('/');
+  await page.goto('./');
 
   const startButton = page.getByRole('button', { name: /start/i }).first();
 
