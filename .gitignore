@@ -28,3 +28,6 @@ dist-ssr
 
 # Local Codex configuration
 .codex/config.toml
+
+#graphify
+graphify-out
