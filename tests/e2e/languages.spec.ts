@@ -24,9 +24,9 @@ test('language and matching CV work before boot and persist after reload', async
   await page.goto('/');
   await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
   await boot(page);
-  await expect(
-    page.getByRole('region', { name: 'Choisissez votre parcours', exact: true })
-  ).toBeAttached();
+  await expect(page.getByTestId('command-hint')).toHaveText(
+    'Essayez about, experience, projects ou help.'
+  );
   await page.getByRole('button', { name: 'English', exact: true }).click();
   await expect(page.getByRole('link', { name: /Download CV/ })).toHaveAttribute(
     'href',
@@ -37,24 +37,15 @@ test('language and matching CV work before boot and persist after reload', async
   expect((await enDownload).suggestedFilename()).toBe('CV_Ahmad_IBRAHIM_En.pdf');
 });
 
-test('each perspective is reversible, localized, and preserves career output', async ({ page }) => {
+test('command hints execute localized career content and disappear after use', async ({ page }) => {
   await page.goto('/?lang=en');
   await boot(page);
-  for (const mode of ['recruiter', 'engineer', 'founder', 'client']) {
-    await page
-      .getByRole('region', { name: 'Choose your path', exact: true })
-      .getByRole('button', { name: new RegExp(`^${mode}$`, 'i') })
-      .click();
-    await page.getByRole('button', { name: 'Change path', exact: true }).click();
-  }
-  await page
-    .getByRole('region', { name: 'Choose your path', exact: true })
-    .getByRole('button', { name: 'Recruiter', exact: true })
-    .click();
-  await page
-    .getByRole('region', { name: 'Choose your path', exact: true })
-    .getByRole('button', { name: 'Experience', exact: true })
-    .click();
+  const hint = page.getByTestId('command-hint');
+  await expect(hint).toHaveText('Try about, experience, projects, or help.');
+  await expect(page.getByRole('region', { name: 'Choose your path', exact: true })).toHaveCount(0);
+  await hint.getByRole('button', { name: 'experience', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await expect(hint).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Professional experience' })).toBeAttached();
   await expect(page.getByRole('listitem').filter({ hasText: 'Sogecommerce' })).toBeAttached();
   await page.getByRole('button', { name: 'Français', exact: true }).click();

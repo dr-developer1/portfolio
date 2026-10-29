@@ -2,13 +2,13 @@
 
 Captured from the working UI with Playwright, using reduced motion.
 
-Desktop, English, with the restored oscilloscope and original terminal shortcuts:
+Desktop, English, with the oscilloscope and single-line command hints:
 
 ![Desktop English portfolio](desktop-en.png)
 
-Mobile (390 × 844), French, with the recruiter perspective selected:
+Mobile (390 × 844), French, with localized command hints:
 
-![Mobile French recruiter perspective](mobile-fr.png)
+![Mobile French terminal hints](mobile-fr.png)
 
 Original system boot prompt with language and CV controls:
 

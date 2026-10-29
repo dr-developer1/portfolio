@@ -8,7 +8,8 @@ available before boot and throughout the terminal session.
 
 - Persistent EN / FR controls next to a PDF download that names its language
 - Locale precedence: valid `?lang=`, saved choice, French browser language, English
-- Four optional perspectives: recruiter, engineer, founder, and client
+- One line of clickable command hints, hidden after the first command
+- Optional guided paths remain available through explicit commands
 - CV-backed profile, work history, education, core stack, and spoken languages
 - Existing personal and academic projects clearly distinguished from professional work
 - Career output already in terminal history translates when the language changes
@@ -82,7 +83,7 @@ when replacing the CVs. PDF paths respect Vite’s base URL on GitHub Pages.
 Unit tests cover command execution, parser/completion, virtual files, locale
 precedence and unavailable storage, CV routing, and mobile viewport helpers.
 Playwright covers boot, both actual PDF downloads, language persistence and
-keyboard switching, all perspectives, translation of existing history, and
+keyboard switching, command hints, translation of existing history, and
 mobile command focus/visibility in Chromium and WebKit.
 
 CI and GitHub Pages builds install pinned pnpm, read Node from `.node-version`,

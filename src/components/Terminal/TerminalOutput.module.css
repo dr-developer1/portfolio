@@ -96,23 +96,27 @@
   margin-top: var(--spacing-sm);
 }
 
-.quickActions {
-  margin-top: var(--spacing-sm);
+.hintCommand {
+  appearance: none;
+  display: inline;
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-accent-green);
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-underline-offset: 4px;
 }
 
-.returningHint {
-  display: inline-block;
-  animation: glitch-flicker 10s steps(2, end) infinite;
+.hintCommand:hover {
+  color: var(--color-accent-cyan);
+  text-decoration-style: solid;
 }
 
-.tourHint {
-  display: inline-block;
-  color: var(--color-text-secondary);
-}
-
-.pathHint {
-  display: inline-block;
-  color: var(--color-text-secondary);
+.hintCommand:disabled {
+  opacity: 0.5;
+  cursor: wait;
 }
 
 .highlight {

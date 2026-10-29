@@ -38,8 +38,13 @@ The user explicitly rejected the replacement landing page, sans-serif display
 headings, marketing copy, and route-card redesign. Do not replace these identity
 elements when enhancing navigation or localization.
 
-Use the existing CommandShortcutList for path selection and quick actions. Keep
-language and matching CV controls small and visually consistent with the terminal.
+The initial terminal view has one quiet hint: “Try about, experience, projects, or
+help.” Command names are keyboard-accessible inline buttons styled as terminal
+text. The hint disappears after the first nonempty command, including clear, and
+stays hidden for the session. Do not show quick-start panels, role selection,
+returning-visitor nudges, or tour progress on the landing view. Explicit mode/tour
+commands remain available through help. Keep language and matching CV controls
+small and visually consistent with the terminal.
 
 ## Canonical tokens and mapping
 
@@ -77,13 +82,13 @@ publish the CV’s phone number as a separate contact channel without a request.
 ## Behavior and accessibility
 
 Language and CV belong together in an always-reachable toolbar, both before and
-after boot. A real download link has a visible PDF/language label. Path selection
-is optional and reversible; clicks never require terminal knowledge. A language
+after boot. A real download link has a visible PDF/language label. Initial command hints
+run directly, without choosing a role. A language
 command supports keyboard-led visits. No extra package is needed for two static
 locales: a small React external store and typed content selector are sufficient;
 reconsider a routing/i18n library if translated routes or pluralization emerge.
 
-The terminal owns scrolling; controls stay outside it. Path shortcuts use the original responsive wrapping layout. French copy wraps naturally. Preserve
+The terminal owns scrolling; controls stay outside it. Inline command hints wrap naturally on narrow screens. French copy wraps naturally. Preserve
 44px action targets, visible focus, operable scrollbars, and reduced-motion support.
 Boot retains its original keyboard and mobile tap-to-start interactions. Audio should require an
 explicit opt-in rather than starting on portfolio entry.

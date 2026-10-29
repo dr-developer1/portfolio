@@ -2,11 +2,16 @@ import { expect, test } from '@playwright/test';
 
 test.use({ reducedMotion: 'reduce' });
 
-test('boot to guided recruiter flow', async ({ page }) => {
+test('boot shows oscilloscope and quiet command hints', async ({ page }) => {
   await page.goto('/');
   await page.getByLabel('Type a secret code or press Enter to boot').press('Enter');
   await expect(page.getByText('Oscilloscope Name Trace', { exact: true })).toBeVisible();
-  await expect(page.getByRole('region', { name: 'Choose your path', exact: true })).toBeAttached();
+  await expect(page.getByTestId('command-hint')).toBeVisible();
+  await page
+    .getByTestId('command-hint')
+    .getByRole('button', { name: 'about', exact: true })
+    .click();
+  await expect(page.getByTestId('command-hint')).toHaveCount(0);
 });
 
 test('help and ls commands produce output', async ({ page }) => {
@@ -20,6 +25,10 @@ test('help and ls commands produce output', async ({ page }) => {
   await expect(
     page.getByRole('heading', { name: 'Available commands', exact: true })
   ).toBeVisible();
+
+  await input.fill('clear');
+  await input.press('Enter');
+  await expect(page.getByTestId('command-hint')).toHaveCount(0);
 
   await input.fill('ls');
   await input.press('Enter');
