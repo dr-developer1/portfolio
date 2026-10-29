@@ -1,0 +1,36 @@
+.commandList {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--spacing-xs) var(--spacing-md);
+  margin: 0;
+  line-height: var(--line-height-relaxed);
+}
+
+.commandName {
+  appearance: none;
+  padding: 0;
+  min-height: 24px;
+  border: 0;
+  background: transparent;
+  color: var(--color-accent-green);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.commandName:hover {
+  color: var(--color-accent-cyan);
+  text-decoration: underline dotted;
+  text-underline-offset: 4px;
+}
+
+.commandName:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.commandDescription {
+  margin: 0;
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+}

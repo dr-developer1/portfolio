@@ -1,3 +1,6 @@
+import React from 'react';
+import { useTerminalContext } from '../../hooks/TerminalContext';
+import helpStyles from './PortfolioHelp.module.css';
 import { getContent } from '../../data/content';
 import { useLocale, text, getResumePath } from '../../i18n/locale';
 import { commandLabel } from '../../i18n/paths';
@@ -249,6 +252,7 @@ export function PortfolioSection({ section }: { section: PortfolioSectionName })
 }
 
 export function PortfolioHelp() {
+  const { executeCommand, isLoading } = useTerminalContext();
   const locale = useLocale();
   const t = (en: string, fr: string) => text(en, fr, locale);
   const descriptions: Record<string, string> = {
@@ -275,33 +279,29 @@ export function PortfolioHelp() {
   return (
     <div className={styles.flexColumn}>
       <h3 className={styles.headerSection}>{t('Available commands', 'Commandes disponibles')}</h3>
-      <p className={styles.textSecondary}>
-        {t(
-          'Click a shortcut or type a command. Command names stay in English in both languages.',
-          'Cliquez sur un raccourci ou saisissez une commande. Les noms de commandes restent en anglais dans les deux langues.'
-        )}
-      </p>
-      <CommandShortcutList
-        items={['about', 'experience', 'projects', 'resume'].map((command) => ({
-          label: commandLabel(command, locale),
-          command,
-        }))}
-        compact
-      />
-      <div className={styles.commandGrid}>
+      <dl className={helpStyles.commandList}>
         {getAllCommands()
           .filter((command) => !command.hidden)
           .map((command) => (
-            <div key={command.name}>
-              <span className={styles.accentGreen}>{command.name}</span> —{' '}
-              <span className={styles.textSecondary}>
+            <React.Fragment key={command.name}>
+              <dt>
+                <button
+                  type="button"
+                  className={helpStyles.commandName}
+                  disabled={isLoading}
+                  onClick={() => executeCommand(command.name)}
+                >
+                  {command.name}
+                </button>
+              </dt>
+              <dd className={helpStyles.commandDescription}>
                 {locale === 'fr'
                   ? (descriptions[command.name] ?? command.usage)
                   : command.description}
-              </span>
-            </div>
+              </dd>
+            </React.Fragment>
           ))}
-      </div>
+      </dl>
       <p className={styles.textSecondary}>
         {t(
           'Try help [command] for syntax. Technical tools and hidden commands use English.',

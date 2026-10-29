@@ -43,7 +43,8 @@ help.” Command names are keyboard-accessible inline buttons styled as terminal
 text. The hint disappears after the first nonempty command, including clear, and
 stays hidden for the session. Do not show quick-start panels, role selection,
 returning-visitor nudges, or tour progress on the landing view. Explicit mode/tour
-commands remain available through help. Keep language and matching CV controls
+commands remain available through help. Help uses a plain definition list of
+clickable command names and descriptions, without shortcut cards or button panels. Keep language and matching CV controls
 small and visually consistent with the terminal.
 
 ## Canonical tokens and mapping

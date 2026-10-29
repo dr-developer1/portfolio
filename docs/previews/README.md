@@ -13,3 +13,7 @@ Mobile (390 × 844), French, with localized command hints:
 Original system boot prompt with language and CV controls:
 
 ![System boot prompt](boot-en.png)
+
+Plain help command reference, with clickable command names:
+
+![English help reference](help-en.png)
