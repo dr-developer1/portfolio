@@ -435,9 +435,9 @@
 .portfolioToolbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 12px;
-  padding: 12px 24px;
+  padding: 8px 24px;
   background: var(--color-bg-primary);
   border-bottom: 1px solid var(--color-border-muted);
   flex-shrink: 0;
@@ -445,23 +445,9 @@
   z-index: calc(var(--z-overlay) + 2);
 }
 
-.toolbarLabel {
-  font-size: 10px;
-  color: var(--color-text-primary);
-  letter-spacing: 0.1em;
-}
-
-.toolbarLabel span {
-  color: var(--color-text-secondary);
-}
-
 @media (width <= 600px) {
   .portfolioToolbar {
     display: block;
     padding: 8px 12px;
-  }
-
-  .toolbarLabel {
-    display: none;
   }
 }

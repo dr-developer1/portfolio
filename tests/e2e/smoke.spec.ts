@@ -4,13 +4,14 @@ test.use({ reducedMotion: 'reduce' });
 
 test('boot to guided recruiter flow', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: /start/i }).click();
-  await expect(page.getByRole('heading', { name: 'One engineer. Four ways in.' })).toBeVisible();
+  await page.getByLabel('Type a secret code or press Enter to boot').press('Enter');
+  await expect(page.getByText('Oscilloscope Name Trace', { exact: true })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Choose your path', exact: true })).toBeAttached();
 });
 
 test('help and ls commands produce output', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: /start/i }).click();
+  await page.getByLabel('Type a secret code or press Enter to boot').press('Enter');
 
   const input = page.getByLabel('Terminal command input');
 

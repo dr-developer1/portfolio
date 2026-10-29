@@ -11,7 +11,7 @@ colors:
   primary: '#58a6ff'
 typography:
   display:
-    fontFamily: 'Trebuchet MS, Segoe UI, sans-serif'
+    fontFamily: 'JetBrains Mono, Fira Code, SF Mono, Cascadia Code, Consolas, monospace'
   utility:
     fontFamily: 'JetBrains Mono, Fira Code, SF Mono, Cascadia Code, Consolas, monospace'
 rounded:
@@ -26,41 +26,38 @@ omitted:
 
 # Portfolio OS
 
-A developer’s workspace with an approachable front door. The audience is recruiters,
+An interactive terminal portfolio. The audience is recruiters,
 engineers, founders, and potential collaborators; the job is to make Ahmad’s work
 understandable and make contact and the appropriate CV easy to reach.
 
 ## Visual direction
 
-Preserve the existing blue, graphite, and monospace terminal identity. The signature
-is a branching launch panel: four perspectives connected by a quiet circuit-like
-rail. Each route previews useful commands before selection; selected routes become
-compact shortcut panels. Hover lifts and illuminates the route, and the same content
-is available to touch and keyboard users. Avoid mandatory quizzes, animated text
-scrambles, autoplay sound, and decoration that delays reading.
+Preserve the original terminal design: the PORTFOLIO OS boot prompt, secret-code
+input, oscilloscope name trace, CRT scanlines, theme palette, and monospace type.
+The user explicitly rejected the replacement landing page, sans-serif display
+headings, marketing copy, and route-card redesign. Do not replace these identity
+elements when enhancing navigation or localization.
 
-Display headings use the system-installed Trebuchet/Segoe UI stack for a human
-counterpart to the terminal’s JetBrains Mono utility typography. No additional font
-request is required. Restrict display type to names, headings, and route titles.
+Use the existing CommandShortcutList for path selection and quick actions. Keep
+language and matching CV controls small and visually consistent with the terminal.
 
 ## Canonical tokens and mapping
 
 Ownership model B: `src/styles/variables.css` owns runtime values; `themes.css`
 provides theme overrides. This document records accepted values and intent.
 
-| Role                     | Runtime owner                                                       | Consumers                         |
-| ------------------------ | ------------------------------------------------------------------- | --------------------------------- |
-| Canvas / surface / panel | `--color-bg-canvas` / `--color-bg-primary` / `--color-bg-secondary` | Boot, terminal, launcher          |
-| Primary / secondary text | `--color-text-primary` / `--color-text-secondary`                   | All portfolio copy                |
-| Accent                   | `--color-accent-cyan`                                               | Language state, focus, CV, route  |
-| Route colors             | `--color-accent-cyan/purple/orange/green`                           | Recruiter/engineer/founder/client |
-| Display / utility type   | `--font-display` / `--font-mono`                                    | Headings / terminal and controls  |
-| Controls / panels        | `--radius-md` / `--radius-lg`                                       | Language tools and path launcher  |
+| Role                     | Runtime owner                                                       | Consumers                        |
+| ------------------------ | ------------------------------------------------------------------- | -------------------------------- |
+| Canvas / surface / panel | `--color-bg-canvas` / `--color-bg-primary` / `--color-bg-secondary` | Boot, terminal, launcher         |
+| Primary / secondary text | `--color-text-primary` / `--color-text-secondary`                   | All portfolio copy               |
+| Accent                   | `--color-accent-cyan`                                               | Language state, focus, CV, route |
+| Display / utility type   | `--font-mono` / `--font-mono`                                       | Headings / terminal and controls |
+| Controls / panels        | `--radius-md` / `--radius-lg`                                       | Language tools and path launcher |
 
 Existing theme overrides remain supported. Feature styles use semantic variables,
-including `color-mix` for route glows, so changing theme does not create a second
+so changing theme does not create a second
 palette. No prior design document existed; this records the established identity
-and the approved onboarding redesign.
+and the restored original onboarding.
 
 ## Content and locale
 
@@ -86,10 +83,9 @@ command supports keyboard-led visits. No extra package is needed for two static
 locales: a small React external store and typed content selector are sufficient;
 reconsider a routing/i18n library if translated routes or pluralization emerge.
 
-The terminal owns scrolling; controls stay outside it. Desktop uses four routes,
-phones and narrow windows use two columns. French copy wraps naturally. Preserve
+The terminal owns scrolling; controls stay outside it. Path shortcuts use the original responsive wrapping layout. French copy wraps naturally. Preserve
 44px action targets, visible focus, operable scrollbars, and reduced-motion support.
-Boot has a skip button and no forced mobile keyboard. Audio should require an
+Boot retains its original keyboard and mobile tap-to-start interactions. Audio should require an
 explicit opt-in rather than starting on portfolio entry.
 
 The playground language selector remains a native select: it has a short, fixed

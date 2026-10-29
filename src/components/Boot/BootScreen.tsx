@@ -25,7 +25,7 @@ import { StartPrompt } from './StartPrompt';
  */
 export const BootScreen: React.FC<BootScreenProps> = ({ onBootComplete, onModeDetected }) => {
   const locale = useLocale();
-  const { state, startBoot, skipBoot, messages } = useBootSequence();
+  const { state, startBoot, messages } = useBootSequence();
   const { detectedMode, typedText, reset: resetSecretCode, feedInput } = useSecretCode();
   const hasStartedRef = useRef(false);
 
@@ -91,13 +91,17 @@ export const BootScreen: React.FC<BootScreenProps> = ({ onBootComplete, onModeDe
         {/* Header with logo */}
         <header className={styles.header}>
           <h1 className={styles.logo}>PORTFOLIO OS</h1>
-          <p className={styles.version}>v3.1 / AHMAD IBRAHIM</p>
+          <p className={styles.version}>v3.1.0</p>
         </header>
 
         {/* Phase-dependent content */}
         {state.phase === 'waiting' && (
           <StartPrompt
-            hint={text('Know a secret code?', 'Vous connaissez un code secret ?', locale)}
+            hint={text(
+              'or try typing a secret code...',
+              'ou essayez de saisir un code secret…',
+              locale
+            )}
             typedText={typedText}
             onStart={() => handleStart(detectedMode ?? 'normal')}
             onInputChange={feedInput}
@@ -105,12 +109,7 @@ export const BootScreen: React.FC<BootScreenProps> = ({ onBootComplete, onModeDe
         )}
 
         {state.phase === 'booting' && (
-          <>
-            <BootMessages messages={messages} currentIndex={state.currentMessageIndex} />
-            <button type="button" className={styles.skipBoot} onClick={skipBoot}>
-              {text('Skip animation →', 'Passer l’animation →', locale)}
-            </button>
-          </>
+          <BootMessages messages={messages} currentIndex={state.currentMessageIndex} />
         )}
       </div>
 
@@ -123,7 +122,11 @@ export const BootScreen: React.FC<BootScreenProps> = ({ onBootComplete, onModeDe
             locale
           )}
         {state.phase === 'booting' &&
-          text('Starting your workspace', 'Ouverture de votre espace', locale)}
+          text(
+            'System is booting, please wait',
+            'Démarrage du système, veuillez patienter',
+            locale
+          )}
       </div>
     </div>
   );

@@ -175,6 +175,9 @@ export const Terminal: React.FC = () => {
       <MatrixRain />
       <BackgroundMusic />
       <div className={`${styles.window} ${isStartupAnimating ? styles.windowWillChange : ''}`}>
+        <div className={styles.scanline} />
+        <div className={styles.scanlineBeam} />
+        <div className={styles.overlay} />
         {/* macOS-style title bar */}
         <div
           className={styles.titleBar}
@@ -215,9 +218,6 @@ export const Terminal: React.FC = () => {
         </div>
 
         <div className={styles.portfolioToolbar}>
-          <span className={styles.toolbarLabel}>
-            PORTFOLIO OS <span>/ v3.1</span>
-          </span>
           <LanguageTools />
         </div>
 

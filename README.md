@@ -13,7 +13,8 @@ available before boot and throughout the terminal session.
 - Existing personal and academic projects clearly distinguished from professional work
 - Career output already in terminal history translates when the language changes
 - Shareable commands preserve the active language: `?lang=fr&run=experience`
-- Skip-able boot animation; reduced-motion support; music off until enabled
+- Original system boot prompt, oscilloscope name trace, CRT effects, and monospace typography
+- Reduced-motion support; music off until enabled
 - Virtual filesystem, search, themes, hidden commands, and a coding playground
 
 Executable command names, virtual paths, technical shell output, boot logs,
