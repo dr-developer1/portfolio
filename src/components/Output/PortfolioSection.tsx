@@ -5,6 +5,7 @@ import { getContent } from '../../data/content';
 import { useLocale, text, getResumePath } from '../../i18n/locale';
 import { commandLabel } from '../../i18n/paths';
 import { getAllCommands } from '../../utils/commandRegistry';
+import { focusTerminalInput } from '../../utils/domHelpers';
 import { CommandShortcutList } from './CommandShortcutList';
 import { JobEntry } from './JobEntry';
 import { EducationEntry } from './EducationEntry';
@@ -289,7 +290,10 @@ export function PortfolioHelp() {
                   type="button"
                   className={helpStyles.commandName}
                   disabled={isLoading}
-                  onClick={() => executeCommand(command.name)}
+                  onClick={() => {
+                    focusTerminalInput();
+                    executeCommand(command.name);
+                  }}
                 >
                   {command.name}
                 </button>

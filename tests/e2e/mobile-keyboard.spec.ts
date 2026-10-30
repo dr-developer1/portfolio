@@ -76,6 +76,9 @@ test('mobile input stays visible after focus and command refocus cycles', async 
 
   await runCommand(page, 'top-projects');
   await assertInputDisplayInViewport(page);
+
+  await runCommand(page, 'experience');
+  await assertInputDisplayInViewport(page);
 });
 
 test('mobile input remains visible with long terminal history', async ({ page }) => {

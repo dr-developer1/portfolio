@@ -81,6 +81,16 @@ export const Terminal: React.FC = () => {
   useEffect(() => {
     const previousLength = previousHistoryLengthRef.current;
     previousHistoryLengthRef.current = history.length;
+    // Mobile refocus also scrolls the input into view. Keep history scrolling in
+    // the same direction so the two effects cannot leave the prompt off-screen.
+    if (
+      isMobile &&
+      history.length > 0 &&
+      document.activeElement?.matches('[data-terminal-input="true"]')
+    ) {
+      bottomAnchorRef.current?.scrollIntoView({ behavior: 'instant', block: 'end' });
+      return;
+    }
     const newCommand = history.slice(previousLength).find((line) => line.type === 'command');
     if (newCommand) {
       // An explicit command should reveal its result, even from the launch panel.
@@ -94,7 +104,7 @@ export const Terminal: React.FC = () => {
     }
 
     bottomAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-  }, [history]);
+  }, [history, isMobile]);
 
   const dismissToast = useCallback((toastId: string) => {
     const timeout = toastTimeoutsRef.current.get(toastId);

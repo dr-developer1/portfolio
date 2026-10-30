@@ -98,6 +98,9 @@ Terminal typing and command shortcuts share `useTerminalInput`; desktop and mobi
 retain their own focus and viewport policies. `TerminalInputDisplay` mirrors native
 caret offsets and text selection, preserves spaces, and respects reduced motion.
 Input-method composition must finish before command submission or completion.
+Command hints, help buttons, and guided shortcuts transfer focus to the terminal
+input before execution. On mobile, history updates keep the focused prompt visible;
+they must not compete with keyboard visibility scrolling.
 
 The playground language selector remains a native select: it has a short, fixed
 list and benefits from platform keyboard and touch pickers. `premium-ui.json`

@@ -102,3 +102,20 @@ test('language controls support keyboard activation without starting boot', asyn
     new URL('CV_Ahmad_IBRAHIM_En.pdf', page.url()).pathname
   );
 });
+
+for (const command of ['about', 'clear']) {
+  test(`help shortcuts return focus after ${command}`, async ({ page }) => {
+    await page.goto('./?lang=en');
+    await boot(page);
+    const input = page.getByLabel('Terminal command input');
+    await input.fill('help');
+    await input.press('Enter');
+    await page.getByRole('button', { name: command, exact: true }).focus();
+    await page.keyboard.press('Enter');
+    await expect(input).toBeFocused();
+    await page.keyboard.type('skills');
+    await expect(input).toHaveValue('skills');
+    await page.keyboard.press('Enter');
+    await expect(page.getByText('Languages:', { exact: true })).toBeAttached();
+  });
+}

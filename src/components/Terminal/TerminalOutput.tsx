@@ -1,40 +1,10 @@
-import React, { Suspense, lazy } from 'react';
+import React from 'react';
+import Banner3D from '../Banner/Banner3D';
 
 import { useTerminalContext } from '../../hooks/TerminalContext';
 import { text, useLocale } from '../../i18n/locale';
+import { focusTerminalInput } from '../../utils/domHelpers';
 import styles from './TerminalOutput.module.css';
-
-const ASCII_BANNER = String.raw`
-╔═══════════════════════════════════════════════════════════╗
-║                                                           ║
-║  ██████╗ ██╗  ██╗███╗   ███╗ █████╗ ██████╗               ║
-║  ██╔══██╗██║  ██║████╗ ████║██╔══██╗██╔══██╗              ║
-║  ███████║███████║██╔████╔██║███████║██║  ██║              ║
-║  ██╔══██║██╔══██║██║╚██╔╝██║██╔══██║██║  ██║              ║
-║  ██║  ██║██║  ██║██║ ╚═╝ ██║██║  ██║██████╔╝              ║
-║  ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝  ╚═╝╚═════╝               ║
-║                                                           ║
-║  ██╗██████╗ ██████╗  █████╗ ██╗  ██╗██╗███╗   ███╗        ║
-║  ██║██╔══██╗██╔══██╗██╔══██╗██║  ██║██║████╗ ████║        ║
-║  ██║██████╔╝██████╔╝███████║███████║██║██╔████╔██║        ║
-║  ██║██╔══██╗██╔══██╗██╔══██║██╔══██║██║██║╚██╔╝██║        ║
-║  ██║██████╔╝██║  ██║██║  ██║██║  ██║██║██║ ╚═╝ ██║        ║
-║  ╚═╝╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚═╝     ╚═╝        ║
-║                                                           ║
-║               AHMAD IBRAHIM • LYON, FRANCE                ║
-║               Full Stack Software Engineer                ║
-║                                                           ║
-╚═══════════════════════════════════════════════════════════╝
-`;
-
-const Banner3D = lazy(() => import('../Banner/Banner3D'));
-function AsciiBanner() {
-  return (
-    <div className={styles.bannerScroll}>
-      <pre className={styles.banner}>{ASCII_BANNER}</pre>
-    </div>
-  );
-}
 
 export const TerminalOutput: React.FC = () => {
   const locale = useLocale();
@@ -42,17 +12,13 @@ export const TerminalOutput: React.FC = () => {
 
   const executeHint = (command: string) => {
     // The hint unmounts on execution, so transfer focus while the user gesture is active.
-    document
-      .querySelector<HTMLInputElement>('[data-terminal-input="true"]')
-      ?.focus({ preventScroll: true });
+    focusTerminalInput();
     executeCommand(command);
   };
 
   return (
     <div className={styles.output}>
-      <Suspense fallback={<AsciiBanner />}>
-        <Banner3D />
-      </Suspense>
+      <Banner3D />
       {commandHistory.length === 0 && (
         <p className={`${styles.line} ${styles.muted}`} data-testid="command-hint">
           {text('Try', 'Essayez', locale)}{' '}
