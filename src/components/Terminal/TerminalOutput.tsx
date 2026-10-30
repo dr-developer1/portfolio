@@ -40,6 +40,14 @@ export const TerminalOutput: React.FC = () => {
   const locale = useLocale();
   const { history, commandHistory, executeCommand, isLoading } = useTerminalContext();
 
+  const executeHint = (command: string) => {
+    // The hint unmounts on execution, so transfer focus while the user gesture is active.
+    document
+      .querySelector<HTMLInputElement>('[data-terminal-input="true"]')
+      ?.focus({ preventScroll: true });
+    executeCommand(command);
+  };
+
   return (
     <div className={styles.output}>
       <Suspense fallback={<AsciiBanner />}>
@@ -55,7 +63,7 @@ export const TerminalOutput: React.FC = () => {
                 type="button"
                 className={styles.hintCommand}
                 disabled={isLoading}
-                onClick={() => executeCommand(command)}
+                onClick={() => executeHint(command)}
               >
                 {command}
               </button>

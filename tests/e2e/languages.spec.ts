@@ -64,6 +64,26 @@ test('command hints execute localized career content and disappear after use', a
   );
 });
 
+test('keyboard users can type another command after activating a hint', async ({ page }) => {
+  await page.goto('./?lang=en');
+  await boot(page);
+  await page
+    .getByTestId('command-hint')
+    .getByRole('button', { name: 'about', exact: true })
+    .focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByTestId('command-hint')).toHaveCount(0);
+
+  const input = page.getByLabel('Terminal command input');
+  await expect(input).toBeFocused();
+  await page.keyboard.type('help');
+  await expect(input).toHaveValue('help');
+  await page.keyboard.press('Enter');
+  await expect(
+    page.getByRole('heading', { name: 'Available commands', exact: true })
+  ).toBeVisible();
+});
+
 test('language controls support keyboard activation without starting boot', async ({ page }) => {
   await page.goto('./?lang=en');
   await page.getByRole('button', { name: 'Français', exact: true }).focus();
