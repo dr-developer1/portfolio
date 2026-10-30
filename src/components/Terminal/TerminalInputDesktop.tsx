@@ -1,197 +1,32 @@
+import React, { useState, useEffect } from 'react';
 import { text, useLocale } from '../../i18n/locale';
-import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
-import { useTerminalContext } from '../../hooks/TerminalContext';
-import { getPromptConfig } from '../../hooks/useTerminal';
+import { useTerminalInput } from '../../hooks/useTerminalInput';
 import { SYSTEM_CONFIG } from '../../config';
-import { useTabCompletion } from '../../hooks/useTabCompletion';
-import { getCompletions } from '../../utils/completionService';
-import { playCommandFire, playKeyClick } from '../../utils/soundService';
 import { PromptDisplay } from './PromptDisplay';
+import { TerminalInputDisplay } from './TerminalInputDisplay';
 import styles from './TerminalInput.module.css';
-import outputStyles from '../../styles/outputUtilities.module.css';
 
 export const TerminalInputDesktop: React.FC = () => {
   const locale = useLocale();
+  const [isFocused, setIsFocused] = useState(false);
   const {
-    executeCommand,
-    addOutput,
-    clearTerminal,
-    navigateHistory,
-    resetHistoryIndex,
+    inputRef,
+    shouldRefocusRef,
+    input,
     currentDirectory,
     isLoading,
-    bootMode,
-    musicEnabled,
     isPlaygroundOpen,
-    input,
-    setInput,
-  } = useTerminalContext();
-
-  const inputRef = useRef<HTMLInputElement>(null);
-  const shouldRefocusRef = useRef(false);
-
-  // Track cursor position for the custom block cursor
-  const [cursorPos, setCursorPos] = useState(0);
-  const [isFocused, setIsFocused] = useState(true);
-
-  const { handleTabKey, resetCompletion } = useTabCompletion();
-  const { user, symbol } = getPromptConfig(bootMode);
-  const suggestion = useMemo(() => {
-    if (isLoading) {
-      return null;
-    }
-
-    return getCompletions(input, currentDirectory, user)?.matches[0] ?? null;
-  }, [isLoading, input, currentDirectory, user]);
-
-  // Sync cursor position when input changes externally (history, completion)
-  useEffect(() => {
-    // When input changes from history/tab, move cursor to end
-    setCursorPos(input.length);
-  }, [input]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    setInput(newValue);
-    setCursorPos(e.target.selectionStart || newValue.length);
-    resetHistoryIndex();
-    resetCompletion();
-    if (musicEnabled) {
-      playKeyClick();
-    }
-  };
-
-  const handleSelect = (e: React.SyntheticEvent<HTMLInputElement>) => {
-    const target = e.target as HTMLInputElement;
-    setCursorPos(target.selectionStart || 0);
-  };
-
-  const handleSubmit = useCallback(() => {
-    const trimmedInput = input.trim();
-
-    if (!trimmedInput) {
-      addOutput(
-        <PromptDisplay
-          user={user}
-          hostname={SYSTEM_CONFIG.hostname}
-          directory={currentDirectory}
-          symbol={symbol}
-        />,
-        'command'
-      );
-    } else {
-      if (musicEnabled) {
-        playCommandFire();
-      }
-      executeCommand(trimmedInput);
-      shouldRefocusRef.current = true;
-    }
-
-    setInput('');
-    setCursorPos(0);
-    resetCompletion();
-  }, [
-    input,
-    executeCommand,
-    addOutput,
     user,
     symbol,
-    musicEnabled,
-    currentDirectory,
-    resetCompletion,
-    setInput,
-  ]);
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Tab') {
-      e.preventDefault();
-      if (isLoading) return;
-
-      const newInput = handleTabKey(input, currentDirectory, user);
-      if (newInput !== null) {
-        setInput(newInput);
-        setCursorPos(newInput.length);
-      }
-      return;
-    }
-
-    if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
-      resetCompletion();
-      // Allow default behavior to move cursor in hidden input
-      // We will catch the position update in onSelect/onKeyUp
-      return;
-    }
-
-    switch (e.key) {
-      case 'Enter':
-        e.preventDefault();
-        handleSubmit();
-        break;
-
-      case 'ArrowUp': {
-        e.preventDefault();
-        const olderCommand = navigateHistory(1);
-        if (olderCommand !== null) {
-          setInput(olderCommand);
-          setCursorPos(olderCommand.length);
-        }
-        break;
-      }
-
-      case 'ArrowDown': {
-        e.preventDefault();
-        const newerCommand = navigateHistory(-1);
-        if (newerCommand !== null) {
-          setInput(newerCommand);
-          setCursorPos(newerCommand.length);
-        }
-        break;
-      }
-
-      case 'c':
-        if (e.ctrlKey) {
-          e.preventDefault();
-          if (input) {
-            addOutput(
-              <PromptDisplay
-                user={user}
-                hostname={SYSTEM_CONFIG.hostname}
-                directory={currentDirectory}
-                symbol={symbol}
-              >
-                <span className={outputStyles.promptCommand}>{input}^C</span>
-              </PromptDisplay>,
-              'command'
-            );
-          } else {
-            addOutput(
-              <PromptDisplay
-                user={user}
-                hostname={SYSTEM_CONFIG.hostname}
-                directory={currentDirectory}
-                symbol={symbol}
-              >
-                <span className={outputStyles.promptCommand}>^C</span>
-              </PromptDisplay>,
-              'command'
-            );
-          }
-
-          setInput('');
-          setCursorPos(0);
-          resetHistoryIndex();
-          resetCompletion();
-        }
-        break;
-
-      case 'l':
-        if (e.ctrlKey) {
-          e.preventDefault();
-          clearTerminal();
-        }
-        break;
-    }
-  };
+    suggestion,
+    cursorStart,
+    cursorEnd,
+    handleInputChange,
+    handleSelect,
+    handleKeyDown,
+    handleCompositionStart,
+    handleCompositionEnd,
+  } = useTerminalInput();
 
   useEffect(() => {
     if (isPlaygroundOpen) {
@@ -199,7 +34,7 @@ export const TerminalInputDesktop: React.FC = () => {
       return;
     }
     inputRef.current?.focus({ preventScroll: true });
-  }, [isPlaygroundOpen]);
+  }, [inputRef, isPlaygroundOpen]);
 
   useEffect(() => {
     if (!isLoading && shouldRefocusRef.current && !isPlaygroundOpen) {
@@ -208,7 +43,7 @@ export const TerminalInputDesktop: React.FC = () => {
         inputRef.current?.focus();
       });
     }
-  }, [isLoading, isPlaygroundOpen]);
+  }, [inputRef, shouldRefocusRef, isLoading, isPlaygroundOpen]);
 
   // Desktop Exclusive: Global click handler to maintain focus ("Always Ready" feel)
   useEffect(() => {
@@ -220,7 +55,12 @@ export const TerminalInputDesktop: React.FC = () => {
       if (window.getSelection()?.toString()) return;
 
       // Don't steal focus if clicking links or interactive elements
-      if ((e.target as HTMLElement).closest('a, button, [role="button"], input, textarea')) return;
+      if (
+        (e.target as HTMLElement).closest(
+          'a, button, [role="button"], input, textarea, select, summary, [contenteditable="true"]'
+        )
+      )
+        return;
 
       // Otherwise, keep focus on our terminal input
       inputRef.current?.focus();
@@ -228,32 +68,7 @@ export const TerminalInputDesktop: React.FC = () => {
 
     document.addEventListener('click', handleGlobalClick);
     return () => document.removeEventListener('click', handleGlobalClick);
-  }, [isPlaygroundOpen]);
-
-  // Render the custom cursor display
-  const renderInputDisplay = () => {
-    // If empty input, show flashing block
-    if (!input) {
-      return (
-        <span className={`${styles.cursorBlock} ${isFocused ? '' : styles.active}`}>&nbsp;</span>
-      );
-    }
-
-    const chars = input.split('');
-    const beforeCursor = chars.slice(0, cursorPos);
-    const cursorChar = chars[cursorPos] || ' '; // Space if at end
-    const afterCursor = chars.slice(cursorPos + 1);
-
-    return (
-      <>
-        {beforeCursor.join('')}
-        <span className={`${styles.cursorBlock} ${isFocused ? '' : styles.active}`}>
-          {cursorChar}
-        </span>
-        {afterCursor.join('')}
-      </>
-    );
-  };
+  }, [inputRef, isPlaygroundOpen]);
 
   return (
     <div>
@@ -275,15 +90,24 @@ export const TerminalInputDesktop: React.FC = () => {
           onChange={handleInputChange}
           onSelect={handleSelect}
           onKeyDown={handleKeyDown}
+          onCompositionStart={handleCompositionStart}
+          onCompositionEnd={handleCompositionEnd}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           spellCheck={false}
+          autoCapitalize="off"
+          autoCorrect="off"
           aria-label="Terminal command input"
           data-terminal-input="true"
           autoComplete="off"
         />
 
-        <span className={styles.inputDisplay}>{renderInputDisplay()}</span>
+        <TerminalInputDisplay
+          input={input}
+          start={cursorStart}
+          end={cursorEnd}
+          focused={isFocused}
+        />
       </div>
       {suggestion && suggestion !== input && (
         <div className={styles.suggestion}>

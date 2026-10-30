@@ -94,6 +94,11 @@ The terminal owns scrolling; controls stay outside it. Inline command hints wrap
 Boot retains its original keyboard and mobile tap-to-start interactions. Audio should require an
 explicit opt-in rather than starting on portfolio entry.
 
+Terminal typing and command shortcuts share `useTerminalInput`; desktop and mobile
+retain their own focus and viewport policies. `TerminalInputDisplay` mirrors native
+caret offsets and text selection, preserves spaces, and respects reduced motion.
+Input-method composition must finish before command submission or completion.
+
 The playground language selector remains a native select: it has a short, fixed
 list and benefits from platform keyboard and touch pickers. `premium-ui.json`
 records that ownership; no custom listbox is needed.
