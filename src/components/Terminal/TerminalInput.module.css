@@ -31,21 +31,35 @@
   word-break: break-all;
   color: var(--color-command);
   line-height: var(--line-height-normal);
+  white-space: pre-wrap;
 }
 
 .cursorBlock {
   display: inline-block;
   background-color: var(--color-accent-green);
-  color: var(--color-background);
+  color: var(--color-bg-canvas);
   min-width: 0.6em;
   white-space: pre;
   animation: cursor-blink 1s step-end infinite;
   vertical-align: text-bottom;
 }
 
-.cursorBlock.active {
+.cursorBlock.cursorInactive {
   animation: none;
-  opacity: 1;
+  background-color: transparent;
+  color: var(--color-command);
+  outline: 1px solid var(--color-accent-green);
+}
+
+.inputSelection {
+  background-color: var(--color-accent-green);
+  color: var(--color-bg-canvas);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cursorBlock {
+    animation: none;
+  }
 }
 
 .inputContainer {

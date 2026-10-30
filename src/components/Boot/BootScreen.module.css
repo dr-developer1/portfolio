@@ -480,3 +480,18 @@
     margin-top: var(--spacing-sm);
   }
 }
+
+.bootTools {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top));
+  right: max(16px, env(safe-area-inset-right));
+  left: 16px;
+}
+
+@media (height <= 550px) {
+  .bootTools {
+    position: relative;
+    inset: auto;
+    margin-bottom: var(--spacing-md);
+  }
+}

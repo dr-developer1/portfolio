@@ -1,5 +1,6 @@
+import { getLocale } from '../i18n/locale';
 import {
-  content,
+  getContent,
   type ExperienceItem,
   type ProjectItem,
   type EducationItem,
@@ -66,7 +67,7 @@ function createFileSystem(): FileSystemNode {
     // Experience directory
     const expDir = createDirectory('experience', user);
     const expCounts = new Map<string, number>();
-    content.experience.forEach((job) => {
+    getContent().experience.forEach((job) => {
       const baseName = sanitizeFilename(job.company);
       const filename = createUniqueFilename(baseName, expCounts);
       createFile(filename, expDir, formatExperience(job));
@@ -75,8 +76,8 @@ function createFileSystem(): FileSystemNode {
     // Projects directory
     const projDir = createDirectory('projects', user);
     const projCounts = new Map<string, number>();
-    content.projects.forEach((proj) => {
-      const baseName = sanitizeFilename(proj.name);
+    getContent().projects.forEach((proj, index) => {
+      const baseName = sanitizeFilename(getContent('en').projects[index].name);
       const filename = createUniqueFilename(baseName, projCounts);
       createFile(filename, projDir, formatProject(proj));
     });
@@ -84,8 +85,8 @@ function createFileSystem(): FileSystemNode {
     // Education directory
     const eduDir = createDirectory('education', user);
     const eduCounts = new Map<string, number>();
-    content.education.forEach((edu) => {
-      const baseName = sanitizeFilename(edu.school);
+    getContent().education.forEach((edu, index) => {
+      const baseName = sanitizeFilename(getContent('en').education[index].school);
       const filename = createUniqueFilename(baseName, eduCounts);
       createFile(filename, eduDir, formatEducation(edu));
     });
@@ -124,16 +125,18 @@ function createFile(name: string, parent: FileSystemNode, content: string): File
 
 // Formatters for content
 function formatBio(): string {
-  return `${content.bio.name}\n${content.bio.tagline}\n\n${content.bio.description.join('\n')}`;
+  return `${getContent().bio.name}\n${getContent().bio.tagline}\n\n${getContent().bio.description.join('\n')}`;
 }
 
 function formatSkills(): string {
-  const skills = content.skills;
+  const skills = getContent().skills;
   return `LANGUAGES:\n${skills.languages.join(', ')}\n\nFRAMEWORKS:\n${skills.frameworks.join(', ')}\n\nTOOLS:\n${skills.tools.join(', ')}\n\nSOFT SKILLS:\n${skills.softSkills.join(', ')}`;
 }
 
 function formatContact(): string {
-  return content.socials.map((s) => `${s.platform}: ${s.username} (${s.url})`).join('\n');
+  return getContent()
+    .socials.map((s) => `${s.platform}: ${s.username} (${s.url})`)
+    .join('\n');
 }
 
 function formatExperience(job: ExperienceItem): string {
@@ -155,8 +158,15 @@ function formatEducation(edu: EducationItem): string {
   return `DEGREE: ${edu.degree}\nSCHOOL: ${edu.school}\nDATE: ${edu.date}\nLOCATION: ${edu.location}`;
 }
 
-// Initialize Singleton FS
-export const fileSystem = createFileSystem();
+// Cache the two localized trees; executable virtual paths stay stable.
+const fileSystems = new Map([[getLocale(), createFileSystem()]]);
+export const fileSystem = fileSystems.get(getLocale())!;
+
+function currentFileSystem(): FileSystemNode {
+  const locale = getLocale();
+  if (!fileSystems.has(locale)) fileSystems.set(locale, createFileSystem());
+  return fileSystems.get(locale)!;
+}
 
 /**
  * Normalize a path by removing multiple slashes and trailing slashes
@@ -215,10 +225,10 @@ export function resolvePath(
  * Get a node at a resolved absolute path
  */
 export function getNode(absolutePath: string): FileSystemNode | null {
-  if (absolutePath === '/') return fileSystem;
+  if (absolutePath === '/') return currentFileSystem();
 
   const parts = absolutePath.split('/').filter(Boolean);
-  let current = fileSystem;
+  let current = currentFileSystem();
 
   for (const part of parts) {
     const children = current.children;

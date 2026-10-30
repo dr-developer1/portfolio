@@ -1,3 +1,5 @@
+import { LanguageTools } from '../Navigation/LanguageTools';
+import { text, useLocale } from '../../i18n/locale';
 /**
  * BootScreen Component
  *
@@ -22,6 +24,7 @@ import { StartPrompt } from './StartPrompt';
  * Full-screen boot sequence component
  */
 export const BootScreen: React.FC<BootScreenProps> = ({ onBootComplete, onModeDetected }) => {
+  const locale = useLocale();
   const { state, startBoot, messages } = useBootSequence();
   const { detectedMode, typedText, reset: resetSecretCode, feedInput } = useSecretCode();
   const hasStartedRef = useRef(false);
@@ -48,7 +51,10 @@ export const BootScreen: React.FC<BootScreenProps> = ({ onBootComplete, onModeDe
 
     const handleKeyDown = (event: KeyboardEvent) => {
       // Only trigger boot on Enter
-      if (event.key === 'Enter') {
+      if (
+        event.key === 'Enter' &&
+        !(event.target instanceof Element && event.target.closest('button, a, input, select'))
+      ) {
         event.preventDefault();
         // Use detected secret mode if available, otherwise normal
         handleStart(detectedMode ?? 'normal');
@@ -76,19 +82,26 @@ export const BootScreen: React.FC<BootScreenProps> = ({ onBootComplete, onModeDe
       className={styles.bootScreen}
       data-mode={state.mode}
       role="main"
-      aria-label="System boot screen"
+      aria-label={text('System boot screen', 'Écran de démarrage', locale)}
     >
+      <div className={styles.bootTools}>
+        <LanguageTools />
+      </div>
       <div className={styles.bootContainer}>
         {/* Header with logo */}
         <header className={styles.header}>
           <h1 className={styles.logo}>PORTFOLIO OS</h1>
-          <p className={styles.version}>v3.0.0</p>
+          <p className={styles.version}>v3.1.0</p>
         </header>
 
         {/* Phase-dependent content */}
         {state.phase === 'waiting' && (
           <StartPrompt
-            hint="or try typing a secret code..."
+            hint={text(
+              'or try typing a secret code...',
+              'ou essayez de saisir un code secret…',
+              locale
+            )}
             typedText={typedText}
             onStart={() => handleStart(detectedMode ?? 'normal')}
             onInputChange={feedInput}
@@ -102,8 +115,18 @@ export const BootScreen: React.FC<BootScreenProps> = ({ onBootComplete, onModeDe
 
       {/* Screen reader announcement */}
       <div className={styles.visuallyHidden} role="status" aria-live="assertive">
-        {state.phase === 'waiting' && 'Type a command and press Enter to start the system'}
-        {state.phase === 'booting' && 'System is booting, please wait'}
+        {state.phase === 'waiting' &&
+          text(
+            'Press Enter to explore the portfolio',
+            'Appuyez sur Entrée pour explorer le portfolio',
+            locale
+          )}
+        {state.phase === 'booting' &&
+          text(
+            'System is booting, please wait',
+            'Démarrage du système, veuillez patienter',
+            locale
+          )}
       </div>
     </div>
   );

@@ -4,6 +4,13 @@
  * Utilities for measuring and manipulating DOM elements.
  */
 
+/** Keep command shortcuts ready for typing, including when the shortcut unmounts. */
+export function focusTerminalInput(): void {
+  document
+    .querySelector<HTMLInputElement>('[data-terminal-input="true"]')
+    ?.focus({ preventScroll: true });
+}
+
 /**
  * Calculate the cursor position in pixels for a given input element
  * @param input - The input element to measure

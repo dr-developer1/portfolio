@@ -1,3 +1,4 @@
+import { text, useLocale } from '../../i18n/locale';
 /**
  * ProjectCard Component
  *
@@ -18,19 +19,22 @@ export interface ProjectCardProps {
  * Renders a single project card
  */
 export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
+  const locale = useLocale();
   return (
     <div>
       <div className={styles.header}>
         <span className={styles.name}>{project.name}</span>
-        {project.featured && <span className={styles.badge}>Featured</span>}
+        {project.featured && (
+          <span className={styles.badge}>{text('Featured', 'À découvrir', locale)}</span>
+        )}
         {project.url && (
           <a href={project.url} target="_blank" rel="noopener noreferrer" className={styles.link}>
-            Live Demo
+            {text('Live demo', 'Démo', locale)}
           </a>
         )}
         {project.repo && (
           <a href={project.repo} target="_blank" rel="noopener noreferrer" className={styles.link}>
-            Source Code
+            {text('Source code', 'Code source', locale)}
           </a>
         )}
       </div>

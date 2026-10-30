@@ -1,15 +1,12 @@
-import React, { useRef, useCallback, useEffect, useState, useMemo } from 'react';
-import { useTerminalContext } from '../../hooks/TerminalContext';
+import { text, useLocale } from '../../i18n/locale';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useEnsureFocusedElementVisible } from '../../hooks/useEnsureFocusedElementVisible';
-import { getPromptConfig } from '../../hooks/useTerminal';
 import { SYSTEM_CONFIG } from '../../config';
 import { UI_CONSTANTS } from '../../config/constants';
-import { useTabCompletion } from '../../hooks/useTabCompletion';
-import { getCompletions } from '../../utils/completionService';
-import { playCommandFire, playKeyClick } from '../../utils/soundService';
+import { useTerminalInput } from '../../hooks/useTerminalInput';
+import { TerminalInputDisplay } from './TerminalInputDisplay';
 import { PromptDisplay } from './PromptDisplay';
 import styles from './TerminalInput.module.css';
-import outputStyles from '../../styles/outputUtilities.module.css';
 
 interface TerminalInputMobileProps {
   keyboardInsetPx?: number;
@@ -22,34 +19,26 @@ export const TerminalInputMobile: React.FC<TerminalInputMobileProps> = ({
   isKeyboardOpen = false,
   isViewportSettled = true,
 }) => {
+  const locale = useLocale();
+  const [isInputFocused, setIsInputFocused] = useState(false);
   const {
-    executeCommand,
-    addOutput,
-    clearTerminal,
-    navigateHistory,
-    resetHistoryIndex,
+    inputRef,
+    shouldRefocusRef,
+    input,
     currentDirectory,
     isLoading,
-    bootMode,
-    musicEnabled,
     isPlaygroundOpen,
-    input,
-    setInput,
-  } = useTerminalContext();
-
-  const inputRef = useRef<HTMLInputElement>(null);
-  const shouldRefocusRef = useRef(false);
-  const [isInputFocused, setIsInputFocused] = useState(false);
-
-  const { handleTabKey, resetCompletion } = useTabCompletion();
-  const { user, symbol } = getPromptConfig(bootMode);
-  const suggestion = useMemo(() => {
-    if (isLoading) {
-      return null;
-    }
-
-    return getCompletions(input, currentDirectory, user)?.matches[0] ?? null;
-  }, [isLoading, input, currentDirectory, user]);
+    user,
+    symbol,
+    suggestion,
+    cursorStart,
+    cursorEnd,
+    handleInputChange,
+    handleSelect,
+    handleKeyDown,
+    handleCompositionStart,
+    handleCompositionEnd,
+  } = useTerminalInput();
 
   const { scheduleEnsureVisible, cancelScheduledEnsureVisible } =
     useEnsureFocusedElementVisible<HTMLInputElement>({
@@ -58,16 +47,6 @@ export const TerminalInputMobile: React.FC<TerminalInputMobileProps> = ({
       isKeyboardOpen,
       isViewportSettled,
     });
-
-  const moveCaretToEnd = useCallback(() => {
-    const element = inputRef.current;
-    if (!element) {
-      return;
-    }
-
-    const cursorPos = element.value.length;
-    element.setSelectionRange(cursorPos, cursorPos);
-  }, []);
 
   const scheduleVisibilitySync = useCallback(() => {
     // When keyboard is already open, viewport resize has usually happened.
@@ -86,151 +65,14 @@ export const TerminalInputMobile: React.FC<TerminalInputMobileProps> = ({
 
     inputRef.current?.focus({ preventScroll: true });
     scheduleVisibilitySync();
-  }, [isPlaygroundOpen, scheduleVisibilitySync]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInput(e.target.value);
-    resetHistoryIndex();
-    resetCompletion();
-    if (musicEnabled) {
-      playKeyClick();
-    }
-  };
-
-  const handleSubmit = useCallback(() => {
-    const trimmedInput = input.trim();
-
-    if (!trimmedInput) {
-      addOutput(
-        <PromptDisplay
-          user={user}
-          hostname={SYSTEM_CONFIG.hostname}
-          directory={currentDirectory}
-          symbol={symbol}
-        />,
-        'command'
-      );
-    } else {
-      if (musicEnabled) {
-        playCommandFire();
-      }
-      executeCommand(trimmedInput);
-      shouldRefocusRef.current = true;
-    }
-
-    setInput('');
-    resetCompletion();
-  }, [
-    input,
-    executeCommand,
-    addOutput,
-    musicEnabled,
-    user,
-    symbol,
-    currentDirectory,
-    resetCompletion,
-    setInput,
-  ]);
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Tab') {
-      e.preventDefault();
-      if (isLoading) return;
-
-      const newInput = handleTabKey(input, currentDirectory, user);
-      if (newInput !== null) {
-        setInput(newInput);
-        requestAnimationFrame(() => {
-          moveCaretToEnd();
-        });
-      }
-      return;
-    }
-
-    if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
-      resetCompletion();
-    }
-
-    switch (e.key) {
-      case 'Enter':
-        e.preventDefault();
-        handleSubmit();
-        break;
-
-      case 'ArrowUp': {
-        e.preventDefault();
-        const olderCommand = navigateHistory(1);
-        if (olderCommand !== null) {
-          setInput(olderCommand);
-          requestAnimationFrame(() => {
-            moveCaretToEnd();
-          });
-        }
-        break;
-      }
-
-      case 'ArrowDown': {
-        e.preventDefault();
-        const newerCommand = navigateHistory(-1);
-        if (newerCommand !== null) {
-          setInput(newerCommand);
-          requestAnimationFrame(() => {
-            moveCaretToEnd();
-          });
-        }
-        break;
-      }
-
-      case 'c':
-        if (e.ctrlKey) {
-          e.preventDefault();
-          if (input) {
-            addOutput(
-              <PromptDisplay
-                user={user}
-                hostname={SYSTEM_CONFIG.hostname}
-                directory={currentDirectory}
-                symbol={symbol}
-              >
-                <span className={outputStyles.promptCommand}>{input}^C</span>
-              </PromptDisplay>,
-              'command'
-            );
-          } else {
-            addOutput(
-              <PromptDisplay
-                user={user}
-                hostname={SYSTEM_CONFIG.hostname}
-                directory={currentDirectory}
-                symbol={symbol}
-              >
-                <span className={outputStyles.promptCommand}>^C</span>
-              </PromptDisplay>,
-              'command'
-            );
-          }
-
-          setInput('');
-          resetHistoryIndex();
-          resetCompletion();
-        }
-        break;
-
-      case 'l':
-        if (e.ctrlKey) {
-          e.preventDefault();
-          clearTerminal();
-        }
-        break;
-    }
-  };
+  }, [inputRef, isPlaygroundOpen, scheduleVisibilitySync]);
 
   useEffect(() => {
     if (isPlaygroundOpen) {
       cancelScheduledEnsureVisible();
       inputRef.current?.blur();
     }
-  }, [cancelScheduledEnsureVisible, isPlaygroundOpen]);
+  }, [inputRef, cancelScheduledEnsureVisible, isPlaygroundOpen]);
 
   useEffect(() => {
     if (!isLoading && shouldRefocusRef.current && !isPlaygroundOpen) {
@@ -239,7 +81,7 @@ export const TerminalInputMobile: React.FC<TerminalInputMobileProps> = ({
         focusInput();
       });
     }
-  }, [focusInput, isLoading, isPlaygroundOpen]);
+  }, [shouldRefocusRef, focusInput, isLoading, isPlaygroundOpen]);
 
   useEffect(() => {
     return () => {
@@ -247,7 +89,7 @@ export const TerminalInputMobile: React.FC<TerminalInputMobileProps> = ({
     };
   }, [cancelScheduledEnsureVisible]);
 
-  const placeholder = isLoading ? 'Processing...' : '';
+  const placeholder = isLoading ? text('Processing...', 'Traitement…', locale) : '';
 
   return (
     <div className={styles.inputContainer} onClick={focusInput} data-testid="terminal-input-mobile">
@@ -267,7 +109,10 @@ export const TerminalInputMobile: React.FC<TerminalInputMobileProps> = ({
           className={`${styles.hiddenInput} ${styles.mobileHiddenInput}`}
           value={input}
           onChange={handleInputChange}
+          onSelect={handleSelect}
           onKeyDown={handleKeyDown}
+          onCompositionStart={handleCompositionStart}
+          onCompositionEnd={handleCompositionEnd}
           onFocus={() => {
             setIsInputFocused(true);
             scheduleVisibilitySync();
@@ -282,22 +127,23 @@ export const TerminalInputMobile: React.FC<TerminalInputMobileProps> = ({
           autoComplete="off"
           enterKeyHint="send"
           aria-label="Terminal command input"
+          data-terminal-input="true"
           data-testid="terminal-input-native"
         />
 
-        <span
-          className={styles.inputDisplay}
-          aria-hidden="true"
-          data-testid="terminal-input-display"
-        >
-          {input ? input : <span className={styles.inputPlaceholder}>{placeholder}</span>}
-          {isInputFocused && <span className={styles.cursorBlock}>&nbsp;</span>}
-        </span>
+        <TerminalInputDisplay
+          input={input}
+          start={cursorStart}
+          end={cursorEnd}
+          focused={isInputFocused}
+          placeholder={placeholder}
+        />
       </span>
 
       {suggestion && suggestion !== input && (
         <div className={styles.suggestion}>
-          Tap Tab on supported keyboards to autocomplete: {suggestion}
+          {text('Press Tab to autocomplete:', 'Appuyez sur Tab pour compléter :', locale)}{' '}
+          {suggestion}
         </div>
       )}
     </div>

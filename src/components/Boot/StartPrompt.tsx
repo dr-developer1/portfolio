@@ -5,6 +5,7 @@
  * Shown during the 'waiting' phase of the boot sequence.
  */
 
+import { text, useLocale } from '../../i18n/locale';
 import React, { useEffect, useRef } from 'react';
 
 import type { StartPromptProps } from '../../types/boot';
@@ -20,6 +21,7 @@ export const StartPrompt: React.FC<StartPromptProps> = ({
   onStart,
   onInputChange,
 }) => {
+  const locale = useLocale();
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Auto-focus the hidden input on mount for mobile keyboard accessibility
@@ -72,8 +74,20 @@ export const StartPrompt: React.FC<StartPromptProps> = ({
     >
       {/* Desktop prompt */}
       <p className={styles.promptText}>
-        <span className={styles.desktopOnly}>Press Enter to boot system...</span>
-        <span className={styles.mobileOnly}>Tap here to open keyboard, then press Enter</span>
+        <span className={styles.desktopOnly}>
+          {text(
+            'Press Enter to boot system...',
+            'Appuyez sur Entrée pour démarrer le système…',
+            locale
+          )}
+        </span>
+        <span className={styles.mobileOnly}>
+          {text(
+            'Tap here to open keyboard, then press Enter',
+            'Touchez ici pour ouvrir le clavier, puis appuyez sur Entrée',
+            locale
+          )}
+        </span>
       </p>
 
       {/* Mobile tap-to-start button */}
@@ -84,9 +98,9 @@ export const StartPrompt: React.FC<StartPromptProps> = ({
           e.stopPropagation();
           onStart?.();
         }}
-        aria-label="Tap to start system"
+        aria-label={text('Tap to start system', 'Toucher pour démarrer le système', locale)}
       >
-        ▶ Tap to Start
+        ▶ {text('Tap to Start', 'Toucher pour démarrer', locale)}
       </button>
 
       {hint && <p className={styles.promptHint}>{hint}</p>}

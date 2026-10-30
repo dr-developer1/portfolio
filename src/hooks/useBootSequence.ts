@@ -26,7 +26,7 @@ type BootAction =
   | { type: 'START_BOOT'; mode: BootMode }
   | { type: 'NEXT_MESSAGE' }
   | { type: 'COMPLETE_BOOT' }
-  | { type: 'SKIP_BOOT' };
+  | { type: 'SKIP_BOOT'; mode?: BootMode };
 
 const initialState: BootState = {
   phase: 'waiting',
@@ -61,6 +61,7 @@ function bootReducer(state: BootState, action: BootAction): BootState {
     case 'SKIP_BOOT':
       return {
         ...state,
+        mode: action.mode ?? state.mode,
         phase: 'complete',
         userInteracted: true,
       };
@@ -96,7 +97,7 @@ export function useBootSequence(): UseBootSequenceReturn {
 
     if (prefersReducedMotion) {
       // Skip animation for users who prefer reduced motion
-      dispatch({ type: 'SKIP_BOOT' });
+      dispatch({ type: 'SKIP_BOOT', mode });
       return;
     }
 

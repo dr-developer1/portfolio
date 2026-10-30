@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
 const bootToTerminal = async (page: Page) => {
-  await page.goto('/');
+  await page.goto('./');
 
   const startButton = page.getByRole('button', { name: /start/i }).first();
 
@@ -75,6 +75,9 @@ test('mobile input stays visible after focus and command refocus cycles', async 
   await assertInputDisplayInViewport(page);
 
   await runCommand(page, 'top-projects');
+  await assertInputDisplayInViewport(page);
+
+  await runCommand(page, 'experience');
   await assertInputDisplayInViewport(page);
 });
 

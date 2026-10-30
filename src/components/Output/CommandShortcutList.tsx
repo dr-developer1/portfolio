@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { useTerminalContext } from '../../hooks/TerminalContext';
+import { focusTerminalInput } from '../../utils/domHelpers';
 import styles from '../../styles/outputUtilities.module.css';
 
 export interface CommandShortcut {
@@ -32,7 +33,10 @@ export const CommandShortcutList: React.FC<CommandShortcutListProps> = ({
             type="button"
             className={styles.actionButton}
             disabled={isLoading}
-            onClick={() => executeCommand(item.command)}
+            onClick={() => {
+              focusTerminalInput();
+              executeCommand(item.command);
+            }}
             title={item.description ?? item.command}
           >
             <span className={styles.actionLabel}>{item.label}</span>

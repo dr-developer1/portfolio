@@ -431,3 +431,23 @@
     display: none;
   }
 }
+
+.portfolioToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 8px 24px;
+  background: var(--color-bg-primary);
+  border-bottom: 1px solid var(--color-border-muted);
+  flex-shrink: 0;
+  position: relative;
+  z-index: calc(var(--z-overlay) + 2);
+}
+
+@media (width <= 600px) {
+  .portfolioToolbar {
+    display: block;
+    padding: 8px 12px;
+  }
+}

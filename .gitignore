@@ -31,3 +31,9 @@ dist-ssr
 
 #graphify
 graphify-out
+
+# Browser verification artifacts
+.playwright-mcp/
+playwright-report/
+test-results/
+premium-audit.json
