@@ -91,6 +91,13 @@ and use the frozen pnpm lockfile. CI runs lint, CSS lint, unit tests, and a
 production build; a separate browser job runs Chromium and WebKit checks. Pages deploys only from `main`; feature branches do not deploy.
 The static build is also compatible with Vercel, Netlify, and Cloudflare Pages.
 
+After a successful Pages deployment from `main`, the workflow publishes a GitHub
+release with generated notes using the version in `package.json` (for example,
+`3.1.0` becomes `v3.1.0`). Existing releases are skipped, so redeploying a version
+does not publish a duplicate. Bump `package.json` to a new stable version in a PR
+when preparing the next release. Failed deployments do not publish releases.
+To retry release publication, rerun the failed release job in GitHub Actions.
+
 Browser checks follow the GitHub Pages base path in CI. To reproduce CI's cold
 build and browser startup locally (with port 4173 free):
 
