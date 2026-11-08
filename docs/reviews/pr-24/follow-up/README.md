@@ -48,7 +48,7 @@ physical operating-system keyboard; this is not a physical-device claim.
 
 - `pnpm lint`: passed.
 - `pnpm lint:css`: passed.
-- `pnpm test:unit`: 58 passed across 13 files.
+- `pnpm test:unit`: 63 passed across 14 files.
 - Production TypeScript/build: passed through Playwright's `pnpm build` web server setup.
 - `CI=true GITHUB_ACTIONS=true GITHUB_REPOSITORY=dr-developer1/portfolio pnpm test:e2e --workers=2`: **104 passed, 4 intentional skips** (4.5 minutes), including all screenshot comparisons.
 - Additional finalized toolbar checks against the dev preview: 21 passed across Chromium, mobile Chrome and mobile Safari.
@@ -59,3 +59,24 @@ keyboard/focus and actions PASS (actual Tab, Enter, Escape, click and touch chec
 locale and layout consistency PASS (both CV URLs, 36 captures, three browser baselines);
 existing visual identity and asset integrity PASS (existing tokens/typography and approved
 hat/audio assets retained; no new product claims or decoration).
+
+## CI focus race
+
+The first follow-up push passed push CI, while PR CI caught the existing boot
+language-keyboard race (`languages.spec.ts:87`). Its trace ended in the terminal
+in English: Enter started boot instead of activating the focused French button.
+`StartPrompt` had a 100ms autofocus timer that could run between explicit button
+focus and Enter. The fix sets initial focus in the layout phase only when the
+body owns focus, so it cannot steal a visitor's chosen control. Both deterministic
+unit regressions fail against the old timer and pass with the fix. No browser
+assertion, timeout or retry was weakened.
+
+The language keyboard scenario also passed 30 repeats (10 per browser) on the
+corrected source. A concurrently loaded local run then exposed the existing
+slow-frame hat settling issue: physics discarded elapsed time above 100ms while
+the browser test measures real time. The integrator now catches up through up to
+one second per frame using its existing stable 180Hz substeps. Unit checks cover
+250ms, 500ms and 1s frame intervals; the latter two fail with the old cap. Normal
+frame timing and the existing eight-second browser settling assertion are unchanged.
+The unchanged normal-motion browser settling test passed in all three browsers
+with the corrected integrator, including under concurrent browser load.

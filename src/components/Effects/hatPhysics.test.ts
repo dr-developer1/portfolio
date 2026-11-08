@@ -43,6 +43,15 @@ describe('fixed-brim hat physics', () => {
     expect(hat.points.every((p) => Number.isFinite(p.x) && Number.isFinite(p.y))).toBe(true);
   });
 
+  it.each([0.25, 0.5, 1])('settles within eight seconds with %s-second frames', (elapsed) => {
+    const hat = createHatPhysics(rest);
+    hat.flick();
+    let active = true;
+    for (let time = 0; time < 8; time += elapsed) active = hat.step(elapsed);
+    expect(active).toBe(false);
+    expect(hat.tip()).toEqual(rest[5]);
+  });
+
   it('can reset immediately when motion is reduced or interaction is cancelled', () => {
     const hat = createHatPhysics(rest);
     hat.flick();

@@ -6,7 +6,7 @@
  */
 
 import { text, useLocale } from '../../i18n/locale';
-import React, { useEffect, useRef } from 'react';
+import React, { useLayoutEffect, useRef } from 'react';
 
 import type { StartPromptProps } from '../../types/boot';
 
@@ -24,13 +24,11 @@ export const StartPrompt: React.FC<StartPromptProps> = ({
   const locale = useLocale();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-focus the hidden input on mount for mobile keyboard accessibility
-  useEffect(() => {
-    // Small delay to ensure the component is rendered before focusing
-    const timer = setTimeout(() => {
+  useLayoutEffect(() => {
+    // Establish initial focus before interaction; never take it from another control.
+    if (document.activeElement === document.body) {
       inputRef.current?.focus();
-    }, 100);
-    return () => clearTimeout(timer);
+    }
   }, []);
 
   /**

@@ -77,7 +77,8 @@ export function createHatPhysics(rest: HatPoint[]) {
       velocities[5] = 4;
     },
     step(elapsed: number): boolean {
-      const duration = Math.max(0, Math.min(elapsed, 0.1));
+      // Catch up after slow rendered frames while retaining stable integration substeps.
+      const duration = Math.max(0, Math.min(elapsed, 1));
       const steps = Math.max(1, Math.ceil(duration * 180));
       const dt = duration / steps;
       for (let step = 0; step < steps; step++) {
