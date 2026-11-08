@@ -1,40 +1,95 @@
 # Portfolio OS
 
-Ahmad Ibrahim’s interactive portfolio, built with React, TypeScript, and Vite.
-English and French career content follows the supplied CVs, with a matching PDF
-available before boot and throughout the terminal session.
+Ahmad Ibrahim’s interactive terminal portfolio, built with React, TypeScript,
+and Vite. It supports English and French, downloadable CVs, a virtual filesystem,
+a coding playground, themes, and optional audio and visual effects.
 
-## Experience
+## Local development
 
-- Persistent EN / FR controls next to a PDF download that names its language
-- Locale precedence: valid `?lang=`, saved choice, French browser language, English
-- One line of clickable command hints, hidden after the first command
-- Optional guided paths remain available through explicit commands
-- CV-backed profile, work history, education, core stack, and spoken languages
-- Existing personal and academic projects clearly distinguished from professional work
-- Career output already in terminal history translates when the language changes
-- Shareable commands preserve the active language: `?lang=fr&run=experience`
-- Original system boot prompt, oscilloscope name trace, CRT effects, and monospace typography
-- Reduced-motion support; music off until enabled
-- Virtual filesystem, search, themes, hidden commands, and a coding playground
-
-Executable command names, virtual paths, technical shell output, boot logs,
-playground tools, and hidden Easter eggs retain English vocabulary. Use `help`
-for localized navigation and `help <command>` for technical syntax.
-
-## Development
-
-Use **Node 26 LTS** (exact version in `.node-version`) and **pnpm 12.15.0**
-(pinned by `packageManager`). Install Node with your preferred runtime manager;
-no nvm setup is required.
+Use the Node version in [`.node-version`](.node-version) and the pnpm version
+pinned by `packageManager` in [`package.json`](package.json).
 
 ```bash
 pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-`pnpm-workspace.yaml` explicitly permits esbuild’s installation script. Other
-dependency build scripts require their own policy decision.
+## Commands and navigation
+
+Use `help` for available commands and `help <command>` for syntax.
+
+| Commands                                                   | Purpose                                   |
+| ---------------------------------------------------------- | ----------------------------------------- |
+| `about`, `highlights`, `skills`, `experience`, `education` | Career information                        |
+| `projects`, `top-projects`                                 | Personal and academic projects            |
+| `resume` / `cv`, `open resume`                             | Download or open the active language’s CV |
+| `language en`, `language fr`                               | Change language and matching CV           |
+| `mode`, `tour`, `recommend`, `contact`                     | Guided discovery and contact              |
+| `ls`, `cd`, `cat`, `pwd`, `tree`, `find`, `grep`           | Explore the virtual filesystem            |
+| `playground --demo`, `playground --challenge debugging`    | Open the coding workspace                 |
+| `theme`, `music`, `effect`                                 | Configure appearance and effects          |
+
+Locale selection follows `?lang=en|fr`, the saved preference, the browser’s French
+language setting, then English. Language changes translate career output already
+in terminal history. Shared commands retain the locale, for example
+`?lang=fr&run=experience`. Executable commands, virtual paths, technical shell
+output, boot logs, and playground tools use English vocabulary.
+
+Help and Music sit in the title bar. Language and CV controls remain available
+before and after boot. Initial command hints disappear after the first command.
+
+## Maintaining content and assets
+
+| Location                              | Contents                                                |
+| ------------------------------------- | ------------------------------------------------------- |
+| `src/data/content.ts`                 | English/French CV content and project descriptions      |
+| `src/data/commands.tsx`               | Command registration and shell behavior                 |
+| `src/i18n/locale.ts`                  | Locale preference, document metadata, and CV paths      |
+| `src/i18n/paths.ts`                   | Translated perspectives and shortcut labels             |
+| `src/utils/fileSystem.ts`             | Locale-specific virtual files with stable paths         |
+| `src/components/Navigation/`          | Shared language/CV controls and path launcher           |
+| [DESIGN.md](DESIGN.md)                | Visual direction, tokens, layout, and interaction rules |
+| [docs/models/](docs/models/README.md) | Blender source, export format, and model maintenance    |
+
+Keep profile, experience, education, stack, and spoken languages consistent with
+the CVs. Personal and academic projects are labeled separately from work history.
+When replacing a CV, update these public files together:
+
+- `public/CV_Ahmad_IBRAHIM.pdf`: French.
+- `public/CV_Ahmad_IBRAHIM_En.pdf`: English.
+- `public/resume.pdf`: English compatibility URL.
+
+### Audio
+
+Music is off until enabled. Keep these filenames when replacing or recompressing
+recordings:
+
+- `public/audio/background.mp3`: regular soundtrack.
+- `public/audio/let-it-snow.mp3`: first seasonal track.
+- `public/audio/all-i-want-for-christmas-is-you.mp3`: second seasonal track.
+
+The seasonal tracks loop in order. Missing or unplayable seasonal tracks are
+skipped; if neither plays, the seasonal soundtrack stays silent. The regular
+soundtrack returns when the seasonal appearance ends. Keep provenance and
+redistribution-license records with audio assets; the code’s MIT license does
+not license third-party recordings.
+
+### Seasonal appearance
+
+From November 15 through January 15 inclusive, using the visitor’s local calendar,
+the portfolio uses its Christmas palette, snowfall, and interactive Santa hat.
+Theme commands cannot override the event or replace the saved theme. January 16
+restores the saved appearance and regular soundtrack. Open tabs recheck the date
+every 30 seconds and on focus.
+
+Drag the hat’s pom-pom, or focus it and press Enter. Reduced motion removes
+settling animation and makes snow stationary; hidden tabs pause animation. An
+illustration replaces the hat if its model or WebGL is unavailable.
+
+Preview either appearance with `?season=christmas` or `?season=normal` on the local
+development server. Production builds ignore these overrides.
+
+## Checks
 
 ```bash
 pnpm lint
@@ -43,97 +98,29 @@ pnpm exec prettier --check <changed-files>
 pnpm test:unit
 pnpm build
 pnpm exec playwright install chromium webkit
-pnpm test:e2e
+pnpm test:e2e --workers=2
 ```
 
-The unit runner disables Node’s native Web Storage in its workers so jsdom owns
-browser storage during tests. This matters on Node 26.
+Unit tests use jsdom-owned browser storage rather than Node’s native Web Storage.
+Playwright runs desktop Chromium, mobile Chrome, and mobile Safari. Its committed
+image baselines live under `tests/e2e/christmas-layout.spec.ts-snapshots/`; review
+visual changes before updating them. Local traces, screenshots, and reports are
+ignored by Git. CI uploads browser artifacts on failure.
 
-## Navigation
-
-- `about`, `highlights`, `skills`, `experience`, `education`: CV-backed career information
-- `projects`, `top-projects`: existing personal and academic projects
-- `resume` / `cv`: the current language’s CV
-- `open resume`: open the current language’s PDF
-- `language en|fr`: change display language and CV
-- `mode recruiter|engineer|founder|client|standard`: change perspective
-- `tour`, `recommend`, `contact`: guided discovery and contact
-- `ls`, `cd`, `cat`, `pwd`, `tree`, `find`, `grep`: explore the virtual filesystem
-- `playground --demo` / `playground --challenge debugging`: coding workspace
-- `theme`, `music`, `effect`: appearance and optional effects
-
-## Content and design
-
-- `src/data/content.ts`: English and French CV content; retained project data
-- `src/i18n/locale.ts`: locale preference, document metadata, PDF routing
-- `src/i18n/paths.ts`: translated perspectives and shortcut labels
-- `src/components/Navigation/*`: shared language/CV toolbar and path launcher
-- `src/components/Output/PortfolioSection.tsx`: reactive translated career output
-- `src/data/commands.tsx`: command registry and technical shell commands
-- `src/utils/fileSystem.ts`: locale-specific virtual files with stable paths
-- `DESIGN.md`: visual direction, token ownership, accessibility, and locale boundaries
-
-The supplied CVs live at `public/CV_Ahmad_IBRAHIM.pdf` (French) and
-`public/CV_Ahmad_IBRAHIM_En.pdf` (English). The legacy `public/resume.pdf` URL
-contains the updated English CV for compatibility. Update all three together
-when replacing the CVs. PDF paths respect Vite’s base URL on GitHub Pages.
-
-## Verification and deployment
-
-Unit tests cover command execution, parser/completion, virtual files, locale
-precedence and unavailable storage, CV routing, and mobile viewport helpers.
-Playwright covers boot, both actual PDF downloads, language persistence and
-keyboard switching, command hints, translation of existing history, and
-mobile command focus/visibility in Chromium and WebKit.
-
-CI and GitHub Pages builds install pinned pnpm, read Node from `.node-version`,
-and use the frozen pnpm lockfile. CI runs lint, CSS lint, unit tests, and a
-production build; a separate browser job runs Chromium and WebKit checks. Pages deploys only from `main`; feature branches do not deploy.
-The static build is also compatible with Vercel, Netlify, and Cloudflare Pages.
-
-After a successful Pages deployment from `main`, the workflow publishes a GitHub
-release with generated notes using the version in `package.json` (for example,
-`3.1.0` becomes `v3.1.0`). Existing releases are skipped, so redeploying a version
-does not publish a duplicate. Bump `package.json` to a new stable version in a PR
-when preparing the next release. Failed deployments do not publish releases.
-To retry release publication, rerun the failed release job in GitHub Actions.
-
-Browser checks follow the GitHub Pages base path in CI. To reproduce CI's cold
-build and browser startup locally (with port 4173 free):
+To reproduce CI’s production build and GitHub Pages base path, keep port 4173 free
+and run:
 
 ```bash
 CI=true GITHUB_ACTIONS=true GITHUB_REPOSITORY=dr-developer1/portfolio pnpm test:e2e --workers=2
 ```
 
-## Annual Christmas event
+## Deployment and releases
 
-Every year, **November 15–January 15 inclusive** (visitor’s local time), the
-portfolio automatically uses its Christmas palette, falling snow, and Santa hat.
-The Blender hat sits on the top-right corner: drag its pom-pom or focus it and
-press Enter to play with it. The tilted brim stays fixed while the upper fabric
-bends at weighted joints, falls under gravity, and settles down along the right
-edge. The hat stays attached to the corner. Dense
-snow settles into drifts at the screen’s bottom edge. Editable Blender source
-and regeneration instructions live in `docs/models/`.
+CI installs the pinned Node/pnpm versions with the frozen lockfile, then runs
+lint, CSS lint, unit tests, production build, and browser checks. The Pages workflow
+builds and deploys `main`; Vite derives its base path from `GITHUB_REPOSITORY`
+when `GITHUB_ACTIONS` is set. The generated site is in `dist/`.
 
-Theme switching resumes January 16 and restores the saved theme. An open tab
-rechecks the calendar every 30 seconds and when it regains focus. Reduced motion
-shows stationary snow; hidden tabs pause the animation. Music remains opt-in.
-
-The seasonal recordings are already included at these paths:
-
-- `public/audio/let-it-snow.mp3`
-- `public/audio/all-i-want-for-christmas-is-you.mp3`
-
-The repository owner confirmed redistribution rights during PR #24 remediation;
-source and license records will be added by the owner. Keep those records with
-any future replacement recordings. The repository’s MIT code license is not a
-license for third-party recordings.
-
-Available tracks loop in that order. Missing or unplayable files are skipped;
-with neither file present the event stays silent. Outside the event,
-`public/audio/background.mp3` plays as before.
-
-To preview outside the dates, run `pnpm dev` and open
-`http://localhost:5173/?season=christmas` (or `?season=normal` for the regular
-appearance). These overrides only work in development.
+After deployment, the workflow publishes a release tagged with the stable version
+in `package.json`, such as `v3.1.0`. Existing releases are skipped. Bump the version
+when preparing a release; rerun the release job if publication fails.
