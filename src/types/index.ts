@@ -182,7 +182,9 @@ export interface TerminalActions {
 /**
  * Combined terminal state and actions
  */
-export interface UseTerminalReturn extends TerminalState, TerminalActions {}
+export interface UseTerminalReturn extends TerminalState, TerminalActions {
+  christmasActive: boolean;
+}
 
 /**
  * Command registry type - maps command names to Command objects

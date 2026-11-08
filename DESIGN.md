@@ -24,84 +24,95 @@ omitted:
     reason: Component styles consume the existing CSS tokens directly.
 ---
 
-# Portfolio OS
+# Portfolio OS design
 
-An interactive terminal portfolio. The audience is recruiters,
-engineers, founders, and potential collaborators; the job is to make Ahmad’s work
-understandable and make contact and the appropriate CV easy to reach.
+The portfolio serves recruiters, engineers, founders, and potential collaborators.
+Its terminal interface makes Ahmad’s work, contact information, and CV accessible
+through commands and direct controls.
 
-## Visual direction
+## Identity and tokens
 
-Preserve the original terminal design: the PORTFOLIO OS boot prompt, secret-code
-input, oscilloscope name trace, CRT scanlines, theme palette, and monospace type.
-The user explicitly rejected the replacement landing page, sans-serif display
-headings, marketing copy, and route-card redesign. Do not replace these identity
-elements when enhancing navigation or localization.
+The boot prompt, secret-code input, oscilloscope name trace, CRT effects, theme
+palettes, and monospace typography define the interface. Navigation and career
+content share that visual language.
 
-The initial terminal view has one quiet hint: “Try about, experience, projects, or
-help.” Command names are keyboard-accessible inline buttons styled as terminal
-text. The hint disappears after the first nonempty command, including clear, and
-stays hidden for the session. Do not show quick-start panels, role selection,
-returning-visitor nudges, or tour progress on the landing view. Explicit mode/tour
-commands remain available through help. Help uses a plain definition list of
-clickable command names and descriptions, without shortcut cards or button panels. Keep language and matching CV controls
-small and visually consistent with the terminal.
+`src/styles/variables.css` owns runtime spacing, typography, radius, and color
+tokens. `src/styles/themes.css` supplies theme overrides. Components consume
+semantic variables rather than maintaining separate palettes.
 
-## Canonical tokens and mapping
+| Role                       | Runtime tokens                                                    |
+| -------------------------- | ----------------------------------------------------------------- |
+| Canvas and surfaces        | `--color-bg-canvas`, `--color-bg-primary`, `--color-bg-secondary` |
+| Primary and secondary text | `--color-text-primary`, `--color-text-secondary`                  |
+| Accent and focus           | `--color-accent-cyan`                                             |
+| Typography                 | `--font-mono`                                                     |
+| Controls and panels        | `--radius-md`, `--radius-lg`                                      |
 
-Ownership model B: `src/styles/variables.css` owns runtime values; `themes.css`
-provides theme overrides. This document records accepted values and intent.
+## Layout
 
-| Role                     | Runtime owner                                                       | Consumers                        |
-| ------------------------ | ------------------------------------------------------------------- | -------------------------------- |
-| Canvas / surface / panel | `--color-bg-canvas` / `--color-bg-primary` / `--color-bg-secondary` | Boot, terminal, launcher         |
-| Primary / secondary text | `--color-text-primary` / `--color-text-secondary`                   | All portfolio copy               |
-| Accent                   | `--color-accent-cyan`                                               | Language state, focus, CV, route |
-| Display / utility type   | `--font-mono` / `--font-mono`                                       | Headings / terminal and controls |
-| Controls / panels        | `--radius-md` / `--radius-lg`                                       | Language tools and path launcher |
+Window dots occupy the left of the title bar, the terminal title uses the middle,
+and Help/Music remain on the right. The title truncates within its available
+space. Language and matching CV download occupy a separate toolbar below.
+Controls stay outside the terminal’s scrolling content.
 
-Existing theme overrides remain supported. Feature styles use semantic variables,
-so changing theme does not create a second
-palette. No prior design document existed; this records the established identity
-and the restored original onboarding.
+On phones and tablets, symmetric small margins preserve the usable terminal
+width. Language/CV controls share a row when they fit; narrow screens use a
+centered language row and a full-width CV row. Command hints and translated text
+wrap naturally. Keyboard visibility and safe-area insets keep the focused prompt
+reachable without covering controls.
 
-## Content and locale
+The first terminal view offers one line of clickable command hints. It disappears
+after the first nonempty command, including `clear`, for the rest of the session.
+Guided perspectives and tours are available through explicit commands. Help uses
+a definition list of clickable command names and descriptions.
 
-French and English are supported because both CVs are supplied. Locale precedence:
-valid `?lang=`, stored preference, French browser language, then English. Switching
-language preserves the terminal session and re-renders career sections already in
-history. The document language, page metadata, share URL, CV toolbar, `resume` and
-`open resume` follow the active locale. Filenames and executable command names stay
-stable. Advanced shell tools, the code playground, boot logs, and hidden Easter eggs
-retain their English technical vocabulary; help discloses this boundary.
+## Content and localization
 
-CVs are authoritative for the profile, experience, education, primary stack, and
-spoken languages. Existing personal/academic projects are retained and labeled as
-such; they are not presented as new CV claims. Do not infer job availability or
-publish the CV’s phone number as a separate contact channel without a request.
+French and English follow the supplied CVs for profile, work history, education,
+primary stack, and spoken languages. Personal and academic projects are labeled
+separately. Contact channels use the published portfolio content.
 
-## Behavior and accessibility
+The active locale controls career output, document language/metadata, shared
+URLs, and CV downloads. Existing career output translates without clearing
+terminal history. Executable command names and virtual paths remain stable;
+technical shell output, boot logs, playground tools, and Easter eggs retain
+English vocabulary. Locale precedence and content locations are documented in
+[README.md](README.md).
 
-Language and CV belong together in an always-reachable toolbar, both before and
-after boot. A real download link has a visible PDF/language label. Initial command hints
-run directly, without choosing a role. A language
-command supports keyboard-led visits. No extra package is needed for two static
-locales: a small React external store and typed content selector are sufficient;
-reconsider a routing/i18n library if translated routes or pluralization emerge.
+## Interaction and accessibility
 
-The terminal owns scrolling; controls stay outside it. Inline command hints wrap naturally on narrow screens. French copy wraps naturally. Preserve
-44px action targets, visible focus, operable scrollbars, and reduced-motion support.
-Boot retains its original keyboard and mobile tap-to-start interactions. Audio should require an
-explicit opt-in rather than starting on portfolio entry.
+Mobile actions have at least 44px targets and visible keyboard focus. Scrollbars
+remain usable, and reduced-motion preferences apply to animation. Music requires
+explicit opt-in. The CV link identifies both PDF format and language.
 
-Terminal typing and command shortcuts share `useTerminalInput`; desktop and mobile
-retain their own focus and viewport policies. `TerminalInputDisplay` mirrors native
-caret offsets and text selection, preserves spaces, and respects reduced motion.
-Input-method composition must finish before command submission or completion.
-Command hints, help buttons, and guided shortcuts transfer focus to the terminal
-input before execution. On mobile, history updates keep the focused prompt visible;
-they must not compete with keyboard visibility scrolling.
+Boot supports keyboard input and tap-to-start. Initial prompt focus must not take
+focus from a control the visitor has selected. Command hints, Help command links,
+and guided shortcuts return focus to terminal input before execution.
 
-The playground language selector remains a native select: it has a short, fixed
-list and benefits from platform keyboard and touch pickers. `premium-ui.json`
-records that ownership; no custom listbox is needed.
+Desktop and mobile share `useTerminalInput`, with separate focus/viewport policies.
+The visual input mirrors native caret and selection offsets and preserves spaces.
+Composition finishes before command submission or completion. History scrolling
+must cooperate with mobile keyboard visibility.
+
+The playground language selector uses the native select for its short fixed list
+and platform keyboard/touch behavior. `premium-ui.json` records that choice.
+
+## Seasonal appearance
+
+The visitor’s local calendar activates the Christmas appearance from November 15
+through January 15. Theme commands and secret boot modes preserve the saved
+appearance for restoration after the event. Theme tokens supply evergreen
+surfaces, cream text, gold links, and holly accents.
+
+The Santa hat anchors to the terminal’s upper-right corner. Its overlay has space
+above the frame and clearance from title-bar actions, without a mobile side
+gutter. Desktop retains its side gutter; landscape phones reduce top spacing.
+The interactive pom-pom has a 44px target and visible focus ring. Its collar stays
+fixed while fabric bends and settles; pointer, touch, and keyboard interaction
+remain available. Reduced motion returns it directly to rest. An illustration
+covers unavailable model/WebGL states, including context loss.
+
+Snow replaces Matrix rain, pauses when hidden, and becomes stationary under
+reduced motion. Bottom drifts cannot cover the prompt. The regular theme, Matrix
+preference, and soundtrack return after the event. Model maintenance and export
+details live in [docs/models/README.md](docs/models/README.md).

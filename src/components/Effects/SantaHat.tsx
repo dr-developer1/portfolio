@@ -1,0 +1,257 @@
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import type { PointerEvent } from 'react';
+import { text, useLocale } from '../../i18n/locale';
+import { useMediaQuery } from '../../hooks/useMediaQuery';
+import { resolveSitePath } from '../../utils/sitePaths';
+import { createHatRenderer, projectHatPoint, unprojectHatPoint } from './hatRenderer';
+import type { HatRenderer } from './hatRenderer';
+import { createHatPhysics } from './hatPhysics';
+import type { HatPhysics } from './hatPhysics';
+import styles from './SantaHat.module.css';
+
+const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
+
+export function SantaHat({ className }: { className: string }) {
+  const locale = useLocale();
+  const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const rendererRef = useRef<HatRenderer | null>(null);
+  const physicsRef = useRef<HatPhysics | null>(null);
+  const frameRef = useRef(0);
+  const drag = useRef<{
+    id: number;
+    x: number;
+    y: number;
+    offsetX: number;
+    offsetY: number;
+  } | null>(null);
+  const [ready, setReady] = useState(false);
+
+  const draw = useCallback(() => {
+    const physics = physicsRef.current;
+    const canvas = canvasRef.current;
+    if (!physics || !canvas) return;
+    rendererRef.current?.draw(physics.points);
+    const tip = projectHatPoint(physics.tip(), 100, 100);
+    if (buttonRef.current) {
+      // Percentages keep the hit target aligned while the canvas resizes.
+      buttonRef.current.style.left = `${tip.x}%`;
+      buttonRef.current.style.top = `${tip.y}%`;
+    }
+  }, []);
+
+  const reset = useCallback(() => {
+    cancelAnimationFrame(frameRef.current);
+    drag.current = null;
+    physicsRef.current?.reset();
+    draw();
+    if (wrapperRef.current) wrapperRef.current.dataset.motion = 'resting';
+  }, [draw]);
+
+  const settle = () => {
+    cancelAnimationFrame(frameRef.current);
+    if (reducedMotion) {
+      reset();
+      return;
+    }
+    if (wrapperRef.current) wrapperRef.current.dataset.motion = 'settling';
+    let previous = 0;
+    const step = (time: number) => {
+      const elapsed = previous ? (time - previous) / 1000 : 1 / 60;
+      previous = time;
+      const active = physicsRef.current?.step(elapsed);
+      draw();
+      if (active) frameRef.current = requestAnimationFrame(step);
+      else if (wrapperRef.current) wrapperRef.current.dataset.motion = 'resting';
+    };
+    frameRef.current = requestAnimationFrame(step);
+  };
+
+  useEffect(() => {
+    const abort = new AbortController();
+    let renderer: HatRenderer | null = null;
+    let disposed = false;
+    let model: ArrayBuffer | null = null;
+    const initialize = () => {
+      if (disposed || !canvasRef.current || !model) return;
+      renderer?.dispose();
+      renderer = createHatRenderer(canvasRef.current, model);
+      rendererRef.current = renderer;
+      physicsRef.current = renderer ? createHatPhysics(renderer.rest) : null;
+      draw();
+      setReady(renderer !== null);
+    };
+    const load = async () => {
+      try {
+        const response = await fetch(resolveSitePath('/models/santa-hat.bin'), {
+          signal: abort.signal,
+        });
+        if (!response.ok || response.headers.get('content-type')?.includes('text/html'))
+          throw new Error('Santa hat model unavailable');
+        model = await response.arrayBuffer();
+        initialize();
+      } catch (error) {
+        if (!disposed && import.meta.env.DEV)
+          console.warn('Using the illustrated Santa hat.', error);
+      }
+    };
+    void load();
+    const contextLost = (event: Event) => {
+      event.preventDefault();
+      rendererRef.current = null;
+      reset();
+      physicsRef.current = null;
+      setReady(false);
+    };
+    const contextRestored = () => initialize();
+    const canvas = canvasRef.current;
+    let width = canvas?.clientWidth;
+    let height = canvas?.clientHeight;
+    const resizeObserver = new ResizeObserver(() => {
+      if (canvas?.clientWidth === width && canvas?.clientHeight === height) return;
+      width = canvas?.clientWidth;
+      height = canvas?.clientHeight;
+      reset();
+    });
+    if (canvas) resizeObserver.observe(canvas);
+    document.addEventListener('visibilitychange', reset);
+    canvas?.addEventListener('webglcontextlost', contextLost);
+    canvas?.addEventListener('webglcontextrestored', contextRestored);
+    return () => {
+      disposed = true;
+      abort.abort();
+      cancelAnimationFrame(frameRef.current);
+      renderer?.dispose();
+      rendererRef.current = null;
+      physicsRef.current = null;
+      resizeObserver.disconnect();
+      document.removeEventListener('visibilitychange', reset);
+      canvas?.removeEventListener('webglcontextlost', contextLost);
+      canvas?.removeEventListener('webglcontextrestored', contextRestored);
+    };
+  }, [draw, reset]);
+
+  useLayoutEffect(() => {
+    draw();
+  }, [ready, draw]);
+  useEffect(() => {
+    if (reducedMotion) reset();
+  }, [reducedMotion, reset]);
+
+  const release = (event: PointerEvent<HTMLButtonElement>) => {
+    const pointer = drag.current;
+    if (!pointer || pointer.id !== event.pointerId) return;
+    physicsRef.current?.release(performance.now());
+    if (
+      event.type === 'pointerup' &&
+      !reducedMotion &&
+      Math.hypot(event.clientX - pointer.x, event.clientY - pointer.y) < 4
+    )
+      physicsRef.current?.flick();
+    drag.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId))
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    settle();
+  };
+
+  return (
+    <div
+      ref={wrapperRef}
+      className={`${className} ${styles.hat}`}
+      data-testid="santa-hat"
+      data-motion="resting"
+      data-renderer={ready ? 'webgl' : 'illustration'}
+    >
+      {!ready && (
+        <svg className={styles.fallback} viewBox="0 0 160 120" aria-hidden="true">
+          <defs>
+            <linearGradient id="hat-red">
+              <stop stopColor="#ff5c6a" />
+              <stop offset="1" stopColor="#a51135" />
+            </linearGradient>
+          </defs>
+          <path
+            d="M13 54C26 18 72 1 108 13C142 24 153 58 137 95L126 91C137 62 125 41 109 40L108 74Z"
+            fill="url(#hat-red)"
+          />
+          <path
+            d="M13 55Q62 61 109 76"
+            fill="none"
+            stroke="#fff1da"
+            strokeWidth="17"
+            strokeLinecap="round"
+          />
+          <path
+            d="M13 55Q62 61 109 76"
+            fill="none"
+            stroke="#e8d9be"
+            strokeWidth="19"
+            strokeLinecap="round"
+            strokeDasharray="1 5"
+          />
+          <circle cx="135" cy="97" r="12" fill="#fff1da" />
+          <path d="M22 44Q67 50 111 64" stroke="#efbd58" strokeWidth="3" strokeDasharray="2 5" />
+        </svg>
+      )}
+      <canvas ref={canvasRef} className={styles.canvas} aria-hidden="true" />
+      {ready && (
+        <button
+          ref={buttonRef}
+          type="button"
+          className={styles.tip}
+          aria-label={text('Play with Santa hat', 'Jouer avec le bonnet de Noël', locale)}
+          title={text(
+            'Lift the pom-pom and let it fall, or press Enter',
+            'Soulevez le pompon et relâchez-le, ou appuyez sur Entrée',
+            locale
+          )}
+          onPointerDown={(event) => {
+            if (!event.isPrimary || event.button !== 0) return;
+            cancelAnimationFrame(frameRef.current);
+            const box = event.currentTarget.getBoundingClientRect();
+            event.currentTarget.setPointerCapture(event.pointerId);
+            physicsRef.current?.beginDrag();
+            drag.current = {
+              id: event.pointerId,
+              x: event.clientX,
+              y: event.clientY,
+              offsetX: event.clientX - box.x - 22,
+              offsetY: event.clientY - box.y - 22,
+            };
+            if (wrapperRef.current) wrapperRef.current.dataset.motion = 'dragging';
+          }}
+          onPointerMove={(event) => {
+            const pointer = drag.current;
+            const canvas = canvasRef.current;
+            if (!pointer || pointer.id !== event.pointerId || !canvas) return;
+            const box = canvas.getBoundingClientRect();
+            const target = unprojectHatPoint(
+              {
+                x: clamp(event.clientX - box.x - pointer.offsetX, 24, canvas.clientWidth - 24),
+                y: clamp(event.clientY - box.y - pointer.offsetY, 24, canvas.clientHeight - 24),
+              },
+              canvas.clientWidth,
+              canvas.clientHeight
+            );
+            physicsRef.current?.dragTo(target, performance.now());
+            draw();
+          }}
+          onPointerUp={release}
+          onPointerCancel={release}
+          onLostPointerCapture={release}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') reset();
+          }}
+          onClick={(event) => {
+            if (event.detail === 0 && !reducedMotion) {
+              physicsRef.current?.flick();
+              settle();
+            }
+          }}
+        />
+      )}
+    </div>
+  );
+}

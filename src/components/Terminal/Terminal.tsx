@@ -4,6 +4,8 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { BackgroundMusic } from '../Effects/BackgroundMusic';
 import { MatrixRain } from '../Effects/MatrixRain';
+import { Snowfall } from '../Effects/Snowfall';
+import { SantaHat } from '../Effects/SantaHat';
 import { useTerminalContext } from '../../hooks/TerminalContext';
 import { useAutoRun } from '../../hooks/useAutoRun';
 import { useKeyboardViewport } from '../../hooks/useKeyboardViewport';
@@ -25,6 +27,7 @@ const AUTO_SCROLL_BOTTOM_THRESHOLD_PX = 72;
 export const Terminal: React.FC = () => {
   const locale = useLocale();
   const {
+    christmasActive,
     bootMode,
     history,
     achievementFeed,
@@ -179,74 +182,80 @@ export const Terminal: React.FC = () => {
   const containerStyle = isMobile
     ? ({ '--keyboard-inset': `${keyboardInsetPx}px` } as React.CSSProperties)
     : undefined;
+  const windowActions = (
+    <div className={styles.windowActions}>
+      <button
+        type="button"
+        className={styles.iconButton}
+        aria-label={text('Open keyboard shortcuts', 'Ouvrir les raccourcis clavier', locale)}
+        onClick={() => setIsShortcutsOpen(true)}
+      >
+        ?
+      </button>
+      <MusicToggleButton />
+    </div>
+  );
 
   return (
     <>
-      <MatrixRain />
+      {christmasActive ? <Snowfall /> : <MatrixRain />}
       <BackgroundMusic />
-      <div className={`${styles.window} ${isStartupAnimating ? styles.windowWillChange : ''}`}>
-        <div className={styles.scanline} />
-        <div className={styles.scanlineBeam} />
-        <div className={styles.overlay} />
-        {/* macOS-style title bar */}
-        <div
-          className={styles.titleBar}
-          role="toolbar"
-          aria-label={text('Terminal window controls', 'Contrôles du terminal', locale)}
-        >
-          <div className={styles.windowControls}>
-            <span
-              className={`${styles.windowButton} ${styles.closeButton}`}
-              aria-hidden="true"
-              role="presentation"
-            />
-            <span
-              className={`${styles.windowButton} ${styles.minimizeButton}`}
-              aria-hidden="true"
-              role="presentation"
-            />
-            <span
-              className={`${styles.windowButton} ${styles.maximizeButton}`}
-              aria-hidden="true"
-              role="presentation"
-            />
+      <div className={`${styles.frame} ${christmasActive ? styles.christmasFrame : ''}`}>
+        <div className={`${styles.window} ${isStartupAnimating ? styles.windowWillChange : ''}`}>
+          <div className={styles.scanline} />
+          <div className={styles.scanlineBeam} />
+          <div className={styles.overlay} />
+          {/* macOS-style title bar */}
+          <div
+            className={styles.titleBar}
+            role="toolbar"
+            aria-label={text('Terminal window controls', 'Contrôles du terminal', locale)}
+          >
+            <div className={styles.windowControls}>
+              <span
+                className={`${styles.windowButton} ${styles.closeButton}`}
+                aria-hidden="true"
+                role="presentation"
+              />
+              <span
+                className={`${styles.windowButton} ${styles.minimizeButton}`}
+                aria-hidden="true"
+                role="presentation"
+              />
+              <span
+                className={`${styles.windowButton} ${styles.maximizeButton}`}
+                aria-hidden="true"
+                role="presentation"
+              />
+            </div>
+            <span className={`${styles.windowTitle} ${styles.windowTitleGlitch}`}>
+              {user}@{SYSTEM_CONFIG.hostname} - bash
+            </span>
+            {windowActions}
           </div>
-          <span className={`${styles.windowTitle} ${styles.windowTitleGlitch}`}>
-            {user}@{SYSTEM_CONFIG.hostname} - bash
-          </span>
-          <div className={styles.windowActions}>
-            <button
-              type="button"
-              className={styles.iconButton}
-              aria-label={text('Open keyboard shortcuts', 'Ouvrir les raccourcis clavier', locale)}
-              onClick={() => setIsShortcutsOpen(true)}
-            >
-              ?
-            </button>
-            <MusicToggleButton />
+
+          <div className={styles.portfolioToolbar}>
+            <LanguageTools className={styles.languageTools} />
+          </div>
+
+          {/* Terminal body */}
+          <div
+            ref={scrollContainerRef}
+            className={`${styles.container} ${styles.scanlineBeamContainer} ${
+              isKeyboardOpen ? styles.keyboardOpen : ''
+            }`}
+            style={containerStyle}
+          >
+            <TerminalOutput />
+            <TerminalInput
+              keyboardInsetPx={keyboardInsetPx}
+              isKeyboardOpen={isKeyboardOpen}
+              isViewportSettled={isViewportSettled}
+            />
+            <div ref={bottomAnchorRef} aria-hidden="true" className={styles.scrollAnchor} />
           </div>
         </div>
-
-        <div className={styles.portfolioToolbar}>
-          <LanguageTools />
-        </div>
-
-        {/* Terminal body */}
-        <div
-          ref={scrollContainerRef}
-          className={`${styles.container} ${styles.scanlineBeamContainer} ${
-            isKeyboardOpen ? styles.keyboardOpen : ''
-          }`}
-          style={containerStyle}
-        >
-          <TerminalOutput />
-          <TerminalInput
-            keyboardInsetPx={keyboardInsetPx}
-            isKeyboardOpen={isKeyboardOpen}
-            isViewportSettled={isViewportSettled}
-          />
-          <div ref={bottomAnchorRef} aria-hidden="true" className={styles.scrollAnchor} />
-        </div>
+        {christmasActive && <SantaHat className={styles.santaHat} />}
       </div>
       <PlaygroundOverlay
         isOpen={isPlaygroundOpen}

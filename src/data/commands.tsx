@@ -21,6 +21,7 @@ import {
 import { unlockAdmin, unlockVault, ACHIEVEMENTS } from '../utils/progressService';
 import { getStoredBoolean } from '../utils/storageHelpers';
 import { AVAILABLE_THEMES, getDefaultTheme, isValidTheme } from '../utils/themeService';
+import { isChristmasEventActive } from '../utils/christmasEvent';
 import { renderDirectoryTree } from '../utils/treeRenderer';
 import { resolveSiteUrl } from '../utils/sitePaths';
 import styles from '../styles/outputUtilities.module.css';
@@ -758,6 +759,17 @@ const themeCommand: Command = {
   usage: 'theme [list | reset | <name>]',
   category: 'system',
   execute: (args, addOutput) => {
+    if (isChristmasEventActive()) {
+      addOutput(
+        <span>
+          {text(
+            'Christmas theme is active November 15–January 15. Theme switching returns January 16.',
+            'Le thème de Noël est actif du 15 novembre au 15 janvier. Les autres thèmes reviennent le 16 janvier.'
+          )}
+        </span>
+      );
+      return;
+    }
     if (args.length === 0) {
       addOutput(
         <div>
@@ -805,7 +817,9 @@ const themeCommand: Command = {
     addOutput(<span className={styles.success}>Theme switched to {value}</span>, 'success');
   },
   autocomplete: (partial) =>
-    ['list', 'reset', ...AVAILABLE_THEMES].filter((item) => item.startsWith(partial.toLowerCase())),
+    (isChristmasEventActive() ? ['list'] : ['list', 'reset', ...AVAILABLE_THEMES]).filter((item) =>
+      item.startsWith(partial.toLowerCase())
+    ),
 };
 
 const languageCommand: Command = {

@@ -1,6 +1,44 @@
 /* ========================================
    Terminal Window Container
    ======================================== */
+.frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.christmasFrame {
+  padding-top: 64px;
+  padding-right: 140px;
+}
+
+.santaHat {
+  position: absolute;
+  top: -24px;
+  right: 0;
+  width: 240px;
+  height: 180px;
+  pointer-events: none;
+  z-index: calc(var(--z-overlay) + 3);
+  filter: drop-shadow(0 3px 3px rgb(0 0 0 / 25%));
+}
+
+@media (width <= 768px) {
+  .christmasFrame {
+    padding-top: 80px;
+    padding-right: 0;
+    padding-bottom: 24px;
+  }
+
+  .santaHat {
+    top: 0;
+    width: clamp(128px, 38vw, 160px);
+    height: auto;
+    aspect-ratio: 4 / 3;
+  }
+}
+
 .window {
   width: 100%;
   height: 100%;
@@ -445,9 +483,71 @@
   z-index: calc(var(--z-overlay) + 2);
 }
 
+.christmasFrame .titleBar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  padding-right: 60px;
+}
+
+.christmasFrame .windowTitle {
+  display: block;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.christmasFrame .windowActions {
+  width: auto;
+}
+
+.christmasFrame .languageTools {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.christmasFrame .iconButton {
+  width: 44px;
+  height: 44px;
+}
+
+@media (width <= 768px) and (height <= 480px) {
+  .christmasFrame {
+    padding-top: 48px;
+    padding-bottom: 16px;
+  }
+
+  .santaHat {
+    top: -16px;
+    width: 128px;
+  }
+}
+
 @media (width <= 600px) {
   .portfolioToolbar {
     display: block;
     padding: 8px 12px;
+  }
+}
+
+@media (width <= 768px) {
+  .iconButton {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+  }
+}
+
+@media (width <= 400px) {
+  .christmasFrame .languageTools {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .christmasFrame .languageTools > [role='group'] {
+    justify-content: center;
   }
 }
