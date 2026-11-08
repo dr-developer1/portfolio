@@ -998,7 +998,7 @@ const neofetchCommand: Command = {
         </pre>
         <div className={styles.flexColumn} style={{ gap: '0.25rem' }}>
           <div>
-            <span className={styles.accentGreen}>OS</span> Portfolio OS v3.1.0
+            <span className={styles.accentGreen}>OS</span> Portfolio OS v3.2.0
           </div>
           <div>
             <span className={styles.accentGreen}>Host</span> Ahmad Ibrahim

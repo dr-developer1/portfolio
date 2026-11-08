@@ -91,7 +91,7 @@ export const BootScreen: React.FC<BootScreenProps> = ({ onBootComplete, onModeDe
         {/* Header with logo */}
         <header className={styles.header}>
           <h1 className={styles.logo}>PORTFOLIO OS</h1>
-          <p className={styles.version}>v3.1.0</p>
+          <p className={styles.version}>v3.2.0</p>
         </header>
 
         {/* Phase-dependent content */}
