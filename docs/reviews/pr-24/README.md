@@ -2,6 +2,9 @@
 
 The changes stay on `feat/annual-christmas-event`. The PR remains open.
 
+Latest: [corrected title-bar placement and toolbar screenshots in English/French](follow-up/README.md).
+The captures and investigation below document the first review round.
+
 ## Screenshots
 
 Captured from the original PR commit `426caf4` and the corrected source, in

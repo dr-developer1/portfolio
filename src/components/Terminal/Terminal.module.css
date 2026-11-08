@@ -484,17 +484,28 @@
 }
 
 .christmasFrame .titleBar {
-  padding-right: 72px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  padding-right: 60px;
 }
 
-.christmasFrame .portfolioToolbar {
-  display: flex;
-  flex-wrap: wrap;
+.christmasFrame .windowTitle {
+  display: block;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-.christmasFrame .portfolioToolbar .windowActions {
+.christmasFrame .windowActions {
   width: auto;
-  margin-right: auto;
+}
+
+.christmasFrame .languageTools {
+  width: 100%;
+  justify-content: space-between;
 }
 
 .christmasFrame .iconButton {
@@ -515,12 +526,28 @@
 }
 
 @media (width <= 600px) {
-  .christmasFrame .languageTools {
-    display: contents;
-  }
-
   .portfolioToolbar {
     display: block;
     padding: 8px 12px;
+  }
+}
+
+@media (width <= 768px) {
+  .iconButton {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+  }
+}
+
+@media (width <= 400px) {
+  .christmasFrame .languageTools {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .christmasFrame .languageTools > [role='group'] {
+    justify-content: center;
   }
 }

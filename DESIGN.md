@@ -131,8 +131,12 @@ cover the terminal input. Desktop retains its side gutter. On phones and tablets
 small margins give the terminal the full usable width; the hat scales above its
 top-right edge and its tip overlaps only the reserved end of the title bar.
 Landscape phones reduce the space above the frame.
-The seasonal help and music controls sit in the toolbar below the brim. Language
-and CV controls wrap as complete items within the narrower frame. The regular
+Help and Music stay on the right of the title bar in every season. During Christmas,
+a 60px inset clears the hat tip without shrinking the terminal. A flexible middle
+column centers and truncates the title between the dots and actions. The lower
+toolbar contains only language and CV: opposite ends when space permits, then
+centered language and full-width CV rows at 400px and below. Mobile title-bar
+buttons retain 44px targets. The regular
 Matrix preference remains unchanged.
 
 Music stays opt-in and mute remains available. The seasonal playlist alternates

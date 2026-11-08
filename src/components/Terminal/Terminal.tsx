@@ -231,11 +231,10 @@ export const Terminal: React.FC = () => {
             <span className={`${styles.windowTitle} ${styles.windowTitleGlitch}`}>
               {user}@{SYSTEM_CONFIG.hostname} - bash
             </span>
-            {!christmasActive && windowActions}
+            {windowActions}
           </div>
 
           <div className={styles.portfolioToolbar}>
-            {christmasActive && windowActions}
             <LanguageTools className={styles.languageTools} />
           </div>
 
