@@ -26,7 +26,9 @@ terminal body to the prompt without moving the toolbar.
 Additional captures: [regenerated Blender model](regenerated-390x844.png) and
 [illustration fallback](fallback-390x844.png). Automated screenshot baselines
 cover desktop Chromium, mobile Chromium, and mobile WebKit in
-`tests/e2e/christmas-layout.spec.ts-snapshots/`.
+`tests/e2e/christmas-layout.spec.ts-snapshots/`. Automated comparisons use the
+repository’s bundled font to avoid host-installed font metric differences; the
+manual before/after captures retain the normal runtime font selection.
 
 ## Defects and coverage
 
@@ -83,5 +85,6 @@ removed or replaced, and no independent license verification is claimed.
 - `pnpm test:unit`: 58 passed.
 - `pnpm build`: passed, including TypeScript.
 - `CI=true GITHUB_ACTIONS=true GITHUB_REPOSITORY=dr-developer1/portfolio pnpm test:e2e --workers=2`: 66 passed, 3 intentional skips. This includes the committed screenshot comparisons.
+- Previously failing drag/history checks: 60 passed across ten repetitions per browser project.
 - Strict static UI audit: no findings.
 - Blender regeneration: exited successfully, produced both files; original assets retained.

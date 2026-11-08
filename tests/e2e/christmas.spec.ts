@@ -268,6 +268,17 @@ test('snow pauses in hidden tabs and resumes when visible', async ({ page }) => 
   await page.getByLabel('Type a secret code or press Enter to boot').press('Enter');
   await expect(page.getByTestId('snowfall')).toBeAttached();
   await page.emulateMedia({ reducedMotion: 'no-preference' });
+  // Wait for actual animation before hiding; a media-query restart clears the canvas.
+  await expect
+    .poll(() =>
+      page.getByTestId('snowfall').evaluate(async (node) => {
+        const canvas = node as HTMLCanvasElement;
+        const before = canvas.toDataURL();
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        return canvas.toDataURL() !== before;
+      })
+    )
+    .toBe(true);
   const result = await page.getByTestId('snowfall').evaluate(async (node) => {
     let hidden = true;
     Object.defineProperty(document, 'hidden', { configurable: true, get: () => hidden });

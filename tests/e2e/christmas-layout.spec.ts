@@ -14,6 +14,10 @@ test('Christmas desktop and mobile screenshots preserve the frame and ornament',
   });
   await page.setViewportSize(isMobile ? { width: 390, height: 844 } : { width: 1440, height: 900 });
   await page.goto('./?lang=en');
+  // Host-installed monospace fonts differ between developer machines and CI.
+  // Use the existing bundled font so these checks compare layout, not OS font metrics.
+  await page.addStyleTag({ content: ':root { --font-mono: "JetBrains Mono Banner"; }' });
+  await page.evaluate(() => document.fonts.load('15px "JetBrains Mono Banner"'));
   await page.getByLabel('Type a secret code or press Enter to boot').press('Enter');
   await expect(page.getByTestId('santa-hat')).toHaveAttribute('data-renderer', 'webgl');
   await expect(page.getByTestId('command-hint')).toBeVisible();
