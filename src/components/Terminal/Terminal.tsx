@@ -236,7 +236,7 @@ export const Terminal: React.FC = () => {
 
           <div className={styles.portfolioToolbar}>
             {christmasActive && windowActions}
-            <LanguageTools />
+            <LanguageTools className={styles.languageTools} />
           </div>
 
           {/* Terminal body */}

@@ -120,10 +120,15 @@ Theme switching resumes January 16 and restores the saved theme. An open tab
 rechecks the calendar every 30 seconds and when it regains focus. Reduced motion
 shows stationary snow; hidden tabs pause the animation. Music remains opt-in.
 
-Add the two MP3s at these exact paths when ready:
+The seasonal recordings are already included at these paths:
 
 - `public/audio/let-it-snow.mp3`
 - `public/audio/all-i-want-for-christmas-is-you.mp3`
+
+The repository owner confirmed redistribution rights during PR #24 remediation;
+source and license records will be added by the owner. Keep those records with
+any future replacement recordings. The repository’s MIT code license is not a
+license for third-party recordings.
 
 Available tracks loop in that order. Missing or unplayable files are skipped;
 with neither file present the event stays silent. Outside the event,

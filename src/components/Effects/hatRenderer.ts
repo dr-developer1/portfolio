@@ -49,23 +49,47 @@ export interface HatRenderer {
   dispose: () => void;
 }
 
-export function createHatRenderer(
-  canvas: HTMLCanvasElement,
-  data: ArrayBuffer
-): HatRenderer | null {
+export function parseHatModel(data: ArrayBuffer) {
+  if (data.byteLength < (15 + 33) * 4 || data.byteLength % 4 !== 0) return null;
   const content = new Float32Array(data);
   if (
     content[0] !== 2026 ||
     content[1] !== 2 ||
     content[2] !== 6 ||
-    (content.length - 15) % 11 !== 0
+    (content.length - 15) % 33 !== 0 ||
+    !content.every(Number.isFinite)
   )
     return null;
   const rest = Array.from({ length: 6 }, (_, i) => ({
     x: content[3 + i * 2],
     y: content[4 + i * 2],
   }));
+  if (rest.some((p, i) => i > 0 && Math.hypot(p.x - rest[i - 1].x, p.y - rest[i - 1].y) < 0.0001))
+    return null;
   const vertices = content.subarray(15);
+  for (let i = 0; i < vertices.length; i += 11) {
+    const bone = vertices[i + 9];
+    const fraction = vertices[i + 10];
+    if (
+      !Number.isInteger(bone) ||
+      bone < -1 ||
+      bone > 4 ||
+      fraction < 0 ||
+      fraction > 1 ||
+      Math.hypot(vertices[i + 3], vertices[i + 4], vertices[i + 5]) < 0.0001
+    )
+      return null;
+  }
+  return { rest, vertices };
+}
+
+export function createHatRenderer(
+  canvas: HTMLCanvasElement,
+  data: ArrayBuffer
+): HatRenderer | null {
+  const model = parseHatModel(data);
+  if (!model) return null;
+  const { rest, vertices } = model;
   const gl = canvas.getContext('webgl', {
     alpha: true,
     antialias: true,

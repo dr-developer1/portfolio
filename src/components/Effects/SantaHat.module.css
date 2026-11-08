@@ -1,5 +1,5 @@
 .hat {
-  overflow: clip;
+  overflow: visible;
   pointer-events: none;
 }
 

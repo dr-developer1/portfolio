@@ -1,0 +1,10 @@
+{
+  "blender": "5.2.2 LTS",
+  "originalBytes": 3192348,
+  "regeneratedBytes": 3192348,
+  "originalSHA256": "6fd1dbea47ecde2eb92cfcf9149a05e8d1b37d0f70c86844f270caa6b9f87ce7",
+  "regeneratedSHA256": "fd15ebe802d1ed181d63ba99a60578f2f83991d0fe14b93f6ef98ddb286fdd49",
+  "blendProduced": true,
+  "vertexCount": 72552,
+  "matchingPositionMultisetsAt5Decimals": true
+}

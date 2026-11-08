@@ -127,8 +127,10 @@ visible ring and a 44px touch target.
 Dense, layered canvas snow replaces Matrix rain and settles into bounded snow
 drifts along the bottom edge. It becomes static under reduced motion and pauses
 while the tab is hidden. Mobile layout reserves space for the ground so it cannot
-cover the terminal input. A side gutter aligns the middle of the tilted brim with
-the window corner, letting its front overlap the frame and its tip hang outside.
+cover the terminal input. Desktop retains its side gutter. On phones and tablets up to 768px, symmetric
+small margins give the terminal the full usable width; the hat scales above its
+top-right edge and its tip overlaps only the reserved end of the title bar.
+Landscape phones reduce the space above the frame.
 The seasonal help and music controls sit in the toolbar below the brim. Language
 and CV controls wrap as complete items within the narrower frame. The regular
 Matrix preference remains unchanged.

@@ -1,10 +1,10 @@
 import { getResumePath, setLocale, text, useLocale } from '../../i18n/locale';
 import styles from './LanguageTools.module.css';
 
-export function LanguageTools() {
+export function LanguageTools({ className = '' }: { className?: string }) {
   const locale = useLocale();
   return (
-    <div className={styles.tools}>
+    <div className={`${styles.tools} ${className}`}>
       <div
         className={styles.languages}
         role="group"

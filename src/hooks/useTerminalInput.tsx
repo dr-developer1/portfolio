@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback, useMemo } from 'react';
+import React, { useRef, useState, useCallback, useMemo, useLayoutEffect } from 'react';
 import { useTerminalContext } from './TerminalContext';
 import { getPromptConfig } from './useTerminal';
 import { useTabCompletion } from './useTabCompletion';
@@ -28,6 +28,7 @@ export function useTerminalInput() {
   const inputRef = useRef<HTMLInputElement>(null);
   const shouldRefocusRef = useRef(false);
   const composingRef = useRef(false);
+  const pendingCaretValue = useRef<string | null>(null);
 
   const [selection, setSelection] = useState({
     value: input,
@@ -38,22 +39,34 @@ export function useTerminalInput() {
   const cursorStart = selection.value === input ? selection.start : input.length;
   const cursorEnd = selection.value === input ? selection.end : input.length;
 
-  const syncSelection = (element: HTMLInputElement) => {
+  const syncSelection = useCallback((element: HTMLInputElement) => {
     setSelection({
       value: element.value,
       start: element.selectionStart ?? element.value.length,
       end: element.selectionEnd ?? element.value.length,
     });
-  };
+  }, []);
 
-  const moveCaretToEnd = () => {
-    requestAnimationFrame(() => {
-      const element = inputRef.current;
-      if (!element) return;
+  const replaceInput = (value: string) => {
+    const element = inputRef.current;
+    if (element?.value === value) {
       element.setSelectionRange(element.value.length, element.value.length);
       syncSelection(element);
-    });
+    } else {
+      pendingCaretValue.current = value;
+    }
+    setInput(value);
   };
+
+  // Apply history/completion selection with the committed value, before another key can edit it.
+  useLayoutEffect(() => {
+    const element = inputRef.current;
+    if (pendingCaretValue.current === input && element) {
+      pendingCaretValue.current = null;
+      element.setSelectionRange(input.length, input.length);
+      syncSelection(element);
+    }
+  }, [input, syncSelection]);
 
   const { handleTabKey, resetCompletion } = useTabCompletion();
   const { user, symbol } = getPromptConfig(bootMode);
@@ -126,8 +139,7 @@ export function useTerminalInput() {
 
       const newInput = handleTabKey(input, currentDirectory, user);
       if (newInput !== null) {
-        setInput(newInput);
-        moveCaretToEnd();
+        replaceInput(newInput);
       }
       return;
     }
@@ -150,8 +162,7 @@ export function useTerminalInput() {
         resetCompletion();
         const olderCommand = navigateHistory(1);
         if (olderCommand !== null) {
-          setInput(olderCommand);
-          moveCaretToEnd();
+          replaceInput(olderCommand);
         }
         break;
       }
@@ -161,8 +172,7 @@ export function useTerminalInput() {
         resetCompletion();
         const newerCommand = navigateHistory(-1);
         if (newerCommand !== null) {
-          setInput(newerCommand);
-          moveCaretToEnd();
+          replaceInput(newerCommand);
         }
         break;
       }

@@ -27,14 +27,15 @@
 @media (width <= 768px) {
   .christmasFrame {
     padding-top: 80px;
-    padding-right: 88px;
+    padding-right: 0;
     padding-bottom: 24px;
   }
 
   .santaHat {
-    top: 20px;
-    width: 160px;
-    height: 120px;
+    top: 0;
+    width: clamp(128px, 38vw, 160px);
+    height: auto;
+    aspect-ratio: 4 / 3;
   }
 }
 
@@ -496,7 +497,28 @@
   margin-right: auto;
 }
 
+.christmasFrame .iconButton {
+  width: 44px;
+  height: 44px;
+}
+
+@media (width <= 768px) and (height <= 480px) {
+  .christmasFrame {
+    padding-top: 48px;
+    padding-bottom: 16px;
+  }
+
+  .santaHat {
+    top: -16px;
+    width: 128px;
+  }
+}
+
 @media (width <= 600px) {
+  .christmasFrame .languageTools {
+    display: contents;
+  }
+
   .portfolioToolbar {
     display: block;
     padding: 8px 12px;

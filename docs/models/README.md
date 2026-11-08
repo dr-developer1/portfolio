@@ -25,3 +25,12 @@ dependency or third-party 3D package is needed.
 
 When WebGL or the model is unavailable, a small inline illustration remains.
 Reduced motion allows direct manipulation and returns to rest immediately.
+
+## Export validation
+
+PR #24 remediation regenerated both assets in a disposable directory with
+Blender 5.2.2 LTS and checked the result in the browser. Evaluated triangle/vertex
+order can differ between exports; compare geometry and rig values as well as
+byte hashes before replacing an approved asset. The renderer validates the
+stream before GPU upload and recreates resources after WebGL context recovery.
+See `docs/reviews/pr-24/` for geometry checks and comparison screenshots.

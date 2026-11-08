@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { PointerEvent } from 'react';
 import { text, useLocale } from '../../i18n/locale';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
@@ -70,6 +70,16 @@ export function SantaHat({ className }: { className: string }) {
     const abort = new AbortController();
     let renderer: HatRenderer | null = null;
     let disposed = false;
+    let model: ArrayBuffer | null = null;
+    const initialize = () => {
+      if (disposed || !canvasRef.current || !model) return;
+      renderer?.dispose();
+      renderer = createHatRenderer(canvasRef.current, model);
+      rendererRef.current = renderer;
+      physicsRef.current = renderer ? createHatPhysics(renderer.rest) : null;
+      draw();
+      setReady(renderer !== null);
+    };
     const load = async () => {
       try {
         const response = await fetch(resolveSitePath('/models/santa-hat.bin'), {
@@ -77,28 +87,35 @@ export function SantaHat({ className }: { className: string }) {
         });
         if (!response.ok || response.headers.get('content-type')?.includes('text/html'))
           throw new Error('Santa hat model unavailable');
-        const data = await response.arrayBuffer();
-        if (disposed || !canvasRef.current) return;
-        renderer = createHatRenderer(canvasRef.current, data);
-        rendererRef.current = renderer;
-        if (renderer) physicsRef.current = createHatPhysics(renderer.rest);
-        draw();
-        setReady(renderer !== null);
+        model = await response.arrayBuffer();
+        initialize();
       } catch (error) {
         if (!disposed && import.meta.env.DEV)
           console.warn('Using the illustrated Santa hat.', error);
       }
     };
     void load();
-    const contextLost = () => {
+    const contextLost = (event: Event) => {
+      event.preventDefault();
+      rendererRef.current = null;
       reset();
+      physicsRef.current = null;
       setReady(false);
     };
+    const contextRestored = () => initialize();
     const canvas = canvasRef.current;
-    const resizeObserver = new ResizeObserver(reset);
+    let width = canvas?.clientWidth;
+    let height = canvas?.clientHeight;
+    const resizeObserver = new ResizeObserver(() => {
+      if (canvas?.clientWidth === width && canvas?.clientHeight === height) return;
+      width = canvas?.clientWidth;
+      height = canvas?.clientHeight;
+      reset();
+    });
     if (canvas) resizeObserver.observe(canvas);
     document.addEventListener('visibilitychange', reset);
     canvas?.addEventListener('webglcontextlost', contextLost);
+    canvas?.addEventListener('webglcontextrestored', contextRestored);
     return () => {
       disposed = true;
       abort.abort();
@@ -109,10 +126,11 @@ export function SantaHat({ className }: { className: string }) {
       resizeObserver.disconnect();
       document.removeEventListener('visibilitychange', reset);
       canvas?.removeEventListener('webglcontextlost', contextLost);
+      canvas?.removeEventListener('webglcontextrestored', contextRestored);
     };
   }, [draw, reset]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     draw();
   }, [ready, draw]);
   useEffect(() => {
@@ -144,27 +162,34 @@ export function SantaHat({ className }: { className: string }) {
       data-renderer={ready ? 'webgl' : 'illustration'}
     >
       {!ready && (
-        <svg className={styles.fallback} viewBox="0 0 160 140" aria-hidden="true">
-          <g transform="translate(145 -12) rotate(28) scale(-0.75 0.75)">
-            <defs>
-              <linearGradient id="hat-red">
-                <stop stopColor="#ff5c6a" />
-                <stop offset="1" stopColor="#a51135" />
-              </linearGradient>
-            </defs>
-            <path
-              d="M29 115C39 65 43 20 85 18C119 17 132 44 134 61L115 66C115 50 104 39 92 43C103 66 119 92 129 116Z"
-              fill="url(#hat-red)"
-            />
-            <path d="M25 112Q76 102 131 112L132 130Q78 120 24 130Z" fill="#fff1da" />
-            <circle cx="125" cy="66" r="15" fill="#fff1da" />
-            <path
-              d="M39 105Q82 97 118 106"
-              stroke="#efbd58"
-              strokeWidth="3"
-              strokeDasharray="2 5"
-            />
-          </g>
+        <svg className={styles.fallback} viewBox="0 0 160 120" aria-hidden="true">
+          <defs>
+            <linearGradient id="hat-red">
+              <stop stopColor="#ff5c6a" />
+              <stop offset="1" stopColor="#a51135" />
+            </linearGradient>
+          </defs>
+          <path
+            d="M13 54C26 18 72 1 108 13C142 24 153 58 137 95L126 91C137 62 125 41 109 40L108 74Z"
+            fill="url(#hat-red)"
+          />
+          <path
+            d="M13 55Q62 61 109 76"
+            fill="none"
+            stroke="#fff1da"
+            strokeWidth="17"
+            strokeLinecap="round"
+          />
+          <path
+            d="M13 55Q62 61 109 76"
+            fill="none"
+            stroke="#e8d9be"
+            strokeWidth="19"
+            strokeLinecap="round"
+            strokeDasharray="1 5"
+          />
+          <circle cx="135" cy="97" r="12" fill="#fff1da" />
+          <path d="M22 44Q67 50 111 64" stroke="#efbd58" strokeWidth="3" strokeDasharray="2 5" />
         </svg>
       )}
       <canvas ref={canvasRef} className={styles.canvas} aria-hidden="true" />

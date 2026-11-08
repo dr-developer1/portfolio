@@ -1,0 +1,13 @@
+{
+  "cpuThrottle": 6,
+  "frames": 25,
+  "medianFrameMs": 67,
+  "p95FrameMs": 154,
+  "framebuffer": {
+    "width": 314,
+    "height": 234
+  },
+  "renderer": "headless Chromium / software WebGL; not physical phone measurements",
+  "modelBytes": 3192348,
+  "modelGzipBytes": 377771
+}
