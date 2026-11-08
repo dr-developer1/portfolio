@@ -143,3 +143,39 @@
   --text-glow-cyan: 0 0 15px rgb(0 255 0 / 70%);
   --shadow-glow: 0 0 30px rgb(0 255 0 / 20%);
 }
+
+/* Annual Christmas event: evergreen surfaces, warm snow, holly accents. */
+[data-theme='christmas'] {
+  color-scheme: dark;
+
+  --color-bg-primary: #101e1b;
+  --color-bg-secondary: #192c26;
+  --color-bg-tertiary: #243d32;
+  --color-bg-canvas: #07110f;
+  --color-border-default: #3c5747;
+  --color-border-muted: #2b4035;
+  --color-text-primary: #fff4e0;
+  --color-text-secondary: #bfcbbf;
+  --color-text-muted: #91a596;
+  --color-text-link: #efcc8c;
+  --color-titlebar-bg: #24382c;
+  --color-titlebar-border: #3c5747;
+  --color-accent-green: #8fce9b;
+  --color-accent-cyan: #efcc8c;
+  --color-accent-purple: #f3aaa7;
+  --color-accent-pink: #f3aaa7;
+  --color-accent-red: #ff8585;
+  --color-accent-yellow: #efcc8c;
+  --color-prompt-user: #8fce9b;
+  --color-prompt-host: #efcc8c;
+  --color-prompt-path: #f3aaa7;
+  --color-prompt-symbol: #bfcbbf;
+  --color-command: #fff4e0;
+  --color-output: #ede4d3;
+  --color-error: #ff8585;
+  --color-success: #8fce9b;
+  --color-warning: #efcc8c;
+  --text-glow-green: 0 0 10px rgb(143 206 155 / 20%);
+  --text-glow-cyan: 0 0 10px rgb(239 204 140 / 20%);
+  --shadow-glow: 0 0 24px rgb(143 206 155 / 8%);
+}

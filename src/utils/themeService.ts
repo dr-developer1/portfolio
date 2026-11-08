@@ -53,7 +53,7 @@ export function setStoredTheme(theme: ThemeName): void {
 /**
  * Applies the theme to the document root
  */
-export function applyTheme(theme: ThemeName): void {
+export function applyTheme(theme: ThemeName | 'christmas'): void {
   document.documentElement.setAttribute('data-theme', theme);
 }
 

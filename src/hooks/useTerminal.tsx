@@ -25,6 +25,8 @@ import {
   trackVisit,
 } from '../utils/progressService';
 import styles from '../styles/outputUtilities.module.css';
+import { useChristmasEvent } from './useChristmasEvent';
+import { isChristmasEventActive } from '../utils/christmasEvent';
 
 const SESSION_STARTED_AT = Date.now();
 const INITIAL_PROGRESS = getVisitorProgress();
@@ -62,6 +64,12 @@ export function getPromptConfig(mode: BootMode): { user: string; symbol: string 
  */
 export function useTerminal(): UseTerminalReturn {
   const [state, setState] = useState<TerminalState>(INITIAL_STATE);
+  const christmasActive = useChristmasEvent();
+
+  useEffect(() => {
+    if (christmasActive) applyTheme('christmas');
+    else if (isValidTheme(state.theme)) applyTheme(state.theme);
+  }, [christmasActive, state.theme]);
 
   const appendAchievementFeed = useCallback((unlocked: Achievement[]) => {
     if (unlocked.length === 0) {
@@ -103,13 +111,8 @@ export function useTerminal(): UseTerminalReturn {
     }));
   }, []);
 
-  // Apply theme on mount
+  // Record this visit and restore progression.
   useEffect(() => {
-    const initialTheme = getStoredTheme();
-    if (isValidTheme(initialTheme)) {
-      applyTheme(initialTheme);
-    }
-
     const progress = trackVisit();
     setState((prev) => ({
       ...prev,
@@ -123,8 +126,7 @@ export function useTerminal(): UseTerminalReturn {
     const handleThemeChange = (e: Event) => {
       const customEvent = e as CustomEvent<{ theme: string }>;
       const newTheme = customEvent.detail.theme;
-      if (isValidTheme(newTheme)) {
-        applyTheme(newTheme);
+      if (!isChristmasEventActive() && isValidTheme(newTheme)) {
         setStoredTheme(newTheme);
         setState((prev) => ({ ...prev, theme: newTheme }));
       }
@@ -401,8 +403,7 @@ export function useTerminal(): UseTerminalReturn {
    * Set the current theme
    */
   const setTheme: TerminalActions['setTheme'] = useCallback((theme: string) => {
-    if (isValidTheme(theme)) {
-      applyTheme(theme);
+    if (!isChristmasEventActive() && isValidTheme(theme)) {
       setStoredTheme(theme);
       setState((prev) => ({
         ...prev,
@@ -455,6 +456,8 @@ export function useTerminal(): UseTerminalReturn {
 
   return {
     ...state,
+    theme: christmasActive ? 'christmas' : state.theme,
+    christmasActive,
     addOutput,
     executeCommand,
     setInput,

@@ -104,3 +104,31 @@ build and browser startup locally (with port 4173 free):
 ```bash
 CI=true GITHUB_ACTIONS=true GITHUB_REPOSITORY=dr-developer1/portfolio pnpm test:e2e --workers=2
 ```
+
+## Annual Christmas event
+
+Every year, **November 15–January 15 inclusive** (visitor’s local time), the
+portfolio automatically uses its Christmas palette, falling snow, and Santa hat.
+The Blender hat sits on the top-right corner: drag its pom-pom or focus it and
+press Enter to play with it. The tilted brim stays fixed while the upper fabric
+bends at weighted joints, falls under gravity, and settles down along the right
+edge. The hat stays attached to the corner. Dense
+snow settles into drifts at the screen’s bottom edge. Editable Blender source
+and regeneration instructions live in `docs/models/`.
+
+Theme switching resumes January 16 and restores the saved theme. An open tab
+rechecks the calendar every 30 seconds and when it regains focus. Reduced motion
+shows stationary snow; hidden tabs pause the animation. Music remains opt-in.
+
+Add the two MP3s at these exact paths when ready:
+
+- `public/audio/let-it-snow.mp3`
+- `public/audio/all-i-want-for-christmas-is-you.mp3`
+
+Available tracks loop in that order. Missing or unplayable files are skipped;
+with neither file present the event stays silent. Outside the event,
+`public/audio/background.mp3` plays as before.
+
+To preview outside the dates, run `pnpm dev` and open
+`http://localhost:5173/?season=christmas` (or `?season=normal` for the regular
+appearance). These overrides only work in development.

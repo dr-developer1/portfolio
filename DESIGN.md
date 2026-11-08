@@ -105,3 +105,35 @@ they must not compete with keyboard visibility scrolling.
 The playground language selector remains a native select: it has a short, fixed
 list and benefits from platform keyboard and touch pickers. `premium-ui.json`
 records that ownership; no custom listbox is needed.
+
+## Annual Christmas event
+
+November 15 through January 15 inclusive, using the visitor’s local calendar,
+activates a single Christmas theme. Theme commands and secret boot modes cannot
+replace it or overwrite the visitor’s saved theme. January 16 restores the prior
+appearance and regular soundtrack, including in an open tab.
+
+`themes.css` owns the seasonal evergreen surfaces, warm cream text, gold links,
+and holly accents. Preserve the terminal layout and typography. A Blender-modeled 3D
+Santa hat sits on its upper-right corner without covering controls. Its pom-pom
+accepts mouse/touch dragging and keyboard activation, with an anchored brim and a
+clockwise tilted collar that never moves. Four weighted upper sections bend
+and swing under gravity, retaining drag momentum and settling into a right-hanging
+pose. Segment lengths remain fixed; the pom-pom cannot detach. Reduced motion
+removes the settling animation; a small illustration
+is the fallback when WebGL or the model is unavailable. The focused tip has a
+visible ring and a 44px touch target.
+
+Dense, layered canvas snow replaces Matrix rain and settles into bounded snow
+drifts along the bottom edge. It becomes static under reduced motion and pauses
+while the tab is hidden. Mobile layout reserves space for the ground so it cannot
+cover the terminal input. A side gutter aligns the middle of the tilted brim with
+the window corner, letting its front overlap the frame and its tip hang outside.
+The seasonal help and music controls sit in the toolbar below the brim. Language
+and CV controls wrap as complete items within the narrower frame. The regular
+Matrix preference remains unchanged.
+
+Music stays opt-in and mute remains available. The seasonal playlist alternates
+“Let It Snow” and “All I Want for Christmas Is You”; unavailable tracks are
+skipped, and no available tracks means silence. Local development supports
+`?season=christmas` and `?season=normal`; deployed builds always use the calendar.
