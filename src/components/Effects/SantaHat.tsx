@@ -34,9 +34,12 @@ export function SantaHat({ className }: { className: string }) {
     const canvas = canvasRef.current;
     if (!physics || !canvas) return;
     rendererRef.current?.draw(physics.points);
-    const tip = projectHatPoint(physics.tip(), canvas.clientWidth, canvas.clientHeight);
-    if (buttonRef.current)
-      buttonRef.current.style.transform = `translate(${tip.x - 22}px, ${tip.y - 22}px)`;
+    const tip = projectHatPoint(physics.tip(), 100, 100);
+    if (buttonRef.current) {
+      // Percentages keep the hit target aligned while the canvas resizes.
+      buttonRef.current.style.left = `${tip.x}%`;
+      buttonRef.current.style.top = `${tip.y}%`;
+    }
   }, []);
 
   const reset = useCallback(() => {

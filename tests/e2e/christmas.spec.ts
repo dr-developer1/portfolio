@@ -60,6 +60,18 @@ test('Christmas returns every year and production ignores preview overrides', as
 test('3D hat sits on the right, drags by its tip, and respects reduced motion', async ({
   page,
 }) => {
+  await page.addInitScript(() => {
+    const NativeResizeObserver = window.ResizeObserver;
+    // Exercise layout independently of the renderer's resize callback.
+    window.ResizeObserver = class extends NativeResizeObserver {
+      constructor(callback: ResizeObserverCallback) {
+        super((entries, observer) => {
+          if (!document.documentElement.hasAttribute('data-defer-resize'))
+            callback(entries, observer);
+        });
+      }
+    };
+  });
   await page.clock.setFixedTime(new Date(2026, 11, 20, 12));
   await page.goto('./');
   await page.getByLabel('Type a secret code or press Enter to boot').press('Enter');
@@ -86,6 +98,9 @@ test('3D hat sits on the right, drags by its tip, and respects reduced motion', 
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   if (viewport.width > 768) {
     for (const size of [{ width: 320, height: 640 }, viewport]) {
+      await page.evaluate(() => {
+        document.documentElement.setAttribute('data-defer-resize', '');
+      });
       await page.setViewportSize(size);
       await expect
         .poll(() =>
@@ -147,7 +162,7 @@ test('native mobile touch dragging moves the tip and cancellation restores it', 
   const hat = page.getByTestId('santa-hat');
   const tip = page.getByRole('button', { name: 'Play with Santa hat' });
   await expect(hat).toHaveAttribute('data-renderer', 'webgl');
-  await expect.poll(() => tip.evaluate((node) => node.style.transform)).not.toBe('');
+  await expect.poll(() => tip.evaluate((node) => node.style.left)).not.toBe('');
   await tip.evaluate((node) =>
     node.addEventListener('pointerdown', (event) => {
       node.dataset.nativeTouch = String(event.isTrusted && event.pointerType === 'touch');
