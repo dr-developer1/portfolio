@@ -116,7 +116,7 @@ CI=true GITHUB_ACTIONS=true GITHUB_REPOSITORY=dr-developer1/portfolio pnpm test:
 
 ## Deployment and releases
 
-CI installs the pinned Node/pnpm versions with the frozen lockfile, then runs
+On pull requests, CI installs the pinned Node/pnpm versions with the frozen lockfile, then runs
 lint, CSS lint, unit tests, production build, and browser checks. The Pages workflow
 builds and deploys `main`; Vite derives its base path from `GITHUB_REPOSITORY`
 when `GITHUB_ACTIONS` is set. The generated site is in `dist/`.
